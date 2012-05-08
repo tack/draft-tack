@@ -58,7 +58,7 @@ class TACK:
     def getToBeSigned(self):
         return bytearray("tack_sig", "ascii") + self.write()[:-64]
 
-    def verifySignature(self, verifyFunc):
+    def verifySignature(self, verifyFunc=ecdsa256Verify):
         bytesToVerify = self.getToBeSigned()
         return verifyFunc(self.public_key, bytesToVerify, self.signature)  
 
@@ -144,7 +144,7 @@ class TACK_Break_Sig:
     def getTACKID(self):
         return makeTACKID(self.public_key)
         
-    def verifySignature(self, verifyFunc):
+    def verifySignature(self, verifyFunc=ecdsa256Verify):
         return verifyFunc(self.public_key, 
                             bytearray("tack_break_sig", "ascii"), 
                             self.signature)         
@@ -220,24 +220,25 @@ class TACK_Extension:
     def isEmpty(self):
         return (not self.tack and not self.break_sigs)
         
-    def verifySignatures(self):
+    def verifySignatures(self, verifyFunc=ecdsa256Verify):
         if self.tack:
-            if not self.tack.verifySignature():
+            if not self.tack.verifySignature(verifyFunc):
                 return False
         for break_sig in self.break_sigs:
-            if not break_sig.verifySignature():
+            if not break_sig.verifySignature(verifyFunc):
                 return False
         return True
 
     def parse(self, b, verifyFunc=ecdsa256Verify):
         p = Parser(b)
         tackLen = p.getInt(1)
-        if tackLen != TACK.length:
-            raise SyntaxError("TACK wrong size")
-        else:
-            b2 = p.getBytes(tackLen)
-            self.tack = TACK()
-            self.tack.parse(b2, verifyFunc)
+        if tackLen:
+            if tackLen != TACK.length:
+                raise SyntaxError("TACK wrong size")
+            else:
+                b2 = p.getBytes(tackLen)
+                self.tack = TACK()
+                self.tack.parse(b2, verifyFunc)
 
         sigsLen = p.getInt(2)
         if sigsLen >1024:
