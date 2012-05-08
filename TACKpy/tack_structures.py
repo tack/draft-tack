@@ -215,7 +215,10 @@ class TACK_Extension:
     def create(self, tack, break_sigs, pin_activation):
         self.tack = tack
         self.break_sigs = break_sigs
-        self.pin_activation = pin_activation
+        if not pin_activation:
+            self.pin_activation = TACK_Activation.disabled
+        else:
+            self.pin_activation = TACK_Activation.enabled
     
     def isEmpty(self):
         return (not self.tack and not self.break_sigs)
