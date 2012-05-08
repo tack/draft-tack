@@ -281,25 +281,19 @@ class TACK_Extension:
         assert(w.index == len(w.bytes)) # did we fill entire bytearray?
         return w.bytes
     
-    def writeText(self):
-        return writeTextTACKStructures(self.tack, self.break_sigs, 
-                                    self.pin_activation)
-
-    
-def writeTextTACKStructures(tack, breakSigs, pin_activation, 
-                                tackidOnly=False):        
-    s = ""
-    if tack:
-        if not tackidOnly:
-            s += tack.writeText()
-        else:
-            s += tack.getTACKID()+"\n"
-    if breakSigs:
-        for breakSig in breakSigs:
-            s += breakSig.writeText()
-    s += "pin_activation = %s\n" % \
-        TACK_Activation.strings[pin_activation]
-    return s
+    def writeText(self, tackidOnly=False):  
+        s = ""
+        if self.tack:
+            if not tackidOnly:
+                s += self.tack.writeText()
+            else:
+                s += self.tack.getTACKID()+"\n"
+        if self.break_sigs:
+            for break_sig in self.break_sigs:
+                s += break_sig.writeText()
+        s += "pin_activation = %s\n" % \
+            TACK_Activation.strings[self.pin_activation]
+        return s
 
 def testTACKStructures():
     print("Testing TACK STRUCTURES")
