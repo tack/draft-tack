@@ -86,9 +86,9 @@ class TACK:
         self.expiration = p.getInt(4)
         self.target_hash = p.getBytes(32)
         self.signature = p.getBytes(64)
-                
-        if not self.verifySignature(verifyFunc):
-            raise SyntaxError("Signature verification failure")
+        
+        if self.generation < self.min_generation:
+            raise SyntaxError("Generation less than min_generation")
         if p.index != len(b):
             raise SyntaxError("Excess bytes in TACK")
 
@@ -145,7 +145,8 @@ class TACK_Break_Sig:
         return makeTACKID(self.public_key)
         
     def verifySignature(self, verifyFunc):
-        return verifyFunc(self.public_key, bytearray("tack_break_sig", "ascii"), 
+        return verifyFunc(self.public_key, 
+                            bytearray("tack_break_sig", "ascii"), 
                             self.signature)         
 
     def parsePem(self, s, verifyFunc=ecdsa256Verify):
@@ -167,8 +168,6 @@ class TACK_Break_Sig:
         p = Parser(b)      
         self.public_key = p.getBytes(64)          
         self.signature = p.getBytes(64)
-        if not self.verifySignature(verifyFunc):
-            raise SyntaxError("Signature verification failure")        
         if p.index != len(b):
             raise SyntaxError("Excess bytes in TACK_Break_Sig")
 
@@ -220,6 +219,15 @@ class TACK_Extension:
     
     def isEmpty(self):
         return (not self.tack and not self.break_sigs)
+        
+    def verifySignatures(self):
+        if self.tack:
+            if not self.tack.verifySignature():
+                return False
+        for break_sig in self.break_sigs:
+            if not break_sig.verifySignature():
+                return False
+        return True
 
     def parse(self, b, verifyFunc=ecdsa256Verify):
         p = Parser(b)
