@@ -69,8 +69,6 @@ class TACK:
         validation failure.
         """        
         b = dePem(s, "TACK")
-        if len(b) != TACK.length:
-            raise SyntaxError("TACK is the wrong size")
         self.parse(b, verifyFunc)
         
     def parse(self, b, verifyFunc=ecdsa256Verify):
@@ -78,7 +76,9 @@ class TACK:
         
         Raise a SyntaxError if input is malformed, including signature
         validation failure.
-        """        
+        """
+        if len(b) != TACK.length:
+            raise SyntaxError("TACK is the wrong size")         
         p = Parser(b)      
         self.public_key = p.getBytes(64)          
         self.min_generation = p.getInt(1)
@@ -155,8 +155,6 @@ class TACK_Break_Sig:
         Raise a SyntaxError if input is malformed.
         """        
         b = dePem(s, "TACK BREAK SIG")
-        if len(b) != TACK_Break_Sig.length:
-            raise SyntaxError("Break Sig is the wrong size")        
         self.parse(b, verifyFunc)
 
     def parse(self, b, verifyFunc=ecdsa256Verify):
@@ -165,6 +163,8 @@ class TACK_Break_Sig:
         Raise a SyntaxError if input is malformed, including signature
         validation failure.
         """
+        if len(b) != TACK_Break_Sig.length:
+            raise SyntaxError("Break Sig is the wrong size")        
         p = Parser(b)      
         self.public_key = p.getBytes(64)          
         self.signature = p.getBytes(64)
