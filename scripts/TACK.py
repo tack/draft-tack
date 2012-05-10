@@ -97,9 +97,9 @@ values in the correct order.
                 inCert = SSL_Cert()
                 inCert.open(arg)
             except SyntaxError:
-                printError("SSL certificate malformed: %s" % arg)
+                printError("Certificate malformed: %s" % arg)
             except IOError:
-                printError("Error opening SSL certificate: %s" % arg)                
+                printError("Error opening certificate: %s" % arg)                
         elif opt == "-k":
             try:
                 keyPem = open(arg, "rU").read()
@@ -155,7 +155,7 @@ values in the correct order.
     if "k" in mandatoryString and not keyPem:
         printError("-k missing (TACK Key)")
     if "c" in mandatoryString and not inCert:
-        printError("-c missing (SSL certificate)")
+        printError("-c missing (certificate)")
     if "i" in mandatoryString and not inTack:
         printError("-i missing (TACK)")
 
@@ -416,12 +416,12 @@ Optional arguments:
     elif cmd == "sign"[:len(cmd)]:
         s = posixTimeToStr(time.time())        
         print( \
-"""Creates a TACK based on a target SSL certificate.
+"""Creates a TACK based on a target certificate.
         
   sign -k KEY -c CERT
   
   -k KEY             : Use this TACK key file
-  -c CERT            : Sign this SSL certificate's public key
+  -c CERT            : Sign this certificate's public key
 
 Optional arguments:
   -v                 : Verbose
@@ -432,10 +432,11 @@ Optional arguments:
   -e EXPIRATION      : Use this UTC time for expiration
                          ("%s", "%sZ",
                           "%sZ", "%sZ" etc.)
-                       Or, specify a duration from current time:
-                         ("5m", "30d", "1d12h5m", "0m", etc.)                         
+                       Or, specify a delta from current time:
+                         ("5m", "30d", "1d12h5m", "0m", etc.) 
+                       If not specified, the certificate's notAfter is used.                        
   - n NUM@INTERVAL   : Generate NUM TACKs, with expiration times spaced 
-                       out by INTERVAL (see -d for INTERVAL syntax).  The 
+                       out by INTERVAL (see -e for delta syntax).  The 
                        -o argument is used as a filename prefix, and the
                        -e argument is used as the first expiration time.
 """ % (s, s[:13], s[:10], s[:4]))
@@ -453,7 +454,7 @@ Optional arguments:
   -p PASSWORD        : Use this TACK key password instead of prompting
 """)
     elif cmd == "view"[:len(cmd)]:
-        print("""Views a TACK, TACK Key, TACK Break Sig, or SSL certificate.
+        print("""Views a TACK, TACK Key, TACK Break Sig, or certificate.
 
   view <file>
 """)        
