@@ -352,7 +352,8 @@ break signatures.
 If pin activation is enabled, then the TACK_Extension MAY be used by clients
 to activate or extend the activation of TACK pins. This field is typically
 toggled from a disabled to an enabled state once TACKs have been deployed to
-all TLS servers for a hostname.
+all TLS servers for a hostname. Enabling pin_activation when there is no TACK
+present has no effect.
 
 </t> </list> </t>
 
@@ -429,11 +430,11 @@ until that time.
 
 <t>
 
-A TACK client SHALL send the "tack" extension defined previously, as well as
-the "server_name" extension from <xref target="RFC6066"/> indicating the
-hostname the client is contacting. If not resuming a session, the server MAY
-respond with a TACK_Extension. A TACK client SHALL perform the following steps
-prior to using a non-resumed connection:
+A TACK client SHALL send the "tack" extension defined previously, and SHOULD
+send the "server_name" extension from <xref target="RFC6066"/>. If not
+resuming a session, the server MAY respond with a TACK_Extension. A TACK
+client SHALL perform the following steps prior to using a non-resumed
+connection:
 
 <list style="numbers">
  <t>Check whether the TLS handshake is "well-formed".</t>
