@@ -237,7 +237,7 @@ class TACK_Extension:
         tackLen = p.getInt(1)
         if tackLen:
             if tackLen != TACK.length:
-                raise SyntaxError("TACK wrong size")
+                raise SyntaxError("TACK wrong size: %d" % tackLen)
             else:
                 b2 = p.getBytes(tackLen)
                 self.tack = TACK()
@@ -245,9 +245,9 @@ class TACK_Extension:
 
         sigsLen = p.getInt(2)
         if sigsLen >1024:
-            raise SyntaxError("break_sigs too large")
+            raise SyntaxError("break_sigs too large: %d" % sigsLen)
         elif sigsLen % TACK_Break_Sig.length != 0:
-            raise SyntaxError("break sigs wrong size")
+            raise SyntaxError("break sigs wrong size: %d" % sigsLen)
         else:
             self.break_sigs = []
             b2 = p.getBytes(sigsLen)
