@@ -516,24 +516,24 @@ Internet-Draft    Trust Assertions for Certificate Keys         May 2012
 
    A "key record" contains:
 
-      TACK public key (or hash): A public key or a cryptographically-
+   TACK public key (or hash):  A public key or a cryptographically-
       secure, second preimage-resistant hash of a public key.  A client
       SHALL NOT store multiple key records referencing the same key.
 
-      Min_generation: A single byte used to detect revoked TACKs.
+   Min_generation:  A single byte used to detect revoked TACKs.
 
    A "name record" contains:
 
-      Name: A fully qualified DNS hostname.  A client SHALL NOT store
+   Name:  A fully qualified DNS hostname.  A client SHALL NOT store
       multiple name records with the same name.  The TLS server's
       hostname is considered the "relevant name", and a pin whose name
       exactly matches the relevant name is considered a "relevant pin".
 
-      Initial timestamp: A timestamp noting when this pin was created.
+   Initial timestamp:  A timestamp noting when this pin was created.
 
-      Active period end: Empty or a timestamp.  If empty or set to a
-      time in the past, the pin is "inactive".  If set to a future time,
-      the pin is "active" until that time.
+   Active period end:  Empty or a timestamp.  If empty or set to a time
+      in the past, the pin is "inactive".  If set to a future time, the
+      pin is "active" until that time.
 
 5.2.  High-level client processing
 

@@ -222,7 +222,7 @@ Client processing<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor11">5.1.</a>&nbsp;
 TACK pins, key records, and name records<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#anchor12">5.2.</a>&nbsp;
-High-level client processing<br />
+High-level client processing:<br />
 &nbsp;&nbsp;&nbsp;&nbsp;<a href="#details">5.3.</a>&nbsp;
 Client processing details<br />
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href="#wellformed">5.3.1.</a>&nbsp;
@@ -680,22 +680,24 @@ a (name record, key record) pair.
  A "key record" contains:
 
 </p>
-<blockquote class="text">
-<p>
+<blockquote class="text"><dl>
+<dt>TACK public key (or hash)</dt>
+<dd>
 
-TACK public key (or hash): A public key or a cryptographically-secure, second
+A public key or a cryptographically-secure, second
 preimage-resistant hash of a public key. A client SHALL NOT store multiple key
 records referencing the same key.
 
 
-</p>
-<p>
+</dd>
+<dt>Min_generation</dt>
+<dd>
 
-Min_generation: A single byte used to detect revoked TACKs.
+A single byte used to detect revoked TACKs.
 
 
-</p>
-</blockquote><p>
+</dd>
+</dl></blockquote><p>
 
 </p>
 <p>
@@ -703,37 +705,40 @@ Min_generation: A single byte used to detect revoked TACKs.
 A "name record" contains:
 
 </p>
-<blockquote class="text">
-<p>
+<blockquote class="text"><dl>
+<dt>Name:</dt>
+<dd>
 
-Name: A fully qualified DNS hostname. A client SHALL NOT store multiple name
+A fully qualified DNS hostname. A client SHALL NOT store multiple name
 records with the same name. The TLS server's hostname is considered the
 "relevant name", and a pin whose name exactly matches the relevant name is
 considered a "relevant pin".
 
 
-</p>
-<p>
+</dd>
+<dt>Initial timestamp:</dt>
+<dd>
 
-Initial timestamp: A timestamp noting when this pin was created.
+A timestamp noting when this pin was created.
 
 
-</p>
-<p>
+</dd>
+<dt>Active period end:</dt>
+<dd>
 
-Active period end: Empty or a timestamp. If empty or set to a time in the
+Empty or a timestamp. If empty or set to a time in the
 past, the pin is "inactive". If set to a future time, the pin is "active"
 until that time.
 
 
-</p>
-</blockquote><p>
+</dd>
+</dl></blockquote><p>
 
 </p>
 <a name="anchor12"></a><br /><hr />
 <table summary="layout" cellpadding="0" cellspacing="2" class="TOCbug" align="right"><tr><td class="TOCbug"><a href="#toc">&nbsp;TOC&nbsp;</a></td></tr></table>
 <a name="rfc.section.5.2"></a><h3>5.2.&nbsp;
-High-level client processing</h3>
+High-level client processing:</h3>
 
 <p>
 

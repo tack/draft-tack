@@ -379,17 +379,17 @@ a (name record, key record) pair.
 
  A "key record" contains:
 
-<list style="empty">
-<t>
+<list style="hanging">
+<t hangText="TACK public key (or hash):">
 
-TACK public key (or hash): A public key or a cryptographically-secure, second
+A public key or a cryptographically-secure, second
 preimage-resistant hash of a public key. A client SHALL NOT store multiple key
 records referencing the same key.
 
 </t> 
-<t>
+<t hangText="Min_generation:">
 
-Min_generation: A single byte used to detect revoked TACKs.
+A single byte used to detect revoked TACKs.
 
 </t>
 </list>
@@ -398,24 +398,24 @@ Min_generation: A single byte used to detect revoked TACKs.
 
 A "name record" contains:
 
-<list style="empty">
+<list style="hanging">
 
-<t>
+<t hangText="Name:">
 
-Name: A fully qualified DNS hostname. A client SHALL NOT store multiple name
+A fully qualified DNS hostname. A client SHALL NOT store multiple name
 records with the same name. The TLS server's hostname is considered the
 "relevant name", and a pin whose name exactly matches the relevant name is
 considered a "relevant pin".
 
 </t>
-<t>
+<t hangText="Initial timestamp:">
 
-Initial timestamp: A timestamp noting when this pin was created.
+A timestamp noting when this pin was created.
 
 </t> 
- <t>
+ <t hangText="Active period end:">
 
-Active period end: Empty or a timestamp. If empty or set to a time in the
+Empty or a timestamp. If empty or set to a time in the
 past, the pin is "inactive". If set to a future time, the pin is "active"
 until that time.
 
