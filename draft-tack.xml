@@ -349,11 +349,14 @@ break signatures.
 </t>
 <t hangText="pin_activation:">
 
-If pin activation is enabled, then the TACK_Extension MAY be used by clients
-to activate or extend the activation of TACK pins. This field is typically
-toggled from a disabled to an enabled state once TACKs have been deployed to
-all TLS servers for a hostname. Enabling pin_activation when there is no TACK
-present has no effect.
+If this field is set to 1, then pin activation is enabled, meaning that the
+TACK_Extension MAY be used by clients to create, activate, and extend the
+activation of TACK pins. If this field is set to 0, or if the TACK_Extension
+is absent for a connection, then pin activation is disabled for that
+connection. This field is typically toggled from a disabled to an enabled
+state once TACKs have been deployed to all TLS servers for a hostname.
+Enabling pin_activation when there is no TACK present has no effect. See <xref
+target="creating"/> for more details.
 
 </t> </list> </t>
 
@@ -586,72 +589,73 @@ to "current", and an empty "active period end".</t>
 The following tables summarize this behavior.
 
 </t>
-<t>If a TACK is present and pin activation is enabled:</t>
-      <texttable>
-           <ttcol align='left'>Pin status</ttcol>
-           <ttcol align='left'>Pin references TACK</ttcol>
-           <ttcol align='left'>Result</ttcol>
-           <c>Active</c>
-           <c>Yes</c>
-           <c>Extend activation period</c>
+<t>If there is an active relevant pin:</t>
 
-           <c>Active</c>
-           <c>No</c>
+      <texttable>
+           <ttcol align='left'>Pin references TACK</ttcol>
+           <ttcol align='left'>Pin activation</ttcol>
+           <ttcol align='left'>Result</ttcol>
+
+           <c>Yes</c>
+           <c>Enabled</c>
+           <c>Connection accepted; Extend activation period</c>
+
+           <c>Yes</c>
+           <c>Disabled</c>
+           <c>Connection accepted</c>
+
+           <c>No (or no TACK)</c>
+           <c>*</c>
            <c>Connection rejected</c>
 
-           <c>Inactive</c>
+       </texttable>
+
+<t>If there is an inactive relevant pin:</t>
+
+      <texttable>
+           <ttcol align='left'>Pin references TACK</ttcol>
+           <ttcol align='left'>Pin activation</ttcol>
+           <ttcol align='left'>Result</ttcol>
+
            <c>Yes</c>
+           <c>Enabled</c>
            <c>Activate pin</c>
 
-           <c>Inactive</c>
+           <c>Yes</c>
+           <c>Disabled</c>
+           <c>-</c>
+
            <c>No</c>
+           <c>Enabled</c>
            <c>Delete pin; Create new inactive pin</c>
 
-           <c>No pin</c>
-           <c>-</c>
+           <c>No</c>
+           <c>Disabled</c>
+           <c>Delete pin</c>
+
+           <c>No TACK</c>
+           <c>*</c>
+           <c>Delete pin</c>
+
+       </texttable>
+
+<t>If there no relevant pin:</t>
+
+      <texttable>
+           <ttcol align='left'>TACK present</ttcol>
+           <ttcol align='left'>Pin activation</ttcol>
+           <ttcol align='left'>Result</ttcol>
+
+           <c>Yes</c>
+           <c>Enabled</c>
            <c>Create new inactive pin</c>
 
-       </texttable>
-<t>If a TACK is present and pin activation is disabled:</t>
-      <texttable>
-           <ttcol align='left'>Pin status</ttcol>
-           <ttcol align='left'>Pin references TACK</ttcol>
-           <ttcol align='left'>Result</ttcol>
-           <c>Active</c>
            <c>Yes</c>
+           <c>Disabled</c>
            <c>-</c>
 
-           <c>Active</c>
            <c>No</c>
-           <c>Connection rejected</c>
-
-           <c>Inactive</c>
-           <c>Yes</c>
-           <c>-</c>
-
-           <c>Inactive</c>
-           <c>No</c>
-           <c>Delete pin</c>
-
-           <c>No pin</c>
-           <c>-</c>
-           <c>-</c>
-
-       </texttable>
-
-
-<t>If no TACK is present (including the case of no TACK_Extension):</t>
-      <texttable>
-           <ttcol align='left'>Pin status</ttcol>
-           <ttcol align='left'>Result</ttcol>
-
-           <c>Active</c>
-           <c>Connection rejected</c>
-
-           <c>Inactive</c>
-           <c>Delete pin</c>
-
-           <c>No pin</c>
+           <c>*</c>
            <c>-</c>
 
        </texttable>

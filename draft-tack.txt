@@ -457,17 +457,17 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
    break_sigs:  This field provides break signatures.  It MAY be empty,
       or MAY contain up to 8 break signatures.
 
-   pin_activation:  If pin activation is enabled, then the
-      TACK_Extension MAY be used by clients to activate or extend the
-      activation of TACK pins.  This field is typically toggled from a
-      disabled to an enabled state once TACKs have been deployed to all
-      TLS servers for a hostname.  Enabling pin_activation when there is
-      no TACK present has no effect.
+   pin_activation:  If this field is set to 1, then pin activation is
+      enabled, meaning that the TACK_Extension MAY be used by clients to
+      create, activate, and extend the activation of TACK pins.  If this
+      field is set to 0, or if the TACK_Extension is absent for a
+      connection, then pin activation is disabled for that connection.
+      This field is typically toggled from a disabled to an enabled
+      state once TACKs have been deployed to all TLS servers for a
+      hostname.  Enabling pin_activation when there is no TACK present
+      has no effect.  See Section 5.3.4 for more details.
 
    Note that both the "tack" and "break_sigs" fields MAY be empty.
-
-
-
 
 
 
@@ -673,51 +673,51 @@ Marlinspike & Perrin    Expires December 7, 2012               [Page 12]
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
-   If a TACK is present and pin activation is enabled:
+   If there is an active relevant pin:
 
-   +------------+--------------------+---------------------------------+
-   | Pin status | Pin references     | Result                          |
-   |            | TACK               |                                 |
-   +------------+--------------------+---------------------------------+
-   | Active     | Yes                | Extend activation period        |
-   |            |                    |                                 |
-   | Active     | No                 | Connection rejected             |
-   |            |                    |                                 |
-   | Inactive   | Yes                | Activate pin                    |
-   |            |                    |                                 |
-   | Inactive   | No                 | Delete pin; Create new inactive |
-   |            |                    | pin                             |
-   |            |                    |                                 |
-   | No pin     | -                  | Create new inactive pin         |
-   +------------+--------------------+---------------------------------+
+   +-----------------+-------------+-----------------------------------+
+   | Pin references  | Pin         | Result                            |
+   | TACK            | activation  |                                   |
+   +-----------------+-------------+-----------------------------------+
+   | Yes             | Enabled     | Connection accepted; Extend       |
+   |                 |             | activation period                 |
+   |                 |             |                                   |
+   | Yes             | Disabled    | Connection accepted               |
+   |                 |             |                                   |
+   | No (or no TACK) | *           | Connection rejected               |
+   +-----------------+-------------+-----------------------------------+
 
-   If a TACK is present and pin activation is disabled:
+   If there is an inactive relevant pin:
 
-        +------------+---------------------+---------------------+
-        | Pin status | Pin references TACK | Result              |
-        +------------+---------------------+---------------------+
-        | Active     | Yes                 | -                   |
-        |            |                     |                     |
-        | Active     | No                  | Connection rejected |
-        |            |                     |                     |
-        | Inactive   | Yes                 | -                   |
-        |            |                     |                     |
-        | Inactive   | No                  | Delete pin          |
-        |            |                     |                     |
-        | No pin     | -                   | -                   |
-        +------------+---------------------+---------------------+
+   +-------------------+---------------+-------------------------------+
+   | Pin references    | Pin           | Result                        |
+   | TACK              | activation    |                               |
+   +-------------------+---------------+-------------------------------+
+   | Yes               | Enabled       | Activate pin                  |
+   |                   |               |                               |
+   | Yes               | Disabled      | -                             |
+   |                   |               |                               |
+   | No                | Enabled       | Delete pin; Create new        |
+   |                   |               | inactive pin                  |
+   |                   |               |                               |
+   | No                | Disabled      | Delete pin                    |
+   |                   |               |                               |
+   | No TACK           | *             | Delete pin                    |
+   +-------------------+---------------+-------------------------------+
 
-   If no TACK is present (including the case of no TACK_Extension):
+   If there no relevant pin:
 
-                   +------------+---------------------+
-                   | Pin status | Result              |
-                   +------------+---------------------+
-                   | Active     | Connection rejected |
-                   |            |                     |
-                   | Inactive   | Delete pin          |
-                   |            |                     |
-                   | No pin     | -                   |
-                   +------------+---------------------+
+        +--------------+----------------+-------------------------+
+        | TACK present | Pin activation | Result                  |
+        +--------------+----------------+-------------------------+
+        | Yes          | Enabled        | Create new inactive pin |
+        |              |                |                         |
+        | Yes          | Disabled       | -                       |
+        |              |                |                         |
+        | No           | *              | -                       |
+        +--------------+----------------+-------------------------+
+
+
 
 
 
