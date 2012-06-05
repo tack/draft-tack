@@ -675,17 +675,17 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
    If there is an active relevant pin:
 
-   +-----------------+-------------+-----------------------------------+
-   | Pin references  | Pin         | Result                            |
-   | TACK            | activation  |                                   |
-   +-----------------+-------------+-----------------------------------+
-   | Yes             | Enabled     | Connection accepted; Extend       |
-   |                 |             | activation period                 |
-   |                 |             |                                   |
-   | Yes             | Disabled    | Connection accepted               |
-   |                 |             |                                   |
-   | No (or no TACK) | *           | Connection rejected               |
-   +-----------------+-------------+-----------------------------------+
+   +----------------+------------+-------------------------------------+
+   | Pin references | Pin        | Result                              |
+   | TACK           | activation |                                     |
+   +----------------+------------+-------------------------------------+
+   | Yes            | Enabled    | Connection accepted by pin; Extend  |
+   |                |            | activation period                   |
+   |                |            |                                     |
+   | Yes            | Disabled   | Connection accepted by pin          |
+   |                |            |                                     |
+   | No, or no TACK | *          | Connection rejected by pin          |
+   +----------------+------------+-------------------------------------+
 
    If there is an inactive relevant pin:
 

@@ -598,15 +598,15 @@ The following tables summarize this behavior.
 
            <c>Yes</c>
            <c>Enabled</c>
-           <c>Connection accepted; Extend activation period</c>
+           <c>Connection accepted by pin; Extend activation period</c>
 
            <c>Yes</c>
            <c>Disabled</c>
-           <c>Connection accepted</c>
+           <c>Connection accepted by pin</c>
 
-           <c>No (or no TACK)</c>
+           <c>No, or no TACK</c>
            <c>*</c>
-           <c>Connection rejected</c>
+           <c>Connection rejected by pin</c>
 
        </texttable>
 
