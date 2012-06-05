@@ -82,24 +82,24 @@ Table of Contents
        5.3.2.  Check the TACK generation and update min_generation  . 12
        5.3.3.  Check whether the TACK is expired  . . . . . . . . . . 12
        5.3.4.  Create and activate pins (optional)  . . . . . . . . . 12
-       5.3.5.  Discard pins based on break signatures . . . . . . . . 13
-       5.3.6.  Deleting pins  . . . . . . . . . . . . . . . . . . . . 13
-   6.  Variations on client processing  . . . . . . . . . . . . . . . 14
-     6.1.  TACK and certificate verification  . . . . . . . . . . . . 14
-     6.2.  Application-specific pinning . . . . . . . . . . . . . . . 14
-   7.  TACK IDs . . . . . . . . . . . . . . . . . . . . . . . . . . . 15
-   8.  Advice . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
-     8.1.  For server operators . . . . . . . . . . . . . . . . . . . 16
-     8.2.  For client implementers  . . . . . . . . . . . . . . . . . 17
-   9.  Security considerations  . . . . . . . . . . . . . . . . . . . 18
-     9.1.  For server operators . . . . . . . . . . . . . . . . . . . 18
-     9.2.  For client implementers  . . . . . . . . . . . . . . . . . 18
-     9.3.  Note on algorithm agility  . . . . . . . . . . . . . . . . 19
-   10. IANA considerations  . . . . . . . . . . . . . . . . . . . . . 20
-     10.1. New entry for the TLS ExtensionType Registry . . . . . . . 20
-   11. Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 21
-   12. Normative references . . . . . . . . . . . . . . . . . . . . . 22
-   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 23
+       5.3.5.  Discard pins based on break signatures . . . . . . . . 14
+       5.3.6.  Deleting pins  . . . . . . . . . . . . . . . . . . . . 14
+   6.  Variations on client processing  . . . . . . . . . . . . . . . 15
+     6.1.  TACK and certificate verification  . . . . . . . . . . . . 15
+     6.2.  Application-specific pinning . . . . . . . . . . . . . . . 15
+   7.  TACK IDs . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+   8.  Advice . . . . . . . . . . . . . . . . . . . . . . . . . . . . 17
+     8.1.  For server operators . . . . . . . . . . . . . . . . . . . 17
+     8.2.  For client implementers  . . . . . . . . . . . . . . . . . 18
+   9.  Security considerations  . . . . . . . . . . . . . . . . . . . 19
+     9.1.  For server operators . . . . . . . . . . . . . . . . . . . 19
+     9.2.  For client implementers  . . . . . . . . . . . . . . . . . 19
+     9.3.  Note on algorithm agility  . . . . . . . . . . . . . . . . 20
+   10. IANA considerations  . . . . . . . . . . . . . . . . . . . . . 21
+     10.1. New entry for the TLS ExtensionType Registry . . . . . . . 21
+   11. Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 22
+   12. Normative references . . . . . . . . . . . . . . . . . . . . . 23
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 24
 
 
 
@@ -663,8 +663,8 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
    2.  A name record is created with the relevant name, an "initial
        timestamp" set to "current", and an empty "active period end".
 
-   The following table summarizes this behavior based on whether the
-   relevant pin is active and references the TACK key.
+   The following tables summarize this behavior.
+
 
 
 
@@ -673,27 +673,61 @@ Marlinspike & Perrin    Expires December 7, 2012               [Page 12]
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
-   +----------+-----------+-----------------+--------------------------+
-   | Pin      | TACK      | Pin references  | Result                   |
-   | status   | present   | TACK            |                          |
-   +----------+-----------+-----------------+--------------------------+
-   | Active   | Yes       | Yes             | Extend activation period |
-   |          |           |                 |                          |
-   | Active   | Yes       | No              | Connection rejected      |
-   |          |           |                 |                          |
-   | Active   | No        | -               | Connection rejected      |
-   |          |           |                 |                          |
-   | Inactive | Yes       | Yes             | Activate pin             |
-   |          |           |                 |                          |
-   | Inactive | Yes       | No              | Delete pin; Create new   |
-   |          |           |                 | inactive pin             |
-   |          |           |                 |                          |
-   | Inactive | No        | -               | Delete pin               |
-   |          |           |                 |                          |
-   | No pin   | Yes       | -               | Create new inactive pin  |
-   |          |           |                 |                          |
-   | No pin   | No        | -               | -                        |
-   +----------+-----------+-----------------+--------------------------+
+   If a TACK is present and pin activation is enabled:
+
+   +------------+--------------------+---------------------------------+
+   | Pin status | Pin references     | Result                          |
+   |            | TACK               |                                 |
+   +------------+--------------------+---------------------------------+
+   | Active     | Yes                | Extend activation period        |
+   |            |                    |                                 |
+   | Active     | No                 | Connection rejected             |
+   |            |                    |                                 |
+   | Inactive   | Yes                | Activate pin                    |
+   |            |                    |                                 |
+   | Inactive   | No                 | Delete pin; Create new inactive |
+   |            |                    | pin                             |
+   |            |                    |                                 |
+   | No pin     | -                  | Create new inactive pin         |
+   +------------+--------------------+---------------------------------+
+
+   If a TACK is present and pin activation is disabled:
+
+        +------------+---------------------+---------------------+
+        | Pin status | Pin references TACK | Result              |
+        +------------+---------------------+---------------------+
+        | Active     | Yes                 | -                   |
+        |            |                     |                     |
+        | Active     | No                  | Connection rejected |
+        |            |                     |                     |
+        | Inactive   | Yes                 | -                   |
+        |            |                     |                     |
+        | Inactive   | No                  | Delete pin          |
+        |            |                     |                     |
+        | No pin     | -                   | -                   |
+        +------------+---------------------+---------------------+
+
+   If no TACK is present (including the case of no TACK_Extension):
+
+                   +------------+---------------------+
+                   | Pin status | Result              |
+                   +------------+---------------------+
+                   | Active     | Connection rejected |
+                   |            |                     |
+                   | Inactive   | Delete pin          |
+                   |            |                     |
+                   | No pin     | -                   |
+                   +------------+---------------------+
+
+
+
+
+
+
+Marlinspike & Perrin    Expires December 7, 2012               [Page 13]
+
+Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+
 
 5.3.5.  Discard pins based on break signatures
 
@@ -724,7 +758,29 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 13]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Marlinspike & Perrin    Expires December 7, 2012               [Page 14]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -780,7 +836,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 14]
+Marlinspike & Perrin    Expires December 7, 2012               [Page 15]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -836,7 +892,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 15]
+Marlinspike & Perrin    Expires December 7, 2012               [Page 16]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -892,7 +948,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 16]
+Marlinspike & Perrin    Expires December 7, 2012               [Page 17]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -948,7 +1004,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 17]
+Marlinspike & Perrin    Expires December 7, 2012               [Page 18]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -1004,7 +1060,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 18]
+Marlinspike & Perrin    Expires December 7, 2012               [Page 19]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -1060,7 +1116,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 19]
+Marlinspike & Perrin    Expires December 7, 2012               [Page 20]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -1116,7 +1172,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 20]
+Marlinspike & Perrin    Expires December 7, 2012               [Page 21]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -1172,7 +1228,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 21]
+Marlinspike & Perrin    Expires December 7, 2012               [Page 22]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -1228,7 +1284,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 22]
+Marlinspike & Perrin    Expires December 7, 2012               [Page 23]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -1284,5 +1340,5 @@ Authors' Addresses
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 23]
+Marlinspike & Perrin    Expires December 7, 2012               [Page 24]
 

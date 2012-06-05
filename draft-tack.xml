@@ -583,58 +583,81 @@ to "current", and an empty "active period end".</t>
 
 <t>
 
-The following table summarizes this behavior based on whether the relevant pin
-is active and references the TACK key.
+The following tables summarize this behavior.
 
 </t>
+<t>If a TACK is present and pin activation is enabled:</t>
       <texttable>
            <ttcol align='left'>Pin status</ttcol>
-           <ttcol align='left'>TACK present</ttcol>
            <ttcol align='left'>Pin references TACK</ttcol>
            <ttcol align='left'>Result</ttcol>
            <c>Active</c>
            <c>Yes</c>
-           <c>Yes</c>
            <c>Extend activation period</c>
 
            <c>Active</c>
-           <c>Yes</c>
            <c>No</c>
-           <c>Connection rejected</c>
-
-           <c>Active</c>
-           <c>No</c>
-           <c>-</c>
            <c>Connection rejected</c>
 
            <c>Inactive</c>
-           <c>Yes</c>
            <c>Yes</c>
            <c>Activate pin</c>
 
            <c>Inactive</c>
-           <c>Yes</c>
            <c>No</c>
            <c>Delete pin; Create new inactive pin</c>
 
-           <c>Inactive</c>
-           <c>No</c>
-           <c>-</c>
-           <c>Delete pin</c>
-
            <c>No pin</c>
-           <c>Yes</c>
            <c>-</c>
            <c>Create new inactive pin</c>
 
-           <c>No pin</c>
+       </texttable>
+<t>If a TACK is present and pin activation is disabled:</t>
+      <texttable>
+           <ttcol align='left'>Pin status</ttcol>
+           <ttcol align='left'>Pin references TACK</ttcol>
+           <ttcol align='left'>Result</ttcol>
+           <c>Active</c>
+           <c>Yes</c>
+           <c>-</c>
+
+           <c>Active</c>
            <c>No</c>
+           <c>Connection rejected</c>
+
+           <c>Inactive</c>
+           <c>Yes</c>
+           <c>-</c>
+
+           <c>Inactive</c>
+           <c>No</c>
+           <c>Delete pin</c>
+
+           <c>No pin</c>
            <c>-</c>
            <c>-</c>
 
        </texttable>
 
+
+<t>If no TACK is present (including the case of no TACK_Extension):</t>
+      <texttable>
+           <ttcol align='left'>Pin status</ttcol>
+           <ttcol align='left'>Result</ttcol>
+
+           <c>Active</c>
+           <c>Connection rejected</c>
+
+           <c>Inactive</c>
+           <c>Delete pin</c>
+
+           <c>No pin</c>
+           <c>-</c>
+
+       </texttable>
+
 </section>
+
 <section title="Discard pins based on break signatures">
 <t>
 
