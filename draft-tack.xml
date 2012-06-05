@@ -543,80 +543,93 @@ connection.
 <t>
 
 The TLS connection MAY be used to create, delete, and activate pins as
-described in this section. Note that this section is optional; a client MAY
-rely on an external source of pins, provided the external pins are produced by
-a client following the below algorithms.
+described in this section. Note that this "activation algorithm" is optional;
+a client MAY rely on an external source of pins.
 
 </t>
 <t>
 
-If there is a TACK and a relevant pin referencing the TACK key, and pin
-activation is enabled, the name record's "active period end" SHALL be set
-using the below formula (where "current" is the current time, and "initial" is
-the "initial timestamp" from the name record):
+The first step in the activation algorithm is to delete a relevant but
+inactive pin unless there is a TACK and the pin references the TACK key (see
+<xref target="deleting"/>). If there is no TACK, or if pin activation is
+disabled, then this completes the activation algorithm. Otherwise, the
+following steps are executed:
+
+</t>
+
+<t>
+
+If there is a relevant pin referencing the TACK key, the name record's "active
+period end" SHALL be set using the below formula (where "current" is the
+current time, and "initial" is the "initial timestamp" from the name record):
 
 </t> <figure><artwork>
 active_period_end = current + MIN(30 days, current - initial)
 </artwork></figure>	
 <t>
 
-If there is a TACK and either no relevant pin or an inactive relevant pin that
-does not reference the TACK key, a new pin SHALL be created:
+If there is no relevant pin, a new pin SHALL be created:
 
 <list style="numbers">
-<t>If the TACK key is referenced by an existing
-key record, the key record is reused, otherwise a new key record is created
+<t>If the TACK's key is referenced by an existing
+key record, the key record is reused.  Otherwise, a new key record is created
 with the TACK's key and min_generation.</t>
-<t>A new name record is created
-containing the relevant name, an "initial timestamp" equal to the current
-time, and an empty "active period end".</t>	
 
-<t>If there is an existing relevant pin, the pin SHALL be deleted (see <xref
-target="deleting"/>).</t>
+<t>A name record is created with the relevant name, an "initial timestamp" set
+to "current", and an empty "active period end".</t>
 
 </list>
 </t>
 
-<t> If there is no TACK and the relevant pin is inactive, the pin SHALL be
-deleted (see <xref target="deleting"/>).</t>
-
 <t>
 
 The following table summarizes this behavior based on whether the relevant pin
-is active and references the TACK key. The "(*)" means "if pin activation is
-enabled".
+is active and references the TACK key.
 
 </t>
       <texttable>
            <ttcol align='left'>Pin status</ttcol>
+           <ttcol align='left'>TACK present</ttcol>
            <ttcol align='left'>Pin references TACK</ttcol>
            <ttcol align='left'>Result</ttcol>
            <c>Active</c>
            <c>Yes</c>
-           <c>Extend activation period (*)</c>
+           <c>Yes</c>
+           <c>Extend activation period</c>
 
            <c>Active</c>
-           <c>No (or no TACK)</c>
-           <c>Rejected</c>
+           <c>Yes</c>
+           <c>No</c>
+           <c>Connection rejected</c>
+
+           <c>Active</c>
+           <c>No</c>
+           <c>-</c>
+           <c>Connection rejected</c>
 
            <c>Inactive</c>
            <c>Yes</c>
-           <c>Activate pin (*)</c>
+           <c>Yes</c>
+           <c>Activate pin</c>
+
+           <c>Inactive</c>
+           <c>Yes</c>
+           <c>No</c>
+           <c>Delete pin; Create new inactive pin</c>
 
            <c>Inactive</c>
            <c>No</c>
-           <c>Replace with new inactive pin</c>
-
-           <c>Inactive</c>
-           <c>No TACK</c>
+           <c>-</c>
            <c>Delete pin</c>
 
            <c>No pin</c>
+           <c>Yes</c>
            <c>-</c>
            <c>Create new inactive pin</c>
 
            <c>No pin</c>
-           <c>No TACK</c>
+           <c>No</c>
+           <c>-</c>
            <c>-</c>
 
        </texttable>
