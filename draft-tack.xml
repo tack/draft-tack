@@ -817,7 +817,7 @@ are the pin fingerprint, the active period end, and the name being pinned.
 <t hangText="Key reuse:">
 
 All servers that are pinned to a single TACK key are able to impersonate each
-other, since clients will perceive their TACKs as equivalent. Thus, TACK keys
+other, since clients will perceive their tacks as equivalent. Thus, TACK keys
 SHOULD NOT be reused with different hostnames unless these hostnames are
 closely related. Examples where it would be safe to reuse a TACK key are
 hostnames aliased to the same host, hosts sharing the same TLS key, or

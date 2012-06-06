@@ -902,7 +902,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 8.1.  For server operators
 
    Key reuse:  All servers that are pinned to a single TACK key are able
-      to impersonate each other, since clients will perceive their TACKs
+      to impersonate each other, since clients will perceive their tacks
       as equivalent.  Thus, TACK keys SHOULD NOT be reused with
       different hostnames unless these hostnames are closely related.
       Examples where it would be safe to reuse a TACK key are hostnames
