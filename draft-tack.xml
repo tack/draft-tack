@@ -23,10 +23,10 @@
 			<t>
 
 This document defines TACK, a TLS Extension that enables a TLS server to
-assert the authenticity of its public key. A TACK contains a "TACK key" 
+assert the authenticity of its public key. A "tack" contains a "TACK key" 
 which is used to sign the public key from the TLS server's certificate. 
 Hostnames can be "pinned" to a TACK key. TLS connections to a pinned 
-hostname require the server to present a TACK containing the pinned key
+hostname require the server to present a tack containing the pinned key
 and a corresponding signature over the TLS server's public key.
 
 			</t>
@@ -69,7 +69,7 @@ even itself) in order to handle the compromise of TLS or TACK private keys.
 	<t>
 
 If requested, a compliant server will send a TLS Extension containing its
-"TACK". Inside the TACK is a public key and signature. Once a client has seen
+"tack". Inside the tack is a public key and signature. Once a client has seen
 the same (hostname, TACK public key) pair multiple times, the client will
 "activate" a pin between the hostname and TACK key for a period equal to the
 length of time the pair has been observed for. This "pin activation" process
@@ -95,7 +95,7 @@ described in <xref target="RFC2119"/>.</t>
 
 <section title="Overview">
 
-<section title="TACK life cycle">
+<section title="Tack life cycle">
 
 <t>A server operator using TACK may perform several processes:
 
@@ -108,41 +108,41 @@ though a signing key may be reused for closely-related hostnames (such as
 aliases for the same host, or hosts sharing the same TLS key).
 
 	</t>
-	<t hangText="Creating initial TACKs under a TACK key:">	
+	<t hangText="Creating initial tacks under a TACK key:">	
 
 The TACK private key is then used to sign the TLS public keys for all servers
 associated with those hostnames. The TACK public key and signature are
-combined with some metadata into each server's "TACK".
+combined with some metadata into each server's "tack".
 
 	</t>
-	<t hangText="Deploying initial TACKs:">	
+	<t hangText="Deploying initial tacks:">	
 
-For each hostname, TACKs are deployed to TLS servers in a two-stage process.
-First, each TLS server associated with the hostname is given a TACK. Once this
+For each hostname, tacks are deployed to TLS servers in a two-stage process.
+First, each TLS server associated with the hostname is given a tack. Once this
 is completed, pin activation is enabled on the servers.
 
 	</t>
 	
-	<t hangText="Creating new TACKs under a TACK key:">	
+	<t hangText="Creating new tacks under a TACK key:">	
 
-A TACK needs to be replaced whenever a server changes its TLS public key, or
-when the TACK expires. TACKs may also need to be replaced with
-later-generation TACKs if the TACK key's "min_generation" is updated (see
+A tack needs to be replaced whenever a server changes its TLS public key, or
+when the tack expires. Tacks may also need to be replaced with
+later-generation tacks if the TACK key's "min_generation" is updated (see
 next).
 
 	</t>
-	<t hangText="Revoking old TACKs:">
+	<t hangText="Revoking old tacks:">
 
-If a TLS private key is compromised, the TACKs signing this key can be revoked by
-publishing a new TACK containing a higher "min_generation".
+If a TLS private key is compromised, the tacks signing this key can be revoked
+by publishing a new tack containing a higher "min_generation".
 
 	</t>
 	<t hangText="Revoking TACK keys:">
 
-If a TACK private key is compromised, or a server operator wishes to stop using
-TACK or abruptly change its TACK key for any reason, a server can revoke an entire
-TACK key (including all TACKs and pins referring to it) by publishing a "break
-signature".
+If a TACK private key is compromised, or a server operator wishes to stop
+using TACK or abruptly change its TACK key for any reason, a server can revoke
+an entire TACK key (including all tacks and pins referring to it) by
+publishing a "break signature".
 
 	</t>
 	</list>
@@ -168,7 +168,7 @@ to a maximum period of 30 days.
 
 Pin activation prevents an attacker with short-lived control of the hostname
 from activating long-lived pins. It also makes it safer for sites to
-experiment with TACKs, as a new TACK can be discarded without causing
+experiment with tacks, as a new tack can be discarded without causing
 long-lived problems. The 30 day limit guarantees that a worst-case pin can be
 recovered from in reasonable time.
 
@@ -180,7 +180,7 @@ recovered from in reasonable time.
 style="hanging"> <t hangText="Min_generation:">
 
 Each pin stores the highest "min_generation" value it has seen from the pinned
-TACK key, and rejects TACKs from earlier generations.
+TACK key, and rejects tacks from earlier generations.
 
 	</t>
 
@@ -200,18 +200,18 @@ broken key to be discarded.
 	<section title="Definition of TACK_Extension">
 	<t>
 
-A new TLS ExtensionType ("tack") is defined and MAY be included by a TLS
+A new TLS ExtensionType ("tack_ext") is defined and MAY be included by a TLS
 client in the ClientHello message defined in <xref target="RFC5246"/>.
 
 </t>
 <figure><artwork>
-enum {tack(TBD), (65535)} ExtensionType;
+enum {tack_ext(TBD), (65535)} ExtensionType;
 </artwork></figure>	
 <t>
 
 The "extension_data" field of this ClientHello SHALL be empty. A TLS server
 which is not resuming a TLS session MAY respond with an extension of type
-"tack" in the ServerHello. The "extension_data" field of this ServerHello
+"tack_ext" in the ServerHello. The "extension_data" field of this ServerHello
 SHALL contain a "TACK_Extension", as defined below using the TLS presentation
 language from <xref target="RFC5246"/>.
 
@@ -226,16 +226,16 @@ struct {
    uint32 expiration;
    opaque target_hash[32];
    opaque signature[64];
-} TACK;  /* 166 bytes */
+} Tack;  /* 166 bytes */
 
 struct {
    opaque public_key[64];
    opaque signature[64];
-} TACK_Break_Sig;  /* 128 bytes */
+} Break_Sig;  /* 128 bytes */
 
 struct {
-   TACK tack&lt;0...166&gt;  /* 0 or 1 TACK */
-   TACK_Break_Sig  break_sigs&lt;0...1024&gt;  /* 0...8 Break Sigs */
+   Tack tack&lt;0...166&gt;  /* 0 or 1 Tack */
+   Break_Sig break_sigs&lt;0...1024&gt;  /* 0...8 Break Sigs */
    TACK_Activation pin_activation;
 } TACK_Extension;
 </artwork>
@@ -247,14 +247,14 @@ struct {
 </section>
 <section title="Explanation of TACK_Extension fields">
 
-<section title="TACK fields">
+<section title="Tack fields">
 <t>
 <list style="hanging">
 
 	<t hangText="public_key:">
 
-This field specifies the TACK's public key. The field contains a pair
-of integers (x, y) representing a point on the elliptic curve P-256 defined in
+This field specifies the tack's public key. The field contains a pair of
+integers (x, y) representing a point on the elliptic curve P-256 defined in
 <xref target="FIPS186-3"/>. Each integer is encoded as a 32-byte octet string
 using the Integer-to-Octet-String algorithm from <xref target="RFC6090"/>, and
 these strings are concatenated with the x value first. (NOTE: This is
@@ -271,14 +271,14 @@ This field publishes a min_generation value.
 
 <t hangText="generation:"> 
 
-This field assigns each TACK a generation. Generations less than a published
+This field assigns each tack a generation. Generations less than a published
 min_generation are considered revoked.
 
 </t>
 
 <t hangText="expiration:"> 
 
-This field specifies a time after which the TACK is considered expired. The
+This field specifies a time after which the tack is considered expired. The
 time is encoded as the number of minutes, excluding leap seconds, after
 midnight UTC, January 1 1970. </t>
 
@@ -293,8 +293,8 @@ certificate.
 
 <t hangText="signature:">
 
-This field is an ECDSA signature by the TACK's public key over the 8 byte
-ASCII string "tack_sig" followed by the contents of the TACK prior to the
+This field is an ECDSA signature by the tack's public key over the 8 byte
+ASCII string "tack_sig" followed by the contents of the tack prior to the
 "signature" field (i.e. the preceding 102 bytes). The field contains a pair of
 integers (r, s) representing an ECDSA signature as defined in <xref
 target="FIPS186-3"/>, using curve P-256 and SHA256. Each integer is encoded as
@@ -306,24 +306,24 @@ target="RFC6090"/>, and these strings are concatenated with the r value first.
 </t>
 </section>
 
-<section title="TACK_Break_Sig fields">
+<section title="Break_Sig fields">
 <t>
 <list style="hanging">
 
 <t hangText="public_key:"> 
 
 This field specifies the TACK key being broken. The key is encoded as per
-TACK.public_key.
+tack.public_key.
 
 </t>
 
 <t hangText="signature:">
 
-This field is an ECDSA signature by the TACK_Break_Sig's public key over the
+This field is an ECDSA signature by the Break_Sig's public key over the
 14 byte ASCII string "tack_break_sig". The field contains a pair of integers
 (r, s) representing an ECDSA signature as defined in <xref
 target="FIPS186-3"/>, using curve P-256 and SHA256. It is calculated and
-encoded as per TACK.signature.
+encoded as per tack.signature.
 
 </t>
 
@@ -338,7 +338,7 @@ encoded as per TACK.signature.
 
 <t hangText="tack:">
 
-This field provides the server's TACK. It MAY be empty, or MAY contain a TACK.
+This field provides the server's tack. It MAY be empty, or MAY contain a tack.
 </t>
 
 <t hangText="break_sigs:">
@@ -354,8 +354,8 @@ TACK_Extension MAY be used by clients to create, activate, and extend the
 activation of TACK pins. If this field is set to 0, or if the TACK_Extension
 is absent for a connection, then pin activation is disabled for that
 connection. This field is typically toggled from a disabled to an enabled
-state once TACKs have been deployed to all TLS servers for a hostname.
-Enabling pin_activation when there is no TACK present has no effect. See <xref
+state once tacks have been deployed to all TLS servers for a hostname.
+Enabling pin_activation when there is no tack present has no effect. See <xref
 target="creating"/> for more details.
 
 </t> </list> </t>
@@ -392,7 +392,7 @@ records referencing the same key.
 </t> 
 <t hangText="Min_generation:">
 
-A single byte used to detect revoked TACKs.
+A single byte used to detect revoked tacks.
 
 </t>
 </list>
@@ -433,16 +433,16 @@ until that time.
 
 <t>
 
-A TACK client SHALL send the "tack" extension defined previously, and SHOULD
-send the "server_name" extension from <xref target="RFC6066"/>. If not
+A TACK client SHALL send the "tack_ext" extension defined previously, and
+SHOULD send the "server_name" extension from <xref target="RFC6066"/>. If not
 resuming a session, the server MAY respond with a TACK_Extension. A TACK
 client SHALL perform the following steps prior to using a non-resumed
 connection:
 
 <list style="numbers">
  <t>Check whether the TLS handshake is "well-formed".</t>
- <t>Check the TACK generation and update min_generation.</t>
- <t>Check whether the TACK is expired.</t>
+ <t>Check the tack generation and update min_generation.</t>
+ <t>Check whether the tack is expired.</t>
  <t>Create and activate pins (optional).</t> 
  <t>Discard pins based on break signatures.</t>
 </list>
@@ -455,9 +455,9 @@ remaining steps (see <xref target="details"/> for details).
 
 <t>
 
-After the above steps, if there is a relevant active pin and a TACK whose key
+After the above steps, if there is a relevant active pin and a tack whose key
 is referenced by the pin, then the connection is "accepted" by the pin. If
-there is a relevant active pin but no such TACK, the connection is "rejected"
+there is a relevant active pin but no such tack, the connection is "rejected"
 by the pin. If there is no relevant active pin, the connection is "unpinned".
 </t>
 
@@ -491,13 +491,13 @@ TACK_Extension (else "decode_error").</t>
 "decrypt_error"). This step is optional, as break signature verification MAY
 be deferred till later.</t>
 
-<t>If a TACK is present, it is "well-formed" by the rules below.</t>
+<t>If a tack is present, it is "well-formed" by the rules below.</t>
 
 </list> 
 </t>
 
 <t>
-A TACK is "well-formed" if:	
+A tack is "well-formed" if:	
 <list style="numbers">
 
  <t>"public_key" is a valid elliptic curve public key on the curve P-256 (else
@@ -514,25 +514,24 @@ SubjectPublicKeyInfo (else "illegal_parameter").</t>
 
 </section>
 
-<section title="Check the TACK generation and update min_generation">
+<section title="Check the tack generation and update min_generation">
 <t>
 
-If there is a TACK and a key record referencing the TACK key, and the TACK's
-generation is less than the key record's min_generation, then the TACK is
+If there is a tack and a key record referencing the TACK key, and the tack's
+generation is less than the key record's min_generation, then the tack is
 revoked and the client SHALL send the "certificate_revoked" alert and close
-the connection.
-</t>
+the connection. </t>
 
-<t> Otherwise, if there is a TACK and a key record referencing the TACK key,
-and the TACK's min_generation is greater than the key record's min_generation,
-then the key record's min_generation SHALL be set to the TACK's value.
+<t> Otherwise, if there is a tack and a key record referencing the TACK key,
+and the tack's min_generation is greater than the key record's min_generation,
+then the key record's min_generation SHALL be set to the tack's value.
 
 </t>
 </section>
-<section title="Check whether the TACK is expired">
+<section title="Check whether the tack is expired">
 <t>
 
-If there is a TACK and the TACK's "expiration" field specifies a time in the
+If there is a tack and the tack's "expiration" field specifies a time in the
 past, the client SHALL send the "certificate_expired" alert and close the
 connection.
 
@@ -553,8 +552,8 @@ a client MAY rely on an external source of pins.
 <t>
 
 The first step in the activation algorithm is to delete a relevant but
-inactive pin unless there is a TACK and the pin references the TACK key (see
-<xref target="deleting"/>). If there is no TACK, or if pin activation is
+inactive pin unless there is a tack and the pin references the TACK key (see
+<xref target="deleting"/>). If there is no tack, or if pin activation is
 disabled, then this completes the activation algorithm. Otherwise, the
 following steps are executed:
 
@@ -574,9 +573,9 @@ active_period_end = current + MIN(30 days, current - initial)
 If there is no relevant pin, a new pin SHALL be created:
 
 <list style="numbers">
-<t>If the TACK's key is referenced by an existing
+<t>If the TACK key is referenced by an existing
 key record, the key record is reused.  Otherwise, a new key record is created
-with the TACK's key and min_generation.</t>
+with the TACK key and min_generation.</t>
 
 <t>A name record is created with the relevant name, an "initial timestamp" set
 to "current", and an empty "active period end".</t>
@@ -592,7 +591,7 @@ The following tables summarize this behavior.
 <t>If there is an active relevant pin:</t>
 
       <texttable>
-           <ttcol align='left'>Pin references TACK</ttcol>
+           <ttcol align='left'>Pin references tack</ttcol>
            <ttcol align='left'>Pin activation</ttcol>
            <ttcol align='left'>Result</ttcol>
 
@@ -604,7 +603,7 @@ The following tables summarize this behavior.
            <c>Disabled</c>
            <c>Connection accepted by pin</c>
 
-           <c>No, or no TACK</c>
+           <c>No, or no tack</c>
            <c>*</c>
            <c>Connection rejected by pin</c>
 
@@ -613,7 +612,7 @@ The following tables summarize this behavior.
 <t>If there is an inactive relevant pin:</t>
 
       <texttable>
-           <ttcol align='left'>Pin references TACK</ttcol>
+           <ttcol align='left'>Pin references tack</ttcol>
            <ttcol align='left'>Pin activation</ttcol>
            <ttcol align='left'>Result</ttcol>
 
@@ -633,7 +632,7 @@ The following tables summarize this behavior.
            <c>Disabled</c>
            <c>Delete pin</c>
 
-           <c>No TACK</c>
+           <c>No tack</c>
            <c>*</c>
            <c>Delete pin</c>
 
@@ -642,7 +641,7 @@ The following tables summarize this behavior.
 <t>If there no relevant pin:</t>
 
       <texttable>
-           <ttcol align='left'>TACK present</ttcol>
+           <ttcol align='left'>Tack present</ttcol>
            <ttcol align='left'>Pin activation</ttcol>
            <ttcol align='left'>Result</ttcol>
 
@@ -767,11 +766,11 @@ is outside the scope of this document.
 <section title="TACK IDs">	
 <t>
 
-A "TACK ID" MAY be used to represent a TACK public key to users in a form that
-is relatively easy to compare and transcribe. A TACK ID consists of the first
-25 characters from the base32 encoding of SHA256(public_key), split into 5
-groups of 5 characters separated by periods. Base32 encoding is as specified
-in <xref target="RFC4648"/>, except lowercase is used.
+A "TACK ID" MAY be used to represent a TACK key to users in a form that is
+relatively easy to compare and transcribe. A TACK ID consists of the first 25
+characters from the base32 encoding of SHA256(public_key), split into 5 groups
+of 5 characters separated by periods. Base32 encoding is as specified in <xref
+target="RFC4648"/>, except lowercase is used.
 
 </t>
 <t>
@@ -813,38 +812,38 @@ aliases that hostnames are not pinned inadvertently.
 
 <t hangText="Generations:">
 
-To revoke older generations of TACKs, the server operator SHOULD first provide
-all servers with a new generation of TACKs, and only then provide servers with
-new TACKs containing the new min_generation. Otherwise, a client may receive a
+To revoke older generations of tacks, the server operator SHOULD first provide
+all servers with a new generation of tacks, and only then provide servers with
+new tacks containing the new min_generation. Otherwise, a client may receive a
 min_generation update from one server but then try to contact an
 older-generation server which has not yet been updated.</t>
 
 <t hangText="Signature expiration:">
 
-It is convenient to set the TACK expiration equal to the end-entity
-certificate expiration, so that the TACK and certificate may both be replaced
-at the same time. Alternatively, short-lived TACKs may be used so that a
+It is convenient to set the tack expiration equal to the end-entity
+certificate expiration, so that the tack and certificate may both be replaced
+at the same time. Alternatively, short-lived tacks may be used so that a
 compromised TLS private key has limited value to an attacker.</t>
 
 <t hangText="Break signatures:">
 
 A break signature only needs to be published for a time interval equal to the
-maximum active period of any affected pins. For example, if a TACK has been only
-been published on a website for 24 hours, to remove the TACK only requires
-publishing the break signature for 24 hours.
+maximum active period of any affected pins. For example, if a tack has been
+only been published on a website for 24 hours, to remove the tack only
+requires publishing the break signature for 24 hours.
 
 </t>
 <t hangText="Pin activation:">
 
 Pin activation SHOULD only be enabled once all TLS servers sharing the same
-hostname have a TACK. Otherwise, a client may activate a pin by contacting one
+hostname have a tack. Otherwise, a client may activate a pin by contacting one
 server, then contact a different server at the same hostname that does not yet
-have a TACK. </t>
+have a tack. </t>
 
 <t hangText="Pin deactivation:">The pin_activation field can be used to phase
-out TACKs for a hostname. If all servers at a hostname disable pin activation,
+out tacks for a hostname. If all servers at a hostname disable pin activation,
 all existing pins for the hostname will eventually become inactive, at which
-point the servers' TACKs can be removed.
+point the servers' tacks can be removed.
 
 </t>
 
@@ -867,10 +866,10 @@ require additional protocols outside the scope of this document.
 
 </t> <t hangText="Clock synchronization:">
 
-A client SHOULD take measures to prevent TACKs from being erroneously rejected
+A client SHOULD take measures to prevent tacks from being erroneously rejected
 due to an inaccurate client clock. Such methods MAY include using time
 synchronization protocols such as NTP <xref target="RFC5905"/>, or accepting
-seemingly-expired TACKs if they expired less than T minutes ago, where T is a
+seemingly-expired tacks if they expired less than T minutes ago, where T is a
 "tolerance bound" set to the client's maximum expected clock error.
 
 </t>
@@ -922,7 +921,7 @@ A TACK pin store may contain private details of the client's connection
 history. An attacker may be able to access this information by hacking or
 stealing the client. Some information about the client's connection history
 could also be gleaned by observing whether the client accepts or rejects
-connections to phony TLS servers without correct TACKs. To mitigate these
+connections to phony TLS servers without correct tacks. To mitigate these
 risks, a TACK client SHOULD allow the user to edit or clear the pin store.
 
 </t>
@@ -939,7 +938,7 @@ detected.
 
 <t>
 
-An attacker may attempt to flood a client with spurious TACKs for different
+An attacker may attempt to flood a client with spurious tacks for different
 hostnames, causing the client to delete old pins to make space for new ones.
 To defend against this, clients SHOULD NOT delete active pins to make space
 for new pins. Clients instead SHOULD delete inactive pins. If there are no
@@ -954,10 +953,10 @@ pin with the oldest "active_period_end".
 
 <t>
 
-If the need arises for TACKs using different cryptographic algorithms (e.g.,
-if SHA256 or ECDSA are shown to be weak), a "v2" version of TACKs could be
-defined, requiring assignment of a new TLS Extension number. TACKs as defined
-in this document would then be known as "v1" TACKs.
+If the need arises for tacks using different cryptographic algorithms (e.g.,
+if SHA256 or ECDSA are shown to be weak), a "v2" version of tacks could be
+defined, requiring assignment of a new TLS Extension number. Tacks as defined
+in this document would then be known as "v1" tacks.
 
 </t>
 </section>
@@ -969,7 +968,8 @@ in this document would then be known as "v1" TACKs.
 	<t>
 
 IANA is requested to add an entry to the existing TLS ExtensionType registry,
-defined in <xref target="RFC5246"/>, for tack(TBD) as defined in this document.
+defined in <xref target="RFC5246"/>, for tack_ext(TBD) as defined in this
+document.
 
  </t>
 </section>
