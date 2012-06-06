@@ -803,8 +803,7 @@ and then a decimal value from "0" to "255" for min_generation. Examples:
 
 To convey an active pin to a client who will rely on the pin directly (and not
 perform its own pin activation), the only values that need to be transmitted
-are the application context, the pin fingerprint, the active period end, and
-the name being pinned.
+are the pin fingerprint, the active period end, and the name being pinned.
 
 </t>
 </section>
