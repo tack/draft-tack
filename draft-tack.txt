@@ -461,7 +461,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
       enabled, meaning that the TACK_Extension MAY be used by clients to
       create, activate, and extend the activation of TACK pins.  If this
       field is set to 0, or if the TACK_Extension is absent, then pin
-      activation is disabled for that connection.  This field is
+      activation is disabled for the connection.  This field is
       typically toggled from a disabled to an enabled state once tacks
       have been deployed to all TLS servers for a hostname.  Enabling
       pin_activation when there is no tack present has no effect.  See
@@ -705,7 +705,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
    | No tack             | *            | Delete pin                   |
    +---------------------+--------------+------------------------------+
 
-   If there no relevant pin:
+   If there is no relevant pin:
 
         +--------------+----------------+-------------------------+
         | Tack present | Pin activation | Result                  |
