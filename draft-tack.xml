@@ -15,6 +15,7 @@
         <author initials='T.P.' surname="Perrin" fullname='Trevor Perrin' 
 				role="editor">
             <organization/>
+			<address><email>tack@trevp.net</email></address>
         </author>
         <date/>
 		<area>Security</area>
@@ -79,9 +80,9 @@ operator error.
 			</t>
 			<t>
 
-TACK pins are easily shared between clients. For example, a TACK client
-may scan the internet to discover TACK pins, then publish these pins for other
-clients to rely upon.
+TACK pins are easily shared between clients. For example, a TACK client may
+scan the internet to discover TACK pins, then publish these pins through some
+form of 3rd-party trust infrastructure for other clients to rely upon.
 
 </t>
  </section> 
@@ -119,7 +120,7 @@ combined with some metadata into each server's "tack".
 
 For each hostname, tacks are deployed to TLS servers in a two-stage process.
 First, each TLS server associated with the hostname is given a tack. Once this
-is completed, an "activation flag" is enabled on the servers.
+is completed, an "activation_flag" is enabled on the servers.
 
 	</t>
 	
@@ -355,7 +356,7 @@ and extend the activation of TACK pins. If this field is set to 0, or if the
 TACK_Extension is absent, then the activation_flag is considered disabled for
 the connection. This flag is typically toggled from a disabled to an enabled
 state once tacks have been deployed to all TLS servers for a hostname.
-Enabling activation_flag when there is no tack present has no effect.
+Enabling the activation_flag when there is no tack present has no effect.
 
 </t> </list> </t>
 
@@ -433,7 +434,7 @@ until that time.
 <t>
 
 A TACK client SHALL send the "tack_ext" extension defined previously, and
-SHOULD send the "server_name" extension from <xref target="RFC6066"/>. If not
+SHALL send the "server_name" extension from <xref target="RFC6066"/>. If not
 resuming a session, the server MAY respond with a TACK_Extension. A TACK
 client SHALL perform the following steps prior to using a non-resumed
 connection:
@@ -704,7 +705,6 @@ re-activated in the future by the algorithms in <xref target="creating"/>.
 </section>
 </section>	
 </section>
-<section title="Variations on client processing">
 <section title="TACK and certificate verification" anchor="certver">
 
  <t>
@@ -728,35 +728,42 @@ certificate and/or pin failures.
 </t>
 
 </section>
+<section title="TACK and application protocols">
 
-<section title="Application-specific pinning">
+<section title="General considerations">
 
-<t>
+<t> TACK pins are specific to a particular application protocol. In other
+words, a TACK pin for HTTPS at "example.com" implies nothing about whether
+"example.com" is also using TACK For POP or SMTP, or which pins it may be
+using for these. </t>
 
-In addition to the hostname-based pinning described in <xref
-target="clientproc"/>, some applications may require "application-specific
-pins", where an application-layer name is pinned to a TACK key. For example,
-an SMTP MTA may wish to authenticate receiving MTAs by pinning email domains
-to the receiving MTAs' TACK keys.
+<t>A client's key store MAY be shared between applications. A break signature
+for a key breaks all pins and tacks referencing that key, regardless of
+application protocol.</t>
 
-</t>
-<t>
+<t>Some application protocols negotiate TLS as an optional feature. If such a
+server fails to negotiate TLS and there is a relevant active pin, then the
+connection is rejected by the pin. If the server fails to negotiate TLS and
+there is a relevant inactive pin, then this pin is deleted. Note that these
+steps are taken despite the absence of a TLS connection.</t>
 
-Application-specific pins may require redefinition of the name record's "name"
-field, the "relevant name" for the TLS connection, and the "activation flag"
-signal. With these items redefined, the client processing rules in <xref
-target="clientproc"/> may be reused.
+</section> <section title="Considerations for SMTP">
 
-</t>
+<t>If a sending MTA is contacting a receiving MTA by way of an MX record or an
+"implicit MX" rule, as described in <xref target="RFC2821"/>, the sending MTA
+SHOULD perform "MX pinning" if a TLS connection is negotiated via STARTTLS
+<xref target="RFC3207"/>. An MX pin's name record contains the domain
+component of a recipient's email address instead of the SMTP server's
+hostname. Otherwise, MX pinning is identical to the hostname pinning described
+in <xref target="clientproc"/>. The sending MTA MAY use hostname pins in
+addition to MX pins.</t>
 
-<t>Note that a server using application-specific pins is still subject to
-hostname pins, and a client MAY apply either or both forms of pinning. </t>
-<t>
-
-The specification of application-specific pinning for particular applications
-is outside the scope of this document.
-
-</t>
+<t>If an MX pin rejects a connection, the sending MTA SHALL attempt to contact a
+different mail server for the mail domain. If a sending MTA cannot deliver
+mail due to an MX pin rejection, the sending MTA SHOULD notify the email's
+sender as well as the sending MTA's administrator. After 12 hours, if the
+administrator has not indicated otherwise, the rejecting MX pin SHOULD be
+deleted and the mail SHOULD be delivered.</t>
 
 </section>
 </section>
@@ -850,9 +857,9 @@ compromised TLS private key has limited value to an attacker.</t>
 <t hangText="Break signatures:">
 
 A break signature only needs to be published for a time interval equal to the
-maximum active period of any affected pins. For example, if a tack has been
-only been published on a website for 24 hours, to remove the tack only
-requires publishing the break signature for 24 hours.
+maximum active period of any affected pins. For example, if the activation
+flag for a tack has only been enabled on a particular website for 24 hours, to
+remove the tack only requires publishing the break signature for 24 hours.
 
 </t>
 <t hangText="Activation flag:">
@@ -883,8 +890,9 @@ It is possible for a client to maintain a pin store based entirely on its own
 TLS connections. However, such a client runs the risk of creating incorrect
 pins, failing to keep its pins active, or failing to receive revocation
 information (min_generation updates and break signatures). Clients are advised
-to collaborate so that pin data can be aggregated and shared. This will
-require additional protocols outside the scope of this document.
+to collaborate and make use of 3rd-party trust infrastructure so that pin data
+can be aggregated and shared. This will require additional protocols outside
+the scope of this document.
 
 </t> <t hangText="Clock synchronization:">
 
@@ -1037,6 +1045,8 @@ Lawson, and Joseph Bonneau.
 </reference>
 
 			<?rfc include="bib/reference.RFC.2119.xml"?>
+			<?rfc include="bib/reference.RFC.2821.xml"?>
+			<?rfc include="bib/reference.RFC.3207.xml"?>
 			<?rfc include="bib/reference.RFC.4648.xml"?>
 			<?rfc include="bib/reference.RFC.5246.xml"?>
 			<?rfc include="bib/reference.RFC.5280.xml"?>			
