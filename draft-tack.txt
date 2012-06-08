@@ -3,8 +3,8 @@
 
 TLS Working Group                                         M. Marlinspike
 Internet-Draft                                            T. Perrin, Ed.
-Intended status: Standards Track                            June 5, 2012
-Expires: December 7, 2012
+Intended status: Standards Track                            June 8, 2012
+Expires: December 10, 2012
 
 
                  Trust Assertions for Certificate Keys
@@ -35,7 +35,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on December 7, 2012.
+   This Internet-Draft will expire on December 10, 2012.
 
 Copyright Notice
 
@@ -52,7 +52,7 @@ Copyright Notice
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012                [Page 1]
+Marlinspike & Perrin    Expires December 10, 2012               [Page 1]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -81,7 +81,7 @@ Table of Contents
        5.3.1.  Check whether the TLS handshake is well-formed . . . . 11
        5.3.2.  Check the tack generation and update min_generation  . 12
        5.3.3.  Check whether the tack is expired  . . . . . . . . . . 12
-       5.3.4.  Create and activate pins (optional)  . . . . . . . . . 12
+       5.3.4.  Pin activation (optional)  . . . . . . . . . . . . . . 12
        5.3.5.  Discard pins based on break signatures . . . . . . . . 14
        5.3.6.  Deleting pins  . . . . . . . . . . . . . . . . . . . . 14
    6.  Variations on client processing  . . . . . . . . . . . . . . . 15
@@ -108,7 +108,7 @@ Table of Contents
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012                [Page 2]
+Marlinspike & Perrin    Expires December 10, 2012               [Page 2]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -144,8 +144,8 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
    client has seen the same (hostname, TACK public key) pair multiple
    times, the client will "activate" a pin between the hostname and TACK
    key for a period equal to the length of time the pair has been
-   observed for.  This "pin activation" process limits the impact of bad
-   pins resulting from transient network attacks or operator error.
+   observed for.  This "pin activation" algorithm limits the impact of
+   bad pins resulting from transient network attacks or operator error.
 
    TACK pins are easily shared between clients.  For example, a TACK
    client may scan the internet to discover TACK pins, then publish
@@ -164,7 +164,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012                [Page 3]
+Marlinspike & Perrin    Expires December 10, 2012               [Page 3]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -220,7 +220,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012                [Page 4]
+Marlinspike & Perrin    Expires December 10, 2012               [Page 4]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -245,7 +245,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
    Deploying initial tacks:  For each hostname, tacks are deployed to
       TLS servers in a two-stage process.  First, each TLS server
       associated with the hostname is given a tack.  Once this is
-      completed, pin activation is enabled on the servers.
+      completed, an "activation flag" is enabled on the servers.
 
    Creating new tacks under a TACK key:  A tack needs to be replaced
       whenever a server changes its TLS public key, or when the tack
@@ -276,7 +276,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012                [Page 5]
+Marlinspike & Perrin    Expires December 10, 2012               [Page 5]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -332,7 +332,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012                [Page 6]
+Marlinspike & Perrin    Expires December 10, 2012               [Page 6]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -372,7 +372,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
    struct {
       Tack tack<0...166>  /* 0 or 1 Tack */
       Break_Sig break_sigs<0...1024>  /* 0...8 Break Sigs */
-      TACK_Activation pin_activation;
+      TACK_Activation activation_flag;
    } TACK_Extension;
 
 
@@ -388,7 +388,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012                [Page 7]
+Marlinspike & Perrin    Expires December 10, 2012               [Page 7]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -444,7 +444,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012                [Page 8]
+Marlinspike & Perrin    Expires December 10, 2012               [Page 8]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -457,15 +457,15 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
    break_sigs:  This field provides break signatures.  It MAY be empty,
       or MAY contain up to 8 break signatures.
 
-   pin_activation:  If this field is set to 1, then pin activation is
-      enabled, meaning that the TACK_Extension MAY be used by clients to
-      create, activate, and extend the activation of TACK pins.  If this
-      field is set to 0, or if the TACK_Extension is absent, then pin
-      activation is disabled for the connection.  This field is
-      typically toggled from a disabled to an enabled state once tacks
-      have been deployed to all TLS servers for a hostname.  Enabling
-      pin_activation when there is no tack present has no effect.  See
-      Section 5.3.4 for more details.
+   activation_flag:  If this field is set to 1 and a tack is present,
+      then the tack MAY be used by the pin activation algorithm in
+      Section 5.3.4 to create, activate, and extend the activation of
+      TACK pins.  If this field is set to 0, or if the TACK_Extension is
+      absent, then the activation_flag is considered disabled for the
+      connection.  This flag is typically toggled from a disabled to an
+      enabled state once tacks have been deployed to all TLS servers for
+      a hostname.  Enabling activation_flag when there is no tack
+      present has no effect.
 
    Note that both the "tack" and "break_sigs" fields MAY be empty.
 
@@ -500,7 +500,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012                [Page 9]
+Marlinspike & Perrin    Expires December 10, 2012               [Page 9]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -549,14 +549,14 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
    3.  Check whether the tack is expired.
 
-   4.  Create and activate pins (optional).
+   4.  Pin activation (optional).
 
    5.  Discard pins based on break signatures.
 
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 10]
+Marlinspike & Perrin    Expires December 10, 2012              [Page 10]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -612,19 +612,19 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 11]
+Marlinspike & Perrin    Expires December 10, 2012              [Page 11]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 5.3.2.  Check the tack generation and update min_generation
 
-   If there is a tack and a key record referencing the TACK key, and the
-   tack's generation is less than the key record's min_generation, then
-   the tack is revoked and the client SHALL send the
+   If there is a tack and a key record referencing the tack's key, and
+   the tack's generation is less than the key record's min_generation,
+   then the tack is revoked and the client SHALL send the
    "certificate_revoked" alert and close the connection.
 
-   Otherwise, if there is a tack and a key record referencing the TACK
+   Otherwise, if there is a tack and a key record referencing the tack's
    key, and the tack's min_generation is greater than the key record's
    min_generation, then the key record's min_generation SHALL be set to
    the tack's value.
@@ -635,19 +635,20 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
    in the past, the client SHALL send the "certificate_expired" alert
    and close the connection.
 
-5.3.4.  Create and activate pins (optional)
+5.3.4.  Pin activation (optional)
 
    The TLS connection MAY be used to create, delete, and activate pins
-   as described in this section.  Note that this "activation algorithm"
-   is optional; a client MAY rely on an external source of pins.
+   as described in this section.  Note that this "pin activation
+   algorithm" is optional; a client MAY rely on an external source of
+   pins.
 
-   The first step in the activation algorithm is to delete a relevant
-   but inactive pin unless there is a tack and the pin references the
-   TACK key (see Section 5.3.6).  If there is no tack, or if pin
-   activation is disabled, then this completes the activation algorithm.
-   Otherwise, the following steps are executed:
+   The first step in pin activation is to delete a relevant but inactive
+   pin unless there is a tack and the pin references the tack's key (see
+   Section 5.3.6).  If there is no tack, or if the activation flag is
+   disabled, then this completes the algorithm.  Otherwise, the
+   following steps are executed:
 
-   If there is a relevant pin referencing the TACK key, the name
+   If there is a relevant pin referencing the tack's key, the name
    record's "active period end" SHALL be set using the below formula
    (where "current" is the current time, and "initial" is the "initial
    timestamp" from the name record):
@@ -656,9 +657,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
    If there is no relevant pin, a new pin SHALL be created:
 
-   1.  If the TACK key is referenced by an existing key record, the key
-       record is reused.  Otherwise, a new key record is created with
-       the TACK key and min_generation.
+   1.  If the tack's key is referenced by an existing key record, the
+       key record is reused.  Otherwise, a new key record is created
+       with the tack's key and min_generation.
 
    2.  A name record is created with the relevant name, an "initial
        timestamp" set to "current", and an empty "active period end".
@@ -667,55 +668,54 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-
-Marlinspike & Perrin    Expires December 7, 2012               [Page 12]
+Marlinspike & Perrin    Expires December 10, 2012              [Page 12]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
    If there is an active relevant pin:
 
-   +------------------+------------+-----------------------------------+
-   | Pin references   | Pin        | Result                            |
-   | TACK key         | activation |                                   |
-   +------------------+------------+-----------------------------------+
-   | Yes              | Enabled    | Connection accepted by pin;       |
-   |                  |            | Extend activation period          |
-   |                  |            |                                   |
-   | Yes              | Disabled   | Connection accepted by pin        |
-   |                  |            |                                   |
-   | No, or no tack   | *          | Connection rejected by pin        |
-   +------------------+------------+-----------------------------------+
+   +-------------------------+----------------+------------------------+
+   | Pin references tack's   | Activation     | Result                 |
+   | key                     | flag           |                        |
+   +-------------------------+----------------+------------------------+
+   | Yes                     | Enabled        | Extend activation      |
+   |                         |                | period                 |
+   |                         |                |                        |
+   | Yes                     | Disabled       | -                      |
+   |                         |                |                        |
+   | No, or no tack          | *              | -                      |
+   +-------------------------+----------------+------------------------+
 
    If there is an inactive relevant pin:
 
-   +---------------------+--------------+------------------------------+
-   | Pin references TACK | Pin          | Result                       |
-   | key                 | activation   |                              |
-   +---------------------+--------------+------------------------------+
-   | Yes                 | Enabled      | Activate pin                 |
-   |                     |              |                              |
-   | Yes                 | Disabled     | -                            |
-   |                     |              |                              |
-   | No                  | Enabled      | Delete pin; Create new       |
-   |                     |              | inactive pin                 |
-   |                     |              |                              |
-   | No                  | Disabled     | Delete pin                   |
-   |                     |              |                              |
-   | No tack             | *            | Delete pin                   |
-   +---------------------+--------------+------------------------------+
+   +----------------------+--------------+-----------------------------+
+   | Pin references       | Activation   | Result                      |
+   | tack's key           | flag         |                             |
+   +----------------------+--------------+-----------------------------+
+   | Yes                  | Enabled      | Activate pin                |
+   |                      |              |                             |
+   | Yes                  | Disabled     | -                           |
+   |                      |              |                             |
+   | No                   | Enabled      | Delete pin; Create new      |
+   |                      |              | inactive pin                |
+   |                      |              |                             |
+   | No                   | Disabled     | Delete pin                  |
+   |                      |              |                             |
+   | No tack              | *            | Delete pin                  |
+   +----------------------+--------------+-----------------------------+
 
    If there is no relevant pin:
 
-        +--------------+----------------+-------------------------+
-        | Tack present | Pin activation | Result                  |
-        +--------------+----------------+-------------------------+
-        | Yes          | Enabled        | Create new inactive pin |
-        |              |                |                         |
-        | Yes          | Disabled       | -                       |
-        |              |                |                         |
-        | No           | *              | -                       |
-        +--------------+----------------+-------------------------+
+       +--------------+-----------------+-------------------------+
+       | Tack present | Activation flag | Result                  |
+       +--------------+-----------------+-------------------------+
+       | Yes          | Enabled         | Create new inactive pin |
+       |              |                 |                         |
+       | Yes          | Disabled        | -                       |
+       |              |                 |                         |
+       | No           | *               | -                       |
+       +--------------+-----------------+-------------------------+
 
 
 
@@ -724,7 +724,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 13]
+Marlinspike & Perrin    Expires December 10, 2012              [Page 13]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -780,7 +780,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 14]
+Marlinspike & Perrin    Expires December 10, 2012              [Page 14]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -813,7 +813,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
    Application-specific pins may require redefinition of the name
    record's "name" field, the "relevant name" for the TLS connection,
-   and the "pin activation" signal.  With these items redefined, the
+   and the "activation flag" signal.  With these items redefined, the
    client processing rules in Section 5 may be reused.
 
    Note that a server using application-specific pins is still subject
@@ -836,7 +836,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 15]
+Marlinspike & Perrin    Expires December 10, 2012              [Page 15]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -892,7 +892,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 16]
+Marlinspike & Perrin    Expires December 10, 2012              [Page 16]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -933,22 +933,22 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
       website for 24 hours, to remove the tack only requires publishing
       the break signature for 24 hours.
 
-   Pin activation:  Pin activation SHOULD only be enabled once all TLS
-      servers sharing the same hostname have a tack.  Otherwise, a
+   Activation flag:  The activation flag SHOULD only be enabled once all
+      TLS servers sharing the same hostname have a tack.  Otherwise, a
       client may activate a pin by contacting one server, then contact a
       different server at the same hostname that does not yet have a
       tack.
 
-   Pin deactivation:  The pin_activation field can be used to phase out
-      tacks for a hostname.  If all servers at a hostname disable pin
-      activation, all existing pins for the hostname will eventually
-      become inactive, at which point the servers' tacks can be removed.
+   Pin deactivation:  The activation flag can be used to phase out tacks
+      for a hostname.  If all servers at a hostname disable the flag,
+      all existing pins for the hostname will eventually become
+      inactive, at which point the servers' tacks can be removed.
 
 
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 17]
+Marlinspike & Perrin    Expires December 10, 2012              [Page 17]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -1004,7 +1004,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 18]
+Marlinspike & Perrin    Expires December 10, 2012              [Page 18]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -1060,7 +1060,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 19]
+Marlinspike & Perrin    Expires December 10, 2012              [Page 19]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -1116,7 +1116,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 20]
+Marlinspike & Perrin    Expires December 10, 2012              [Page 20]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -1172,7 +1172,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 21]
+Marlinspike & Perrin    Expires December 10, 2012              [Page 21]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -1228,7 +1228,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 22]
+Marlinspike & Perrin    Expires December 10, 2012              [Page 22]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -1284,7 +1284,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 23]
+Marlinspike & Perrin    Expires December 10, 2012              [Page 23]
 
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
@@ -1340,5 +1340,5 @@ Authors' Addresses
 
 
 
-Marlinspike & Perrin    Expires December 7, 2012               [Page 24]
+Marlinspike & Perrin    Expires December 10, 2012              [Page 24]
 
