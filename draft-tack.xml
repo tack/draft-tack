@@ -733,33 +733,34 @@ certificate and/or pin failures.
 <section title="General considerations">
 
 <t> TACK pins are specific to a particular application protocol. In other
-words, a TACK pin for HTTPS at "example.com" implies nothing about whether
-"example.com" is also using TACK For POP or SMTP, or which pins it may be
-using for these. </t>
+words, a pin for HTTPS at "example.com" implies nothing about POP3 or SMTP at
+"example.com". </t>
 
-<t>A client's key store MAY be shared between applications. A break signature
-for a key breaks all pins and tacks referencing that key, regardless of
-application protocol.</t>
+<t>While each application protocol's name records MUST be stored separately, a
+client's store of key records MAY be shared between applications. A break
+signature for a key breaks all pins referencing that key, regardless of
+application.</t>
 
-<t>Some application protocols negotiate TLS as an optional feature. If such a
-server fails to negotiate TLS and there is a relevant active pin, then the
-connection is rejected by the pin. If the server fails to negotiate TLS and
-there is a relevant inactive pin, then this pin is deleted. Note that these
-steps are taken despite the absence of a TLS connection.</t>
+<t>Some application protocols negotiate TLS as an optional feature (e.g. SMTP
+using STARTTLS <xref target="RFC3207"/>). If such a server fails to negotiate
+TLS and there is a relevant active pin, then the connection is rejected by the
+pin. If the server fails to negotiate TLS and there is a relevant inactive
+pin, then this pin SHALL be deleted. Note that these steps are taken despite
+the absence of a TLS connection.</t>
 
-</section> <section title="Considerations for SMTP">
+</section> <section title="Special considerations for SMTP">
 
 <t>If a sending MTA is contacting a receiving MTA by way of an MX record or an
 "implicit MX" rule, as described in <xref target="RFC2821"/>, the sending MTA
 SHOULD perform "MX pinning" if a TLS connection is negotiated via STARTTLS
 <xref target="RFC3207"/>. An MX pin's name record contains the domain
-component of a recipient's email address instead of the SMTP server's
+component of the recipient's email address instead of the SMTP server's
 hostname. Otherwise, MX pinning is identical to the hostname pinning described
 in <xref target="clientproc"/>. The sending MTA MAY use hostname pins in
 addition to MX pins.</t>
 
-<t>If an MX pin rejects a connection, the sending MTA SHALL attempt to contact a
-different mail server for the mail domain. If a sending MTA cannot deliver
+<t>If an MX pin rejects a connection, the sending MTA SHALL attempt to contact
+a different mail server for the mail domain. If a sending MTA cannot deliver
 mail due to an MX pin rejection, the sending MTA SHOULD notify the email's
 sender as well as the sending MTA's administrator. After 12 hours, if the
 administrator has not indicated otherwise, the rejecting MX pin SHOULD be
@@ -794,8 +795,9 @@ in <xref target="RFC4648"/>, except lowercase is used. Examples:
 <t>
 
 A pin fingerprint may be used to convey TACK pins inside text-based protocols.
-A pin fingerprint consists of a key fingerprint followed by the string ".m="
-and then a decimal value from "0" to "255" for min_generation. Examples:
+A pin fingerprint consists of a key fingerprint followed by an additional
+period, then "m=", and finally the min_generation as a decimal value from "0"
+to "255". Examples:
 
 </t>
 <t>

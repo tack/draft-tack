@@ -87,7 +87,7 @@ Table of Contents
    6.  TACK and certificate verification  . . . . . . . . . . . . . . 15
    7.  TACK and application protocols . . . . . . . . . . . . . . . . 16
      7.1.  General considerations . . . . . . . . . . . . . . . . . . 16
-     7.2.  Considerations for SMTP  . . . . . . . . . . . . . . . . . 16
+     7.2.  Special considerations for SMTP  . . . . . . . . . . . . . 16
    8.  Fingerprints . . . . . . . . . . . . . . . . . . . . . . . . . 17
      8.1.  Key fingerprints . . . . . . . . . . . . . . . . . . . . . 17
      8.2.  Pin fingerprints . . . . . . . . . . . . . . . . . . . . . 17
@@ -846,31 +846,31 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 7.1.  General considerations
 
    TACK pins are specific to a particular application protocol.  In
-   other words, a TACK pin for HTTPS at "example.com" implies nothing
-   about whether "example.com" is also using TACK For POP or SMTP, or
-   which pins it may be using for these.
+   other words, a pin for HTTPS at "example.com" implies nothing about
+   POP3 or SMTP at "example.com".
 
-   A client's key store MAY be shared between applications.  A break
-   signature for a key breaks all pins and tacks referencing that key,
-   regardless of application protocol.
+   While each application protocol's name records MUST be stored
+   separately, a client's store of key records MAY be shared between
+   applications.  A break signature for a key breaks all pins
+   referencing that key, regardless of application.
 
-   Some application protocols negotiate TLS as an optional feature.  If
-   such a server fails to negotiate TLS and there is a relevant active
-   pin, then the connection is rejected by the pin.  If the server fails
-   to negotiate TLS and there is a relevant inactive pin, then this pin
-   is deleted.  Note that these steps are taken despite the absence of a
-   TLS connection.
+   Some application protocols negotiate TLS as an optional feature (e.g.
+   SMTP using STARTTLS [RFC3207]).  If such a server fails to negotiate
+   TLS and there is a relevant active pin, then the connection is
+   rejected by the pin.  If the server fails to negotiate TLS and there
+   is a relevant inactive pin, then this pin SHALL be deleted.  Note
+   that these steps are taken despite the absence of a TLS connection.
 
-7.2.  Considerations for SMTP
+7.2.  Special considerations for SMTP
 
    If a sending MTA is contacting a receiving MTA by way of an MX record
    or an "implicit MX" rule, as described in [RFC2821], the sending MTA
    SHOULD perform "MX pinning" if a TLS connection is negotiated via
    STARTTLS [RFC3207].  An MX pin's name record contains the domain
-   component of a recipient's email address instead of the SMTP server's
-   hostname.  Otherwise, MX pinning is identical to the hostname pinning
-   described in Section 5.  The sending MTA MAY use hostname pins in
-   addition to MX pins.
+   component of the recipient's email address instead of the SMTP
+   server's hostname.  Otherwise, MX pinning is identical to the
+   hostname pinning described in Section 5.  The sending MTA MAY use
+   hostname pins in addition to MX pins.
 
    If an MX pin rejects a connection, the sending MTA SHALL attempt to
    contact a different mail server for the mail domain.  If a sending
@@ -918,8 +918,8 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
    A pin fingerprint may be used to convey TACK pins inside text-based
    protocols.  A pin fingerprint consists of a key fingerprint followed
-   by the string ".m=" and then a decimal value from "0" to "255" for
-   min_generation.  Examples:
+   by an additional period, then "m=", and finally the min_generation as
+   a decimal value from "0" to "255".  Examples:
 
       a334f.bt7ts.ljb3b.y24ij.6zhwm.m=0
 
