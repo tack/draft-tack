@@ -82,7 +82,7 @@ operator error.
 
 TACK pins are easily shared between clients. For example, a TACK client may
 scan the internet to discover TACK pins, then publish these pins through some
-form of 3rd-party trust infrastructure for other clients to rely upon.
+3rd-party trust infrastructure for other clients to rely upon.
 
 </t>
  </section> 
