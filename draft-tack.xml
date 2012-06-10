@@ -210,11 +210,11 @@ enum {tack_ext(TBD), (65535)} ExtensionType;
 </artwork></figure>	
 <t>
 
-The "extension_data" field of this ClientHello SHALL be empty. A TLS server
-which is not resuming a TLS session MAY respond with an extension of type
-"tack_ext" in the ServerHello. The "extension_data" field of this ServerHello
-SHALL contain a "TACK_Extension", as defined below using the TLS presentation
-language from <xref target="RFC5246"/>.
+The "extension_data" field of this ClientHello extension SHALL be empty. A TLS
+server which is not resuming a TLS session MAY respond with an extension of
+type "tack_ext" in the ServerHello. The "extension_data" field of this
+ServerHello extension SHALL contain a "TACK_Extension", as defined below using
+the TLS presentation language from <xref target="RFC5246"/>.
 
 	</t>
 <figure><artwork>
@@ -730,8 +730,6 @@ certificate and/or pin failures.
 </section>
 <section title="TACK and application protocols">
 
-<section title="General considerations">
-
 <t> TACK pins are specific to a particular application protocol. In other
 words, a pin for HTTPS at "example.com" implies nothing about POP3 or SMTP at
 "example.com". </t>
@@ -748,30 +746,10 @@ pin. If the server fails to negotiate TLS and there is a relevant inactive
 pin, then this pin SHALL be deleted. Note that these steps are taken despite
 the absence of a TLS connection.</t>
 
-</section> <section title="Special considerations for SMTP">
-
-<t>If a sending MTA is contacting a receiving MTA by way of an MX record or an
-"implicit MX" rule, as described in <xref target="RFC2821"/>, the sending MTA
-SHOULD perform "MX pinning" if a TLS connection is negotiated via STARTTLS
-<xref target="RFC3207"/>. An MX pin's name record contains the domain
-component of the recipient's email address instead of the SMTP server's
-hostname. Otherwise, MX pinning is identical to the hostname pinning described
-in <xref target="clientproc"/>. The sending MTA MAY use hostname pins in
-addition to MX pins.</t>
-
-<t>If an MX pin rejects a connection, the sending MTA SHALL attempt to contact
-a different mail server for the mail domain. If a sending MTA cannot deliver
-mail due to an MX pin rejection, the sending MTA SHOULD notify the email's
-sender as well as the sending MTA's administrator. After 12 hours, if the
-administrator has not indicated otherwise, the rejecting MX pin SHOULD be
-deleted and the mail SHOULD be delivered.</t>
-
-</section>
 </section>
 
 
 <section title="Fingerprints">	
-<section title="Key fingerprints">
 <t>
 
 A "key fingerprint" may be used to represent a TACK public key to users in a
@@ -789,32 +767,6 @@ in <xref target="RFC4648"/>, except lowercase is used. Examples:
 </list>
 </t>
 
-</section>
-
-<section title="Pin fingerprints">
-<t>
-
-A pin fingerprint may be used to convey TACK pins inside text-based protocols.
-A pin fingerprint consists of a key fingerprint followed by an additional
-period, then "m=", and finally the min_generation as a decimal value from "0"
-to "255". Examples:
-
-</t>
-<t>
-<list>
-	<t>a334f.bt7ts.ljb3b.y24ij.6zhwm.m=0</t>
-	<t>27rvt.q4r5w.l5ss5.ixvbi.vyzyd.m=10</t>	
-	<t>ebsx7.z22qt.okobu.ibhut.xzdny.m=123</t>	
-</list>
-</t>
-<t>
-
-To convey an active pin to a client who will rely on the pin directly (and not
-perform its own pin activation), the only values that need to be transmitted
-are the pin fingerprint, the active period end, and the name being pinned.
-
-</t>
-</section>
 </section>
 
 <section title="Advice"> 
@@ -1047,7 +999,6 @@ Lawson, and Joseph Bonneau.
 </reference>
 
 			<?rfc include="bib/reference.RFC.2119.xml"?>
-			<?rfc include="bib/reference.RFC.2821.xml"?>
 			<?rfc include="bib/reference.RFC.3207.xml"?>
 			<?rfc include="bib/reference.RFC.4648.xml"?>
 			<?rfc include="bib/reference.RFC.5246.xml"?>
