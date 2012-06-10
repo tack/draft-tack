@@ -436,15 +436,15 @@ until that time.
 A TACK client SHALL send the "tack_ext" extension defined previously, and
 SHALL send the "server_name" extension from <xref target="RFC6066"/>. If not
 resuming a session, the server MAY respond with a TACK_Extension. A TACK
-client SHALL perform the following steps prior to using a non-resumed
-connection:
+client SHALL perform the following steps prior to using the connection (if
+no TACK_Extension is sent, 1 through 4 are skipped):
 
 <list style="numbers">
  <t>Check whether the TLS handshake is "well-formed".</t>
+ <t>Discard pins based on break signatures.</t>
  <t>Check the tack generation and update min_generation.</t>
  <t>Check whether the tack is expired.</t>
  <t>Pin activation (optional).</t> 
- <t>Discard pins based on break signatures.</t>
 </list>
 
 These steps SHALL be performed in order. If there is any error, the client
@@ -484,8 +484,8 @@ be sent on a failure is indicated in parentheses):
 <t>The handshake protocol negotiates a cryptographically secure ciphersuite
 and finishes succesfully (else see <xref target="RFC5246"/>).</t>
 
-<t>The handshake contains either no TACK_Extension or a syntactically-valid
-TACK_Extension (else "decode_error").</t>
+<t>The handshake contains a syntactically-valid TACK_Extension (else
+"decode_error").</t>
 
 <t>If break signatures are present, the signatures are correct (else
 "decrypt_error"). This step is optional, as break signature verification MAY
@@ -512,6 +512,23 @@ SubjectPublicKeyInfo (else "illegal_parameter").</t>
 </list>	
 </t>
 
+</section>
+
+<section title="Discard pins based on break signatures">
+<t>
+
+All key records broken by break signatures SHALL be discarded, along with
+their associated name records. A key record is broken by a break signature if
+the break signature passes the following checks:
+
+<list style="numbers">
+
+ 	<t>"public_key" is referenced by the key record.</t>
+
+	<t>"signature" is a correct ECDSA signature (else "decrypt_error"). </t>
+
+</list>
+</t>
 </section>
 
 <section title="Check the tack generation and update min_generation">
@@ -570,7 +587,8 @@ active_period_end = current + MIN(30 days, current - initial)
 </artwork></figure>	
 <t>
 
-If there is no relevant pin, a new pin SHALL be created:
+If there is no relevant pin, and the tack's key is not equal to any break
+signature's key, a new pin SHALL be created:
 
 <list style="numbers">
 <t>If the tack's key is referenced by an existing
@@ -586,6 +604,7 @@ to "current", and an empty "active period end".</t>
 <t>
 
 The following tables summarize this behavior.
+<vspace blankLines="100" />	
 
 </t>
 <t>If there is an active relevant pin:</t>
@@ -659,23 +678,6 @@ The following tables summarize this behavior.
 
        </texttable>
 
-</section>
-
-<section title="Discard pins based on break signatures">
-<t>
-
-All key records broken by break signatures SHALL be discarded, along with
-their associated name records. A key record is broken by a break signature if
-the break signature passes the following checks:
-
-<list style="numbers">
-
- 	<t>"public_key" is referenced by the key record.</t>
-
-	<t>"signature" is a correct ECDSA signature (else "decrypt_error"). </t>
-
-</list>
-</t>
 </section>
 
 <section title="Deleting pins" anchor="deleting">
