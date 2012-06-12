@@ -865,6 +865,13 @@ same hostname have a tack. Otherwise, a client may activate a pin by
 contacting one server, then contact a different server at the same hostname
 that does not yet have a tack. </t>
 
+<t hangText="Pin deactivation:">The activation flag can be used to phase out
+tacks for a hostname. If all servers at a hostname disable the flag, all
+existing pins for the hostname will eventually become inactive, at which point
+the servers' tacks can be removed.
+
+</t>
+
 <t hangText="Change signatures and the change flag:">
 
 A change signature only needs to be published for a time interval equal to the
@@ -874,14 +881,6 @@ new tack is a "changed" version of an older one, thus an older pin can be
 re-activated instead of needing to create a new inactive pin. The change flag
 SHOULD only be enabled once all TLS servers sharing the same TACK key have a
 change signature.</t>
-
-<t hangText="Pin deactivation:">The activation flag can be used to phase out
-tacks for a hostname. If all servers at a hostname disable the flag, all
-existing pins for the hostname will eventually become inactive, at which point
-the servers' tacks can be removed.
-
-</t>
-
 
 </list>
 <vspace blankLines="100" />	

@@ -1050,13 +1050,13 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
       different server at the same hostname that does not yet have a
       tack.
 
-   Change signatures and the change flag:  A change signature only needs
-      to be published for a time interval equal to the maximum active
-      period of any affected pins.  However, leaving it up for longer
-      will enable clients who infrequently access the server to
-      recognize that the new tack is a "changed" version of an older
-      one, thus an older pin can be re-activated instead of needing to
-      create a new inactive pin.  The change flag SHOULD only be enabled
+   Pin deactivation:  The activation flag can be used to phase out tacks
+      for a hostname.  If all servers at a hostname disable the flag,
+      all existing pins for the hostname will eventually become
+      inactive, at which point the servers' tacks can be removed.
+
+
+
 
 
 
@@ -1065,15 +1065,15 @@ Marlinspike & Perrin    Expires December 13, 2012              [Page 19]
 Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
+   Change signatures and the change flag:  A change signature only needs
+      to be published for a time interval equal to the maximum active
+      period of any affected pins.  However, leaving it up for longer
+      will enable clients who infrequently access the server to
+      recognize that the new tack is a "changed" version of an older
+      one, thus an older pin can be re-activated instead of needing to
+      create a new inactive pin.  The change flag SHOULD only be enabled
       once all TLS servers sharing the same TACK key have a change
       signature.
-
-   Pin deactivation:  The activation flag can be used to phase out tacks
-      for a hostname.  If all servers at a hostname disable the flag,
-      all existing pins for the hostname will eventually become
-      inactive, at which point the servers' tacks can be removed.
-
-
 
 
 
