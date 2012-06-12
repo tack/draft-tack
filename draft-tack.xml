@@ -120,7 +120,7 @@ combined with some metadata into each server's "tack".
 
 For each hostname, tacks are deployed to TLS servers in a two-stage process.
 First, each TLS server associated with the hostname is given a tack. Once this
-is completed, an "activation_flag" is enabled on the servers.
+is completed, an "activation flag" is enabled on the servers.
 
 	</t>
 	
@@ -138,18 +138,24 @@ If a TLS private key is compromised, the tacks signing this key can be revoked
 by publishing a new tack containing a higher "min_generation".
 
 	</t>
-	<t hangText="Revoking TACK keys:">
+	<t hangText="Stopping use of tacks:">
 
-If a TACK private key is compromised, or a server operator wishes to stop
-using TACK or abruptly change its TACK key for any reason, a server can revoke
-an entire TACK key (including all tacks and pins referring to it) by
-publishing a "break signature".
+To stop publishing tacks at any time, a server may instead publish a "break
+signature". A break signature from a TACK key will cause any client
+encountering it to delete all pins to that key. If the server operator has
+lost the TACK key, clearing the "activation flag" will cause all pins to
+deactivate within 30 days or less.
 
 	</t>
+	<t hangText="Changing TACK keys:">
+
+If a TACK private key is compromised or suspected of being untrustworthy, a
+server can replace it by publishing a "change signature".
+
+	</t>	
 	</list>
 	<vspace blankLines="100" />	
 </t>
-	
 
 </section>
 
@@ -188,7 +194,13 @@ TACK key, and rejects tacks from earlier generations.
 	<t hangText="Break signatures:">
 
 A TLS handshake may send break signatures which cause all pins for the
-broken key to be discarded.
+broken key to be deleted.
+
+	</t>
+	<t hangText="Change signatures:">
+
+A TLS handshake may send change signatures which cause all pins for one key to
+become pins to a different key.
 
 	</t>
 
@@ -218,7 +230,7 @@ the TLS presentation language from <xref target="RFC5246"/>.
 
 	</t>
 <figure><artwork>
-enum (disabled(0), enabled(1)} TACK_Activation;
+enum (activation(1), change(2)} TACK_Flags;
 
 struct {
    opaque public_key[64];
@@ -232,12 +244,13 @@ struct {
 struct {
    opaque public_key[64];
    opaque signature[64];
-} Break_Sig;  /* 128 bytes */
+} Sig;  /* 128 bytes */
 
 struct {
-   Tack tack&lt;0...166&gt;  /* 0 or 1 Tack */
-   Break_Sig break_sigs&lt;0...1024&gt;  /* 0...8 Break Sigs */
-   TACK_Activation activation_flag;
+   Tack   tack&lt;0...166&gt;          /* 0 or 1 Tack */
+   Sig    break_sigs&lt;0...1024&gt;   /* 0...8 Break Sigs */
+   Sig    change_sigs&lt;0...1024&gt;  /* 0...8 Change Sigs */
+   uint8  flags;
 } TACK_Extension;
 </artwork>
 </figure>
@@ -307,24 +320,25 @@ target="RFC6090"/>, and these strings are concatenated with the r value first.
 </t>
 </section>
 
-<section title="Break_Sig fields">
+<section title="Sig fields">
 <t>
 <list style="hanging">
 
 <t hangText="public_key:"> 
 
-This field specifies the TACK key being broken. The key is encoded as per
-tack.public_key.
+This field specifies the TACK key performing the following signature. The key
+is encoded as per tack.public_key.
 
 </t>
 
 <t hangText="signature:">
 
-This field is an ECDSA signature by the Break_Sig's public key over the
-14 byte ASCII string "tack_break_sig". The field contains a pair of integers
-(r, s) representing an ECDSA signature as defined in <xref
-target="FIPS186-3"/>, using curve P-256 and SHA256. It is calculated and
-encoded as per tack.signature.
+This field is an ECDSA signature by the Sig's public key. Break signatures are
+calculated over the 14 byte ASCII string "tack_break_sig". Change signatures
+are calculated over the 15 byte ASCII string "tack_change_sig" followed by the
+tack's public_key. This field contains a pair of integers (r, s) representing
+an ECDSA signature as defined in <xref target="FIPS186-3"/>, using curve P-256
+and SHA256. It is encoded as per tack.signature.
 
 </t>
 
@@ -345,22 +359,32 @@ This field provides the server's tack. It MAY be empty, or MAY contain a tack.
 <t hangText="break_sigs:">
 
 This field provides break signatures. It MAY be empty, or MAY contain up to 8
-break signatures.
+break signatures. The total number of break and change signatures in a
+TACK_Extension MUST NOT be greater than 8.
 
 </t>
-<t hangText="activation_flag:">
+<t hangText="change_sigs:">
 
-If this field is set to 1 and a tack is present, then the tack MAY be used by
-the pin activation algorithm in <xref target="creating"/> to create, activate,
-and extend the activation of TACK pins. If this field is set to 0, or if the
-TACK_Extension is absent, then the activation_flag is considered disabled for
-the connection. This flag is typically toggled from a disabled to an enabled
-state once tacks have been deployed to all TLS servers for a hostname.
-Enabling the activation_flag when there is no tack present has no effect.
+This field provides change signatures. It MAY be empty, or MAY contain up to 8
+change signatures. The total number of break and change signatures in a
+TACK_Extension MUST NOT be greater than 8.
+
+</t>
+<t hangText="flags:">
+
+If the activation flag is enabled and a tack is present, then the tack MAY be
+used by the pin activation algorithm in <xref target="creating"/> to create,
+activate, and extend the activation of TACK pins. If the change flag is set
+and change signatures are present, then a client will modify any pins to the
+change signature's public_key so that they pin the tack's public_key. These
+flags allow the gradual rollout of tacks and change signatures across a
+population of servers, since the pin activation and key change algorithms will
+not take effect until a flag is set.
 
 </t> </list> </t>
 
-<t> Note that both the "tack" and "break_sigs" fields MAY be empty. </t>
+<t> Note that any or all of "tack", "break_sigs", and "change_sigs" MAY be
+empty. </t>
 
 </section>
 
@@ -368,16 +392,23 @@ Enabling the activation_flag when there is no tack present has no effect.
 </section>
 
 <section title="Client processing" anchor="clientproc">
-<section title="TACK pins, key records, and name records">
+<section title="TACK pins and the pin store">
 
-<t>
+<t>A client supporting TACK SHALL have a local store of pins, consisting of
+"key records" and "name records". Each name record is associated with a key
+record. Multiple name records MAY be associated with one key record. A "pin"
+refers to a (name record, key record) pair.</t>
 
-A client supporting TACK SHALL have a local store of pins, consisting of "key
-records" and "name records". Each name record is associated with a key record.
-Multiple name records MAY be associated with one key record. A "pin" refers to
-a (name record, key record) pair.
+<t> A TACK client MAY perform "pin activation" to derive pins based on its own
+TLS connections, or MAY rely on an external source of pins. A "pin activation"
+client SHALL store an additional timestamp as part of each name record (see
+below).</t>
 
-</t> 
+<t> An important notion is whether a pin "approves" a tack. A pin approves a
+tack if either the pin's key record references the tack's key, or the
+TACK_Extension contains a change signature from the pin's key over the tack's
+key.</t>
+
 <t>
 
  A "key record" contains:
@@ -385,9 +416,9 @@ a (name record, key record) pair.
 <list style="hanging">
 <t hangText="TACK public key (or hash):">
 
-A public key or a cryptographically-secure, second
-preimage-resistant hash of a public key. A client SHALL NOT store multiple key
-records referencing the same key.
+A public key or a cryptographically-secure, second preimage-resistant hash of
+a public key. A client SHALL NOT store multiple key records referencing the
+same key.
 
 </t> 
 <t hangText="Min_generation:">
@@ -395,6 +426,7 @@ records referencing the same key.
 A single byte used to detect revoked tacks.
 
 </t>
+
 </list>
 </t>
 <t>
@@ -411,20 +443,22 @@ records with the same name. The TLS server's hostname is considered the
 considered a "relevant pin".
 
 </t>
-<t hangText="Initial timestamp:">
+<t hangText="Initial timestamp (for pin activation only):">
 
 A timestamp noting when this pin was created.
 
 </t> 
  <t hangText="Active period end:">
 
-Empty or a timestamp. If empty or set to a time in the
-past, the pin is "inactive". If set to a future time, the pin is "active"
-until that time.
+Empty or a timestamp. If empty or set to a time in the past, the pin is
+"inactive". If set to a future time, the pin is "active" until that time.
 
 </t> 
 
 </list>
+
+<vspace blankLines="100" />	
+
 </t>
 
 </section>
@@ -437,11 +471,12 @@ A TACK client SHALL send the "tack_ext" extension defined previously, and
 SHALL send the "server_name" extension from <xref target="RFC6066"/>. If not
 resuming a session, the server MAY respond with a TACK_Extension. A TACK
 client SHALL perform the following steps prior to using the connection (if
-no TACK_Extension is sent, 1 through 4 are skipped):
+no TACK_Extension is sent, 1 through 5 are skipped):
 
 <list style="numbers">
  <t>Check whether the TLS handshake is "well-formed".</t>
- <t>Discard pins based on break signatures.</t>
+ <t>Delete pins based on break signatures.</t>
+ <t>Change keys based on change signatures.</t>
  <t>Check the tack generation and update min_generation.</t>
  <t>Check whether the tack is expired.</t>
  <t>Pin activation (optional).</t> 
@@ -453,21 +488,24 @@ remaining steps (see <xref target="details"/> for details).
 
 </t>
 
-<t>
+<t>After the above steps, the client evaluates the status of the connection
+based on the following logic: </t>
 
-After the above steps, if there is a relevant active pin and a tack whose key
-is referenced by the pin, then the connection is "accepted" by the pin. If
-there is a relevant active pin but no such tack, the connection is "rejected"
-by the pin. If there is no relevant active pin, the connection is "unpinned".
-</t>
+<t>If there is a relevant active pin that approves the tack then the
+connection is "accepted" by the pin. If there is a relevant active pin but no
+approved tack, then the connection is "rejected" by the pin. If there is no
+relevant active pin, the connection is "unpinned". </t>
 
 <t> A rejected connection might indicate a network attack. If the connection
 is rejected the client SHOULD send a fatal "access_denied" error alert and
 close the connection.</t> 
 
 <t> A client MAY perform additional verification steps before using an
-accepted or unpinned connection. See <xref target="certver"/> for an
-example.</t>
+accepted or unpinned connection. See <xref target="certver"/> for an example.
+
+<vspace blankLines="100" />	
+
+</t>
 
 </section> <section title="Client processing details" anchor="details">
 
@@ -487,9 +525,9 @@ and finishes succesfully (else see <xref target="RFC5246"/>).</t>
 <t>The handshake contains a syntactically-valid TACK_Extension (else
 "decode_error").</t>
 
-<t>If break signatures are present, the signatures are correct (else
-"decrypt_error"). This step is optional, as break signature verification MAY
-be deferred till later.</t>
+<t>If break and changes signatures are present, the signatures are correct
+(else "decrypt_error"). This step is optional, as break and change signature
+verification MAY be deferred till later.</t>
 
 <t>If a tack is present, it is "well-formed" by the rules below.</t>
 
@@ -514,21 +552,25 @@ SubjectPublicKeyInfo (else "illegal_parameter").</t>
 
 </section>
 
-<section title="Discard pins based on break signatures">
+<section title="Delete pins based on break signatures">
 <t>
 
-All key records broken by break signatures SHALL be discarded, along with
-their associated name records. A key record is broken by a break signature if
-the break signature passes the following checks:
+All key records whose key has signed a corresponding break signature SHALL be
+deleted, along with their associated name records. If a break signature
+fails ECDSA verification, return "decrypt_error".</t>
 
-<list style="numbers">
+</section>
 
- 	<t>"public_key" is referenced by the key record.</t>
+<section title="Change keys based on change signatures">
+<t>
 
-	<t>"signature" is a correct ECDSA signature (else "decrypt_error"). </t>
+If the change flag is set, then all key records whose key has signed a
+corresponding change signature SHALL be replaced with a key record referring
+to the tack's public key. If there is no existing key record for the tack's
+public key, a new key record is created containing the tack's public key and
+min_generation. If a change signature fails ECDSA verification, return
+"decrypt_error".</t>
 
-</list>
-</t>
 </section>
 
 <section title="Check the tack generation and update min_generation">
@@ -569,7 +611,7 @@ optional; a client MAY rely on an external source of pins.
 <t>
 
 The first step in pin activation is to delete a relevant but inactive pin
-unless there is a tack and the pin references the tack's key (see <xref
+unless there is a tack and the pin approves the tack (see <xref
 target="deleting"/>). If there is no tack, or if the activation flag is
 disabled, then this completes the algorithm. Otherwise, the following steps
 are executed:
@@ -578,7 +620,7 @@ are executed:
 
 <t>
 
-If there is a relevant pin referencing the tack's key, the name record's "active
+If there is a relevant pin the approves the tack, the name record's "active
 period end" SHALL be set using the below formula (where "current" is the
 current time, and "initial" is the "initial timestamp" from the name record):
 
@@ -604,13 +646,12 @@ to "current", and an empty "active period end".</t>
 <t>
 
 The following tables summarize this behavior.
-<vspace blankLines="100" />	
 
 </t>
 <t>If there is an active relevant pin:</t>
 
       <texttable>
-           <ttcol align='left'>Pin references tack's key</ttcol>
+           <ttcol align='left'>Pin approves tack</ttcol>
            <ttcol align='left'>Activation flag</ttcol>
            <ttcol align='left'>Result</ttcol>
 
@@ -631,7 +672,7 @@ The following tables summarize this behavior.
 <t>If there is an inactive relevant pin:</t>
 
       <texttable>
-           <ttcol align='left'>Pin references tack's key</ttcol>
+           <ttcol align='left'>Pin approves tack</ttcol>
            <ttcol align='left'>Activation flag</ttcol>
            <ttcol align='left'>Result</ttcol>
 
@@ -789,9 +830,8 @@ hostnames for a group of near-identical servers.
 
 <t hangText="Aliases:">
 
-A TLS server may be referenced by multiple hostnames. Clients may pin any of
-these hostnames. Server operators should be careful when using such DNS
-aliases that hostnames are not pinned inadvertently.
+A TLS server may be referenced by multiple hostnames. Server operators should
+be careful when using DNS aliases that hostnames are not pinned inadvertently.
 
 </t>
 
@@ -815,7 +855,7 @@ compromised TLS private key has limited value to an attacker.</t>
 A break signature only needs to be published for a time interval equal to the
 maximum active period of any affected pins. For example, if the activation
 flag for a tack has only been enabled on a particular website for 24 hours, to
-remove the tack only requires publishing the break signature for 24 hours.
+remove the tack only requires publishing a break signature for 24 hours.
 
 </t>
 <t hangText="Activation flag:">
@@ -824,6 +864,16 @@ The activation flag SHOULD only be enabled once all TLS servers sharing the
 same hostname have a tack. Otherwise, a client may activate a pin by
 contacting one server, then contact a different server at the same hostname
 that does not yet have a tack. </t>
+
+<t hangText="Change signatures and the change flag:">
+
+A change signature only needs to be published for a time interval equal to the
+maximum active period of any affected pins. However, leaving it up for longer
+will enable clients who infrequently access the server to recognize that the
+new tack is a "changed" version of an older one, thus an older pin can be
+re-activated instead of needing to create a new inactive pin. The change flag
+SHOULD only be enabled once all TLS servers sharing the same TACK key have a
+change signature.</t>
 
 <t hangText="Pin deactivation:">The activation flag can be used to phase out
 tacks for a hostname. If all servers at a hostname disable the flag, all
@@ -845,10 +895,10 @@ the servers' tacks can be removed.
 It is possible for a client to maintain a pin store based entirely on its own
 TLS connections. However, such a client runs the risk of creating incorrect
 pins, failing to keep its pins active, or failing to receive revocation
-information (min_generation updates and break signatures). Clients are advised
-to collaborate and make use of 3rd-party trust infrastructure so that pin data
-can be aggregated and shared. This will require additional protocols outside
-the scope of this document.
+information (min_generation updates and break/change signatures). Clients are
+advised to collaborate and make use of 3rd-party trust infrastructure so that
+pin data can be aggregated and shared. This will require additional protocols
+outside the scope of this document.
 
 </t> <t hangText="Clock synchronization:">
 
