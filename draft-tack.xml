@@ -707,7 +707,30 @@ re-activated in the future by the algorithms in <xref target="creating"/>.
 </section>
 </section>	
 </section>
-<section title="TACK and certificate verification" anchor="certver">
+
+<section title="Application protocols and TACK">
+<section title="Pin scope">
+
+<t> TACK pins are specific to a particular application protocol. In other
+words, a pin for HTTPS at "example.com" implies nothing about POP3 or SMTP at
+"example.com". </t>
+
+<t>While each application protocol's name records MUST be stored separately, a
+client's store of key records MAY be shared between applications. A break
+signature for a key breaks all pins referencing that key, regardless of
+application.</t>
+</section>
+
+<section title="TLS negotiation">
+<t>Some application protocols negotiate TLS as an optional feature (e.g. SMTP
+using STARTTLS <xref target="RFC3207"/>). If such a server fails to negotiate
+TLS and there is a relevant active pin, then the connection is rejected by the
+pin. If the server fails to negotiate TLS and there is a relevant inactive
+pin, then this pin SHALL be deleted. Note that these steps are taken despite
+the absence of a TLS connection.</t>
+</section>
+
+<section title="Certificate verification" anchor="certver">
 
  <t>
 
@@ -730,26 +753,7 @@ certificate and/or pin failures.
 </t>
 
 </section>
-<section title="TACK and application protocols">
-
-<t> TACK pins are specific to a particular application protocol. In other
-words, a pin for HTTPS at "example.com" implies nothing about POP3 or SMTP at
-"example.com". </t>
-
-<t>While each application protocol's name records MUST be stored separately, a
-client's store of key records MAY be shared between applications. A break
-signature for a key breaks all pins referencing that key, regardless of
-application.</t>
-
-<t>Some application protocols negotiate TLS as an optional feature (e.g. SMTP
-using STARTTLS <xref target="RFC3207"/>). If such a server fails to negotiate
-TLS and there is a relevant active pin, then the connection is rejected by the
-pin. If the server fails to negotiate TLS and there is a relevant inactive
-pin, then this pin SHALL be deleted. Note that these steps are taken despite
-the absence of a TLS connection.</t>
-
 </section>
-
 
 <section title="Fingerprints">	
 <t>
@@ -768,6 +772,7 @@ in <xref target="RFC4648"/>, except lowercase is used. Examples:
 	<t>e25zs.cth7k.tscmp.5hxdp.wf47j</t>
 </list>
 </t>
+
 
 </section>
 
