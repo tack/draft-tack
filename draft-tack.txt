@@ -977,9 +977,11 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
       min_generation update from one server but then try to contact an
       older-generation server which has not yet been updated.
 
-   Signature expiration:  It is convenient to set the tack expiration
-      equal to the end-entity certificate expiration, so that the tack
-      and certificate may both be replaced at the same time.
+   Tack expiration:  It is recommended to set the tack expiration equal
+      to the end-entity certificate expiration plus 30 days, allowing
+      the tack and certificate to both be replaced at the same time.
+      The extra 30 days ensures there is enough time to employ "pin
+      deactivation" (see below) if the TACK private key is lost.
       Alternatively, short-lived tacks may be used so that a compromised
       TLS private key has limited value to an attacker.
 
@@ -999,8 +1001,6 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
       for a hostname.  If all servers at a hostname disable the flag,
       all existing pins for the hostname will eventually become
       inactive, at which point the servers' tacks can be removed.
-
-
 
 
 

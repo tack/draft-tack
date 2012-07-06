@@ -805,12 +805,14 @@ new tacks containing the new min_generation. Otherwise, a client may receive a
 min_generation update from one server but then try to contact an
 older-generation server which has not yet been updated.</t>
 
-<t hangText="Signature expiration:">
+<t hangText="Tack expiration:">
 
-It is convenient to set the tack expiration equal to the end-entity
-certificate expiration, so that the tack and certificate may both be replaced
-at the same time. Alternatively, short-lived tacks may be used so that a
-compromised TLS private key has limited value to an attacker.</t>
+It is recommended to set the tack expiration equal to the end-entity
+certificate expiration plus 30 days, allowing the tack and certificate to both
+be replaced at the same time. The extra 30 days ensures there is enough time
+to employ "pin deactivation" (see below) if the TACK private key is lost.
+Alternatively, short-lived tacks may be used so that a compromised TLS private
+key has limited value to an attacker.</t>
 
 <t hangText="Break signatures:">
 
