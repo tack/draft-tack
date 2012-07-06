@@ -3,8 +3,8 @@
 
 TLS Working Group                                         M. Marlinspike
 Internet-Draft                                            T. Perrin, Ed.
-Intended status: Standards Track                           June 12, 2012
-Expires: December 14, 2012
+Intended status: Standards Track                            July 6, 2012
+Expires: January 7, 2013
 
 
                  Trust Assertions for Certificate Keys
@@ -35,7 +35,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on December 14, 2012.
+   This Internet-Draft will expire on January 7, 2013.
 
 Copyright Notice
 
@@ -52,9 +52,9 @@ Copyright Notice
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012               [Page 1]
+Marlinspike & Perrin     Expires January 7, 2013                [Page 1]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
    the Trust Legal Provisions and are provided without warranty as
@@ -108,9 +108,9 @@ Table of Contents
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012               [Page 2]
+Marlinspike & Perrin     Expires January 7, 2013                [Page 2]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 1.  Introduction
@@ -164,9 +164,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012               [Page 3]
+Marlinspike & Perrin     Expires January 7, 2013                [Page 3]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 2.  Requirements notation
@@ -220,9 +220,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012               [Page 4]
+Marlinspike & Perrin     Expires January 7, 2013                [Page 4]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 3.  Overview
@@ -276,9 +276,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012               [Page 5]
+Marlinspike & Perrin     Expires January 7, 2013                [Page 5]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 3.2.  Pin life cycle
@@ -332,9 +332,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012               [Page 6]
+Marlinspike & Perrin     Expires January 7, 2013                [Page 6]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 4.  TACK Extension
@@ -388,9 +388,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012               [Page 7]
+Marlinspike & Perrin     Expires January 7, 2013                [Page 7]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 4.2.  Explanation of TACK_Extension fields
@@ -444,9 +444,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012               [Page 8]
+Marlinspike & Perrin     Expires January 7, 2013                [Page 8]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 4.2.3.  TACK_Extension fields
@@ -500,9 +500,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012               [Page 9]
+Marlinspike & Perrin     Expires January 7, 2013                [Page 9]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 5.  Client processing
@@ -556,9 +556,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012              [Page 10]
+Marlinspike & Perrin     Expires January 7, 2013               [Page 10]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
    These steps SHALL be performed in order.  If there is any error, the
@@ -582,39 +582,39 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 5.3.1.  Check whether the TLS handshake is well-formed
 
-   A TLS handshake is "well-formed" if the following are true (the error
-   alert to be sent on a failure is indicated in parentheses):
+   A TLS handshake is "well-formed" if the following are true.  If any
+   of the following checks (except the first) are false a
+   "bad_certificate" fatal error alert SHALL be sent.
 
    1.  The handshake protocol negotiates a cryptographically secure
-       ciphersuite and finishes succesfully (else see [RFC5246]).
+       ciphersuite and finishes succesfully.
 
-   2.  The handshake contains a syntactically-valid TACK_Extension (else
-       "decode_error").
+   2.  The handshake contains a syntactically-valid TACK_Extension.
 
-   3.  If break signatures are present, the signatures are correct (else
-       "decrypt_error").  This step is optional, as break signature
-       verification MAY be deferred till later.
+   3.  If break signatures are present, the signatures are correct.
+       This step is optional, as break signature verification MAY be
+       deferred till later.
 
    4.  If a tack is present, it is "well-formed" by the rules below.
 
    A tack is "well-formed" if:
 
    1.  "public_key" is a valid elliptic curve public key on the curve
-       P-256 (else "decrypt_error").
+       P-256.
 
-   2.  "generation" is >= "min_generation" (else "decode_error").
+   2.  "generation" is >= "min_generation".
 
    3.  "target_hash" is equal to the SHA256 hash of the server's
-       SubjectPublicKeyInfo (else "illegal_parameter").
+       SubjectPublicKeyInfo.
 
-   4.  "signature" is a correct ECDSA signature (else "decrypt_error").
-
-
+   4.  "signature" is a correct ECDSA signature.
 
 
-Marlinspike & Perrin    Expires December 14, 2012              [Page 11]
+
+
+Marlinspike & Perrin     Expires January 7, 2013               [Page 11]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 5.3.2.  Discard pins based on break signatures
@@ -625,14 +625,15 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
    1.  "public_key" is referenced by the key record.
 
-   2.  "signature" is a correct ECDSA signature (else "decrypt_error").
+   2.  "signature" is a correct ECDSA signature (if not, a fatal
+       "bad_certificate" error alert SHALL be sent).
 
 5.3.3.  Check the tack generation and update min_generation
 
    If there is a tack and a key record referencing the tack's key, and
    the tack's generation is less than the key record's min_generation,
-   then the tack is revoked and the client SHALL send the
-   "certificate_revoked" alert and close the connection.
+   then the tack is revoked and the client SHALL send a fatal
+   "certificate_revoked" error alert and close the connection.
 
    Otherwise, if there is a tack and a key record referencing the tack's
    key, and the tack's min_generation is greater than the key record's
@@ -642,8 +643,8 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 5.3.4.  Check whether the tack is expired
 
    If there is a tack and the tack's "expiration" field specifies a time
-   in the past, the client SHALL send the "certificate_expired" alert
-   and close the connection.
+   in the past, the client SHALL send a fatal "certificate_expired"
+   error alert and close the connection.
 
 5.3.5.  Pin activation (optional)
 
@@ -667,10 +668,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-
-Marlinspike & Perrin    Expires December 14, 2012              [Page 12]
+Marlinspike & Perrin     Expires January 7, 2013               [Page 12]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
    If there is no relevant pin, and the tack's key is not equal to any
@@ -724,9 +724,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012              [Page 13]
+Marlinspike & Perrin     Expires January 7, 2013               [Page 13]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
    If there is an active relevant pin:
@@ -780,9 +780,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012              [Page 14]
+Marlinspike & Perrin     Expires January 7, 2013               [Page 14]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 5.3.6.  Deleting pins
@@ -836,9 +836,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012              [Page 15]
+Marlinspike & Perrin     Expires January 7, 2013               [Page 15]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 6.  Application protocols and TACK
@@ -892,9 +892,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012              [Page 16]
+Marlinspike & Perrin     Expires January 7, 2013               [Page 16]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 7.  Fingerprints
@@ -948,9 +948,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012              [Page 17]
+Marlinspike & Perrin     Expires January 7, 2013               [Page 17]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 8.  Advice
@@ -1004,9 +1004,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012              [Page 18]
+Marlinspike & Perrin     Expires January 7, 2013               [Page 18]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 8.2.  For client implementers
@@ -1060,9 +1060,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012              [Page 19]
+Marlinspike & Perrin     Expires January 7, 2013               [Page 19]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 9.  Security considerations
@@ -1116,9 +1116,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012              [Page 20]
+Marlinspike & Perrin     Expires January 7, 2013               [Page 20]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 9.3.  Note on algorithm agility
@@ -1172,9 +1172,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012              [Page 21]
+Marlinspike & Perrin     Expires January 7, 2013               [Page 21]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 10.  IANA considerations
@@ -1228,9 +1228,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012              [Page 22]
+Marlinspike & Perrin     Expires January 7, 2013               [Page 22]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 11.  Acknowledgements
@@ -1284,9 +1284,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012              [Page 23]
+Marlinspike & Perrin     Expires January 7, 2013               [Page 23]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 12.  Normative references
@@ -1340,9 +1340,9 @@ Internet-Draft    Trust Assertions for Certificate Keys        June 2012
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012              [Page 24]
+Marlinspike & Perrin     Expires January 7, 2013               [Page 24]
 
-Internet-Draft    Trust Assertions for Certificate Keys        June 2012
+Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 Authors' Addresses
@@ -1396,5 +1396,5 @@ Authors' Addresses
 
 
 
-Marlinspike & Perrin    Expires December 14, 2012              [Page 25]
+Marlinspike & Perrin     Expires January 7, 2013               [Page 25]
 
