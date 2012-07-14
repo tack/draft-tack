@@ -3,8 +3,8 @@
 
 TLS Working Group                                         M. Marlinspike
 Internet-Draft                                            T. Perrin, Ed.
-Intended status: Standards Track                            July 6, 2012
-Expires: January 7, 2013
+Intended status: Standards Track                           July 14, 2012
+Expires: January 15, 2013
 
 
                  Trust Assertions for Certificate Keys
@@ -35,7 +35,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on January 7, 2013.
+   This Internet-Draft will expire on January 15, 2013.
 
 Copyright Notice
 
@@ -52,7 +52,7 @@ Copyright Notice
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013                [Page 1]
+Marlinspike & Perrin    Expires January 15, 2013                [Page 1]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -108,7 +108,7 @@ Table of Contents
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013                [Page 2]
+Marlinspike & Perrin    Expires January 15, 2013                [Page 2]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -164,7 +164,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013                [Page 3]
+Marlinspike & Perrin    Expires January 15, 2013                [Page 3]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -220,7 +220,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013                [Page 4]
+Marlinspike & Perrin    Expires January 15, 2013                [Page 4]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -276,7 +276,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013                [Page 5]
+Marlinspike & Perrin    Expires January 15, 2013                [Page 5]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -332,7 +332,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013                [Page 6]
+Marlinspike & Perrin    Expires January 15, 2013                [Page 6]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -388,7 +388,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013                [Page 7]
+Marlinspike & Perrin    Expires January 15, 2013                [Page 7]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -444,7 +444,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013                [Page 8]
+Marlinspike & Perrin    Expires January 15, 2013                [Page 8]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -500,7 +500,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013                [Page 9]
+Marlinspike & Perrin    Expires January 15, 2013                [Page 9]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -529,11 +529,11 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
       hostname is considered the "relevant name", and a pin whose name
       exactly matches the relevant name is considered a "relevant pin".
 
-   Initial timestamp:  A timestamp noting when this pin was created.
+   Initial time:  A timestamp noting when this pin was created.
 
-   Active period end:  Empty or a timestamp.  If empty or set to a time
-      in the past, the pin is "inactive".  If set to a future time, the
-      pin is "active" until that time.
+   End time:  A timestamp determining the pin's "active period".  If set
+      to zero or a time in the past, the pin is "inactive".  If set to a
+      future time, the pin is "active" until that time.
 
 5.2.  High-level client processing
 
@@ -556,7 +556,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013               [Page 10]
+Marlinspike & Perrin    Expires January 15, 2013               [Page 10]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -612,7 +612,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013               [Page 11]
+Marlinspike & Perrin    Expires January 15, 2013               [Page 11]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -660,15 +660,15 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
    following steps are executed:
 
    If there is a relevant pin referencing the tack's key, the name
-   record's "active period end" SHALL be set using the below formula
-   (where "current" is the current time, and "initial" is the "initial
-   timestamp" from the name record):
+   record's "end time" SHALL be set using the below formula (where
+   "current" is the current time, and "initial" is the initial time from
+   the name record):
 
-   active_period_end = current + MIN(30 days, current - initial)
+   end = current + MIN(30 days, current - initial)
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013               [Page 12]
+Marlinspike & Perrin    Expires January 15, 2013               [Page 12]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -681,7 +681,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
        with the tack's key and min_generation.
 
    2.  A name record is created with the relevant name, an "initial
-       timestamp" set to "current", and an empty "active period end".
+       time" set to the current time, and an "end time" of zero.
 
    The following tables summarize this behavior.
 
@@ -724,7 +724,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013               [Page 13]
+Marlinspike & Perrin    Expires January 15, 2013               [Page 13]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -780,7 +780,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013               [Page 14]
+Marlinspike & Perrin    Expires January 15, 2013               [Page 14]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -836,7 +836,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013               [Page 15]
+Marlinspike & Perrin    Expires January 15, 2013               [Page 15]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -892,7 +892,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013               [Page 16]
+Marlinspike & Perrin    Expires January 15, 2013               [Page 16]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -948,7 +948,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013               [Page 17]
+Marlinspike & Perrin    Expires January 15, 2013               [Page 17]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -1004,7 +1004,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013               [Page 18]
+Marlinspike & Perrin    Expires January 15, 2013               [Page 18]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -1060,7 +1060,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013               [Page 19]
+Marlinspike & Perrin    Expires January 15, 2013               [Page 19]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -1112,11 +1112,11 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
    SHOULD delete inactive pins.  If there are no inactive pins to
    delete, then the pin store is full and there is no space for new
    pins.  To select an inactive pin for deletion, the client SHOULD
-   delete the pin with the oldest "active_period_end".
+   delete the pin with the oldest "end time".
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013               [Page 20]
+Marlinspike & Perrin    Expires January 15, 2013               [Page 20]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -1172,7 +1172,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013               [Page 21]
+Marlinspike & Perrin    Expires January 15, 2013               [Page 21]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -1228,7 +1228,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013               [Page 22]
+Marlinspike & Perrin    Expires January 15, 2013               [Page 22]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -1284,7 +1284,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013               [Page 23]
+Marlinspike & Perrin    Expires January 15, 2013               [Page 23]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -1340,7 +1340,7 @@ Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013               [Page 24]
+Marlinspike & Perrin    Expires January 15, 2013               [Page 24]
 
 Internet-Draft    Trust Assertions for Certificate Keys        July 2012
 
@@ -1396,5 +1396,5 @@ Authors' Addresses
 
 
 
-Marlinspike & Perrin     Expires January 7, 2013               [Page 25]
+Marlinspike & Perrin    Expires January 15, 2013               [Page 25]
 

@@ -411,16 +411,16 @@ records with the same name. The TLS server's hostname is considered the
 considered a "relevant pin".
 
 </t>
-<t hangText="Initial timestamp:">
+<t hangText="Initial time:">
 
 A timestamp noting when this pin was created.
 
 </t> 
- <t hangText="Active period end:">
+ <t hangText="End time:">
 
-Empty or a timestamp. If empty or set to a time in the
-past, the pin is "inactive". If set to a future time, the pin is "active"
-until that time.
+A timestamp determining the pin's "active period". If set to zero or a
+time in the past, the pin is "inactive". If set to a future time, the pin is
+"active" until that time.
 
 </t> 
 
@@ -575,12 +575,12 @@ are executed:
 
 <t>
 
-If there is a relevant pin referencing the tack's key, the name record's "active
-period end" SHALL be set using the below formula (where "current" is the
-current time, and "initial" is the "initial timestamp" from the name record):
+If there is a relevant pin referencing the tack's key, the name record's
+"end time" SHALL be set using the below formula (where "current" is the
+current time, and "initial" is the initial time from the name record):
 
 </t> <figure><artwork>
-active_period_end = current + MIN(30 days, current - initial)
+end = current + MIN(30 days, current - initial)
 </artwork></figure>	
 <t>
 
@@ -592,8 +592,8 @@ signature's key, a new pin SHALL be created:
 key record, the key record is reused.  Otherwise, a new key record is created
 with the tack's key and min_generation.</t>
 
-<t>A name record is created with the relevant name, an "initial timestamp" set
-to "current", and an empty "active period end".</t>
+<t>A name record is created with the relevant name, an "initial time" set
+to the current time, and an "end time" of zero.</t>
 
 </list>
 </t>
@@ -934,7 +934,7 @@ To defend against this, clients SHOULD NOT delete active pins to make space
 for new pins. Clients instead SHOULD delete inactive pins. If there are no
 inactive pins to delete, then the pin store is full and there is no space for
 new pins. To select an inactive pin for deletion, the client SHOULD delete the
-pin with the oldest "active_period_end".
+pin with the oldest "end time".
 
 </t>
 </section>
