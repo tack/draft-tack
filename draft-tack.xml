@@ -368,47 +368,25 @@ Enabling the activation_flag when there is no tack present has no effect.
 </section>
 
 <section title="Client processing" anchor="clientproc">
-<section title="TACK pins, key records, and name records">
+<section title="TACK pins">
 
 <t>
 
-A client supporting TACK SHALL have a local store of pins, consisting of "key
-records" and "name records". Each name record is associated with a key record.
-Multiple name records MAY be associated with one key record. A "pin" refers to
-a (name record, key record) pair.
-
-</t> 
-<t>
-
- A "key record" contains:
+A client SHALL have a local store of pins, and MAY have multiple stores. Each
+pin store consists of a map associating fully qualified DNS hostnames with the
+following values:
 
 <list style="hanging">
 <t hangText="TACK public key (or hash):">
 
-A public key or a cryptographically-secure, second
-preimage-resistant hash of a public key. A client SHALL NOT store multiple key
-records referencing the same key.
+A public key or a cryptographically-secure, second preimage-resistant hash of
+a public key.
 
 </t> 
 <t hangText="Min_generation:">
 
-A single byte used to detect revoked tacks.
-
-</t>
-</list>
-</t>
-<t>
-
-A "name record" contains:
-
-<list style="hanging">
-
-<t hangText="Name:">
-
-A fully qualified DNS hostname. A client SHALL NOT store multiple name
-records with the same name. The TLS server's hostname is considered the
-"relevant name", and a pin whose name exactly matches the relevant name is
-considered a "relevant pin".
+A single byte used to detect revoked tacks. All pins within a pin store
+sharing the same TACK public key SHALL have the same min_generation.
 
 </t>
 <t hangText="Initial time:">
@@ -426,6 +404,14 @@ time in the past, the pin is "inactive". If set to a future time, the pin is
 
 </list>
 </t>
+<t>
+
+A hostname along with all the above values comprises a "TACK pin". A pin
+"matches" a tack or break signature if they both reference the same TACK
+public key. A pin is "relevant" if its hostname is equal to the TLS server's
+hostname.
+
+</t>
 
 </section>
 
@@ -435,16 +421,20 @@ time in the past, the pin is "inactive". If set to a future time, the pin is
 
 A TACK client SHALL send the "tack_ext" extension defined previously, and
 SHALL send the "server_name" extension from <xref target="RFC6066"/>. If not
-resuming a session, the server MAY respond with a TACK_Extension. A TACK
-client SHALL perform the following steps prior to using the connection (if
-no TACK_Extension is sent, 1 through 4 are skipped):
+resuming a session, the server MAY respond with a TACK_Extension. A client
+SHALL perform the following steps prior to using the connection (if no
+TACK_Extension is sent, only 2C and 2D are performed):
 
 <list style="numbers">
  <t>Check whether the TLS handshake is "well-formed".</t>
- <t>Discard pins based on break signatures.</t>
- <t>Check the tack generation and update min_generation.</t>
- <t>Check whether the tack is expired.</t>
- <t>Pin activation (optional).</t> 
+ <t>For each pin store, do:
+<list style="letters">
+    <t>Delete pins based on break signatures.</t>
+    <t>Check the tack's generation and update min_generation.</t>
+    <t>Determine the store's status.</t>
+    <t>Perform pin activation (optional).</t>
+</list>
+</t>
 </list>
 
 These steps SHALL be performed in order. If there is any error, the client
@@ -453,17 +443,10 @@ remaining steps (see <xref target="details"/> for details).
 
 </t>
 
-<t>
-
-After the above steps, if there is a relevant active pin and a tack whose key
-is referenced by the pin, then the connection is "accepted" by the pin. If
-there is a relevant active pin but no such tack, the connection is "rejected"
-by the pin. If there is no relevant active pin, the connection is "unpinned".
-</t>
-
-<t> A rejected connection might indicate a network attack. If the connection
-is rejected the client SHOULD send a fatal "access_denied" error alert and
-close the connection.</t> 
+<t>Based on step 2C, each store will report one of three statuses for the
+connection: "accepted", "rejected", or "unpinned". A rejected connection might
+indicate a network attack. If the connection is rejected the client SHOULD
+send a fatal "access_denied" error alert and close the connection. </t> 
 
 <t> A client MAY perform additional verification steps before using an
 accepted or unpinned connection. See <xref target="certver"/> for an
@@ -476,9 +459,9 @@ anchor="wellformed">
 
 <t>
 
-A TLS handshake is "well-formed" if the following are true. If any of the
-following checks (except the first) are false a "bad_certificate" fatal error
-alert SHALL be sent.
+A TLS handshake is "well-formed" if the following are true. Unless otherwise
+specified, if any of the following checks are false a "bad_certificate" fatal
+error alert SHALL be sent.
 
 <list style="numbers">
 
@@ -486,9 +469,6 @@ alert SHALL be sent.
 and finishes succesfully.</t>
 
 <t>The handshake contains a syntactically-valid TACK_Extension.</t>
-
-<t>If break signatures are present, the signatures are correct. This step is
-optional, as break signature verification MAY be deferred till later.</t>
 
 <t>If a tack is present, it is "well-formed" by the rules below.</t>
 
@@ -499,55 +479,44 @@ optional, as break signature verification MAY be deferred till later.</t>
 A tack is "well-formed" if:	
 <list style="numbers">
 
- <t>"public_key" is a valid elliptic curve public key on the curve P-256.</t>
-
  <t>"generation" is >= "min_generation".</t>
+
+ <t>"expiration" specifies a time in the future, otherwise the client SHALL
+send a fatal "certificate_expired" error alert.</t>
 
  <t>"target_hash" is equal to the SHA256 hash of the server's
 SubjectPublicKeyInfo.</t>
 
- <t>"signature" is a correct ECDSA signature.</t> </list> </t>
+ <t>"signature" is a correct ECDSA signature that verifies using the tack's
+public key.</t> </list> </t>
 
 </section>
 
-<section title="Discard pins based on break signatures">
+<section title="Delete pins based on break signatures">
 <t>
 
-All key records broken by break signatures SHALL be discarded, along with
-their associated name records. A key record is broken by a break signature if
-the break signature passes the following checks:
+All pins in the store which are broken by break signature SHALL be deleted. A
+pin is broken by a break signature if it matches the break signature and the
+ECDSA signature verifies correctly (if a break signature fails to verify, a
+fatal "bad_certificate" error alert SHALL be sent). </t>
 
-<list style="numbers">
-
- 	<t>"public_key" is referenced by the key record.</t>
-
-	<t>"signature" is a correct ECDSA signature (if not, a fatal
-"bad_certificate" error alert SHALL be sent). </t>
-
-</list>
-</t>
 </section>
 
 <section title="Check the tack generation and update min_generation">
-<t>
 
-If there is a tack and a key record referencing the tack's key, and the tack's
-generation is less than the key record's min_generation, then the tack is
-revoked and the client SHALL send a fatal "certificate_revoked" error alert
-and close the connection. </t>
-
-<t> Otherwise, if there is a tack and a key record referencing the tack's key,
-and the tack's min_generation is greater than the key record's min_generation,
-then the key record's min_generation SHALL be set to the tack's value.
-
+<t> If there is a tack which has matching pins in the pin store, and the
+tack's generation is less than the stored min_generation, then the tack is
+revoked and the client SHALL send a fatal "certificate_revoked" error alert.
 </t>
-</section>
-<section title="Check whether the tack is expired">
-<t>
 
-If there is a tack and the tack's "expiration" field specifies a time in the
-past, the client SHALL send a fatal "certificate_expired" error alert and
-close the connection.
+<t> If the tack's min_generation is greater than the stored min_generation,
+the stored value SHALL be set to the tack's value.</t>
+
+</section> <section title="Determine the store's status"> <t>
+
+If there is a relevant, active pin and a matching tack, then the connection is
+"accepted". If there is such a pin but no matching tack, the connection is
+"rejected". Otherwise, the connection is "unpinned".
 
 </t>
 
@@ -558,44 +527,36 @@ close the connection.
 
 <t>
 
-The TLS connection MAY be used to create, delete, and activate pins as
-described in this section. Note that this "pin activation algorithm" is
-optional; a client MAY rely on an external source of pins.
+The TLS connection MAY be used to create, delete, and activate pins. Note that
+this "pin activation algorithm" is optional; a client MAY rely on an external
+source of pins.
 
 </t>
 <t>
 
 The first step in pin activation is to delete a relevant but inactive pin
-unless there is a tack and the pin references the tack's key (see <xref
-target="deleting"/>). If there is no tack, or if the activation flag is
-disabled, then this completes the algorithm. Otherwise, the following steps
-are executed:
+unless there is a matching tack. If there is no tack, or if the activation
+flag is disabled, then this completes the algorithm. Otherwise, the following
+steps are executed:
 
 </t>
 
 <t>
 
-If there is a relevant pin referencing the tack's key, the name record's
-"end time" SHALL be set using the below formula (where "current" is the
-current time, and "initial" is the initial time from the name record):
+If there is a relevant pin and matching tack, the pin's "end time" SHALL be
+set using the below formula based on the current, initial, and end times:
 
-</t> <figure><artwork>
+</t> 
+<figure><artwork>
 end = current + MIN(30 days, current - initial)
 </artwork></figure>	
 <t>
 
-If there is no relevant pin, and the tack's key is not equal to any break
-signature's key, a new pin SHALL be created:
+If there is no relevant pin, a new pin SHALL be added to the pin store. The
+new pin uses the server's hostname, the tack's public key and min_generation
+(unless the store has a higher min_generation for the public key), an "initial
+time" set to the current time, and an "end time" of zero.
 
-<list style="numbers">
-<t>If the tack's key is referenced by an existing
-key record, the key record is reused.  Otherwise, a new key record is created
-with the tack's key and min_generation.</t>
-
-<t>A name record is created with the relevant name, an "initial time" set
-to the current time, and an "end time" of zero.</t>
-
-</list>
 </t>
 
 <t>
@@ -607,7 +568,7 @@ The following tables summarize this behavior.
 <t>If there is an active relevant pin:</t>
 
       <texttable>
-           <ttcol align='left'>Pin references tack's key</ttcol>
+           <ttcol align='left'>Pin matches tack</ttcol>
            <ttcol align='left'>Activation flag</ttcol>
            <ttcol align='left'>Result</ttcol>
 
@@ -628,7 +589,7 @@ The following tables summarize this behavior.
 <t>If there is an inactive relevant pin:</t>
 
       <texttable>
-           <ttcol align='left'>Pin references tack's key</ttcol>
+           <ttcol align='left'>Pin matches tack</ttcol>
            <ttcol align='left'>Activation flag</ttcol>
            <ttcol align='left'>Result</ttcol>
 
@@ -642,7 +603,7 @@ The following tables summarize this behavior.
 
            <c>No</c>
            <c>Enabled</c>
-           <c>Delete pin; Create new inactive pin</c>
+           <c>Delete pin; New inactive pin</c>
 
            <c>No</c>
            <c>Disabled</c>
@@ -663,7 +624,7 @@ The following tables summarize this behavior.
 
            <c>Yes</c>
            <c>Enabled</c>
-           <c>Create new inactive pin</c>
+           <c>New inactive pin</c>
 
            <c>Yes</c>
            <c>Disabled</c>
@@ -675,32 +636,7 @@ The following tables summarize this behavior.
 
        </texttable>
 
-</section>
 
-<section title="Deleting pins" anchor="deleting">
-
-<t>
-
-A client might need to delete a pin from its store as a result of the
-algorithms in <xref target="creating"/>. A client MAY also delete pins from
-its store at any time, whether to save space, protect privacy, or for any
-other reason. To delete a pin, its name record SHALL be removed. If this
-leaves a key record with no associated name records, the key record MAY be
-removed as well. Pins MAY be deleted regardless of whether they are active or
-inactive, however for security concerns regarding pin deletion, see <xref
-target="security_client"/>.
-
-</t>
-<t>
-</t>
-<t>
-
-Deleting pins unnecessarily will reduce the benefits of TACK, so SHOULD be
-avoided. Note that a pin SHOULD NOT be deleted simply because it has become
-inactive. Instead, such a pin SHOULD be retained, so that it can be
-re-activated in the future by the algorithms in <xref target="creating"/>.
-
-</t>
 </section>
 </section>	
 </section>
@@ -712,11 +648,8 @@ re-activated in the future by the algorithms in <xref target="creating"/>.
 words, a pin for HTTPS at "example.com" implies nothing about POP3 or SMTP at
 "example.com". </t>
 
-<t>While each application protocol's name records MUST be stored separately, a
-client's store of key records MAY be shared between applications. A break
-signature for a key breaks all pins referencing that key, regardless of
-application.</t>
-</section>
+<t>However, note that a break signature for a key breaks all pins referencing
+that key, regardless of application.</t> </section>
 
 <section title="TLS negotiation">
 <t>Some application protocols negotiate TLS as an optional feature (e.g. SMTP
