@@ -350,13 +350,12 @@ break signatures.
 </t>
 <t hangText="activation_flag:">
 
-If this field is set to 1 and a tack is present, then the tack MAY be used by
-the pin activation algorithm in <xref target="creating"/> to create, activate,
-and extend the activation of TACK pins. If this field is set to 0, or if the
-TACK_Extension is absent, then the activation_flag is considered disabled for
-the connection. This flag is typically toggled from a disabled to an enabled
-state once tacks have been deployed to all TLS servers for a hostname.
-Enabling the activation_flag when there is no tack present has no effect.
+If this field is set to 1 ("enabled") and a tack is present, then the tack MAY
+be used by the pin activation algorithm in <xref target="creating"/> to
+create, activate, and extend the activation of TACK pins. This flag is
+typically toggled from a disabled to an enabled state once tacks have been
+deployed to all TLS servers for a hostname.
+
 
 </t> </list> </t>
 
@@ -423,7 +422,7 @@ A TACK client SHALL send the "tack_ext" extension defined previously, and
 SHALL send the "server_name" extension from <xref target="RFC6066"/>. If not
 resuming a session, the server MAY respond with a TACK_Extension. A client
 SHALL perform the following steps prior to using the connection (if no
-TACK_Extension is sent, only 2C and 2D are performed):
+TACK_Extension is received, only 2C and 2D are performed):
 
 <list style="numbers">
  <t>Check whether the TLS handshake is "well-formed".</t>
@@ -648,8 +647,8 @@ The following tables summarize this behavior.
 words, a pin for HTTPS at "example.com" implies nothing about POP3 or SMTP at
 "example.com". </t>
 
-<t>However, note that a break signature for a key breaks all pins referencing
-that key, regardless of application.</t> </section>
+<t>However, a break signature for a key SHOULD be used to delete all pins
+referencing that key, regardless of application.</t> </section>
 
 <section title="TLS negotiation">
 <t>Some application protocols negotiate TLS as an optional feature (e.g. SMTP
