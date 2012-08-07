@@ -235,7 +235,7 @@ struct {
 } Break_Sig;  /* 128 bytes */
 
 struct {
-   Tack tack&lt;0...166&gt;  /* 0 or 1 Tack */
+   Tack tack&lt;0...332&gt;  /* 0...2 Tacks */
    Break_Sig break_sigs&lt;0...1024&gt;  /* 0...8 Break Sigs */
    TACK_Activation activation_flag;
 } TACK_Extension;
@@ -339,8 +339,8 @@ encoded as per tack.signature.
 
 <t hangText="tack:">
 
-This field provides the server's tack. It MAY be empty, or MAY contain a tack.
-</t>
+This field provides the server's tack. It MAY be empty, or MAY contain up to
+2 tacks. </t>
 
 <t hangText="break_sigs:">
 
@@ -372,10 +372,23 @@ deployed to all TLS servers for a hostname.
 <t>
 
 A client SHALL have a local store of pins, and MAY have multiple stores. Each
-pin store consists of a map associating fully qualified DNS hostnames with the
-following values:
+pin store consists of a map associating fully qualified DNS hostnames with
+either one or two sets of the following values:
 
 <list style="hanging">
+<t hangText="Initial time:">
+
+A timestamp noting when this pin was created.
+
+</t> 
+<t hangText="End time:">
+
+A timestamp determining the pin's "active period". If set to zero or a
+time in the past, the pin is "inactive". If set to a future time, the pin is
+"active" until that time.
+
+</t> 
+
 <t hangText="TACK public key (or hash):">
 
 A public key or a cryptographically-secure, second preimage-resistant hash of
@@ -388,27 +401,15 @@ A single byte used to detect revoked tacks. All pins within a pin store
 sharing the same TACK public key SHALL have the same min_generation.
 
 </t>
-<t hangText="Initial time:">
-
-A timestamp noting when this pin was created.
-
-</t> 
- <t hangText="End time:">
-
-A timestamp determining the pin's "active period". If set to zero or a
-time in the past, the pin is "inactive". If set to a future time, the pin is
-"active" until that time.
-
-</t> 
 
 </list>
 </t>
 <t>
 
-A hostname along with all the above values comprises a "TACK pin". A pin
-"matches" a tack or break signature if they both reference the same TACK
-public key. A pin is "relevant" if its hostname is equal to the TLS server's
-hostname.
+A hostname along with all the above values comprises a "TACK pin". Thus, each
+store can hold up to two pins for a hostname. A pin "matches" a tack or break
+signature if they both reference the same TACK public key. A pin is "relevant"
+if its hostname is equal to the TLS server's hostname.
 
 </t>
 
@@ -429,7 +430,7 @@ TACK_Extension is received, only 2C and 2D are performed):
  <t>For each pin store, do:
 <list style="letters">
     <t>Delete pins based on break signatures.</t>
-    <t>Check the tack's generation and update min_generation.</t>
+    <t>Check tack generation and update min_generation.</t>
     <t>Determine the store's status.</t>
     <t>Perform pin activation (optional).</t>
 </list>
@@ -469,7 +470,7 @@ and finishes succesfully.</t>
 
 <t>The handshake contains a syntactically-valid TACK_Extension.</t>
 
-<t>If a tack is present, it is "well-formed" by the rules below.</t>
+<t>If tacks are present, they are "well-formed" by the rules below.</t>
 
 </list> 
 </t>
@@ -494,31 +495,31 @@ public key.</t> </list> </t>
 <section title="Delete pins based on break signatures">
 <t>
 
-All pins in the store which are broken by break signature SHALL be deleted. A
+All pins in the store which are broken by break signatures SHALL be deleted. A
 pin is broken by a break signature if it matches the break signature and the
 ECDSA signature verifies correctly (if a break signature fails to verify, a
 fatal "bad_certificate" error alert SHALL be sent). </t>
 
 </section>
 
-<section title="Check the tack generation and update min_generation">
+<section title="Check tack generation and update min_generation">
 
 <t> If there is a tack which has matching pins in the pin store, and the
 tack's generation is less than the stored min_generation, then the tack is
 revoked and the client SHALL send a fatal "certificate_revoked" error alert.
+If the tack's min_generation is greater than the stored min_generation, the
+stored value SHALL be set to the tack's value.</t>
+
+</section> 
+
+<section title="Determine the store's status"> <t>
+
+If there is a relevant, active pin without a matching tack, then the
+connection is "rejected". If the connection is not rejected and there is at
+least one relevant, active pin with a matching tack, then the connection is
+"accepted". Otherwise, the connection is "unpinned".
+
 </t>
-
-<t> If the tack's min_generation is greater than the stored min_generation,
-the stored value SHALL be set to the tack's value.</t>
-
-</section> <section title="Determine the store's status"> <t>
-
-If there is a relevant, active pin and a matching tack, then the connection is
-"accepted". If there is such a pin but no matching tack, the connection is
-"rejected". Otherwise, the connection is "unpinned".
-
-</t>
-
 
 </section>
 
@@ -534,9 +535,8 @@ source of pins.
 <t>
 
 The first step in pin activation is to delete a relevant but inactive pin
-unless there is a matching tack. If there is no tack, or if the activation
-flag is disabled, then this completes the algorithm. Otherwise, the following
-steps are executed:
+unless there is a matching tack. Afterwards, the following steps are executed
+for each tack with an enabled activation flag:
 
 </t>
 
