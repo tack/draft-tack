@@ -3,8 +3,8 @@
 
 TLS Working Group                                         M. Marlinspike
 Internet-Draft                                            T. Perrin, Ed.
-Intended status: Standards Track                          August 6, 2012
-Expires: February 7, 2013
+Intended status: Standards Track                          August 8, 2012
+Expires: February 9, 2013
 
 
                  Trust Assertions for Certificate Keys
@@ -35,7 +35,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on February 7, 2013.
+   This Internet-Draft will expire on February 9, 2013.
 
 Copyright Notice
 
@@ -52,7 +52,7 @@ Copyright Notice
 
 
 
-Marlinspike & Perrin    Expires February 7, 2013                [Page 1]
+Marlinspike & Perrin    Expires February 9, 2013                [Page 1]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -108,7 +108,7 @@ Table of Contents
 
 
 
-Marlinspike & Perrin    Expires February 7, 2013                [Page 2]
+Marlinspike & Perrin    Expires February 9, 2013                [Page 2]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -164,7 +164,7 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
 
 
-Marlinspike & Perrin    Expires February 7, 2013                [Page 3]
+Marlinspike & Perrin    Expires February 9, 2013                [Page 3]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -220,7 +220,7 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
 
 
-Marlinspike & Perrin    Expires February 7, 2013                [Page 4]
+Marlinspike & Perrin    Expires February 9, 2013                [Page 4]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -245,7 +245,7 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
    Deploying initial tacks:  For each hostname, tacks are deployed to
       TLS servers in a two-stage process.  First, each TLS server
       associated with the hostname is given a tack.  Once this is
-      completed, an "activation_flag" is enabled on the servers.
+      completed, tacks are activated on the servers.
 
    Creating new tacks under a TACK key:  A tack needs to be replaced
       whenever a server changes its TLS public key, or when the tack
@@ -256,27 +256,27 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
       signing this key can be revoked by publishing a new tack
       containing a higher "min_generation".
 
-   Revoking TACK keys:  If a TACK private key is compromised, or a
+   Breaking TACK keys:  If a TACK private key is compromised, or a
       server operator wishes to stop using TACK or abruptly change its
       TACK key for any reason, a server can revoke an entire TACK key
       (including all tacks and pins referring to it) by publishing a
       "break signature".
 
+   Deactivating tacks:  If a server operator wishes to stop deploying
+      tacks but has lost the TACK key, all tacks for a hostname can be
+      deactivated, allowing the server to remove the tacks within 30
+      days (at most).
+
+   Rollover:  If a server operator wishes to change the TACK key a
+      hostname is pinned to, the server can introduce a new tack prior
+      to breaking or deactivating the old tack.  This lets clients
+      acquire trust in the new tack before the old one is removed.
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-Marlinspike & Perrin    Expires February 7, 2013                [Page 5]
+Marlinspike & Perrin    Expires February 9, 2013                [Page 5]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -332,7 +332,7 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
 
 
-Marlinspike & Perrin    Expires February 7, 2013                [Page 6]
+Marlinspike & Perrin    Expires February 9, 2013                [Page 6]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -353,7 +353,7 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
    "TACK_Extension", as defined below using the TLS presentation
    language from [RFC5246].
 
-   enum (disabled(0), enabled(1)} TACK_Activation;
+   enum (first_active(1), second_active(2), both_active(3)} TACK_Flags;
 
    struct {
       opaque public_key[64];
@@ -372,7 +372,7 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
    struct {
       Tack tack<0...332>  /* 0...2 Tacks */
       Break_Sig break_sigs<0...1024>  /* 0...8 Break Sigs */
-      TACK_Activation activation_flag;
+      TACK_Flags activation_flags;
    } TACK_Extension;
 
 
@@ -388,7 +388,7 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
 
 
-Marlinspike & Perrin    Expires February 7, 2013                [Page 7]
+Marlinspike & Perrin    Expires February 9, 2013                [Page 7]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -444,7 +444,7 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
 
 
-Marlinspike & Perrin    Expires February 7, 2013                [Page 8]
+Marlinspike & Perrin    Expires February 9, 2013                [Page 8]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -457,12 +457,12 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
    break_sigs:  This field provides break signatures.  It MAY be empty,
       or MAY contain up to 8 break signatures.
 
-   activation_flag:  If this field is set to 1 ("enabled") and a tack is
-      present, then the tack MAY be used by the pin activation algorithm
-      in Section 5.3.5 to create, activate, and extend the activation of
-      TACK pins.  This flag is typically toggled from a disabled to an
-      enabled state once tacks have been deployed to all TLS servers for
-      a hostname.
+   activation_flags:  This field contains "activation flags" for the
+      extension's tacks.  If the low order bit is set, the first tack is
+      considered active.  If the next lowest bit it set, the second tack
+      is considered active.  An active tack MAY be used by the pin
+      activation algorithm in Section 5.3.5 to create, activate, and
+      extend the activation of TACK pins.
 
    Note that both the "tack" and "break_sigs" fields MAY be empty.
 
@@ -500,7 +500,7 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
 
 
-Marlinspike & Perrin    Expires February 7, 2013                [Page 9]
+Marlinspike & Perrin    Expires February 9, 2013                [Page 9]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -556,7 +556,7 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
 
 
-Marlinspike & Perrin    Expires February 7, 2013               [Page 10]
+Marlinspike & Perrin    Expires February 9, 2013               [Page 10]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -579,7 +579,7 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 5.3.1.  Check whether the TLS handshake is well-formed
 
    A TLS handshake is "well-formed" if the following are true.  Unless
-   otherwise specified, if any of the following checks are false a
+   otherwise specified, if any of the following are false a
    "bad_certificate" fatal error alert SHALL be sent.
 
    1.  The handshake protocol negotiates a cryptographically secure
@@ -606,13 +606,13 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
    All pins in the store which are broken by break signatures SHALL be
    deleted.  A pin is broken by a break signature if it matches the
-   break signature and the ECDSA signature verifies correctly (if a
+   break signature and the ECDSA signature verifies correctly.  If a
    break signature fails to verify, a fatal "bad_certificate" error
-   alert SHALL be sent).
+   alert SHALL be sent.
 
 
 
-Marlinspike & Perrin    Expires February 7, 2013               [Page 11]
+Marlinspike & Perrin    Expires February 9, 2013               [Page 11]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -637,81 +637,75 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 5.3.5.  Pin activation (optional)
 
    The TLS connection MAY be used to create, delete, and activate pins.
-   Note that this "pin activation algorithm" is optional; a client MAY
-   rely on an external source of pins.
+   This "pin activation algorithm" is optional; a client MAY rely on an
+   external source of pins.  If the connection was "rejected" by the
+   previous processing step, then pin activation is skipped.
 
-   The first step in pin activation is to delete a relevant but inactive
-   pin unless there is a matching tack.  Afterwards, the following steps
-   are executed for each tack with an enabled activation flag:
+   The first step in pin activation is to evaluate each relevant pin
+   (there may be one or two).  Since an unmatched, active pin will have
+   already caused the connection to be rejected, there are only three
+   cases:
 
-   If there is a relevant pin and matching tack, the pin's "end time"
-   SHALL be set using the below formula based on the current, initial,
-   and end times:
+   1.  An unmatched (inactive) pin SHALL be deleted.
 
-   end = current + MIN(30 days, current - initial)
+   2.  An (active or inactive) pin with matching tack(s) that are all
+       inactive SHALL be left unchanged.
 
-   If there is no relevant pin, a new pin SHALL be added to the pin
-   store.  The new pin uses the server's hostname, the tack's public key
-   and min_generation (unless the store has a higher min_generation for
-   the public key), an "initial time" set to the current time, and an
-   "end time" of zero.
+   3.  An (active or inactive) pin with matching tack(s), at least one
+       of which is active, SHALL have its "end time" set based on the
+       current, initial, and end times:
 
-   The following tables summarize this behavior.
+       end = current + MIN(30 days, current - initial)
 
+   The second step in pin activation is to add new pins for any
+   unmatched tacks.  Each new pin uses the server's hostname, the tack's
+   public key and min_generation (unless the store has a higher
+   min_generation for the public key), an "initial time" set to the
+   current time, and an "end time" of zero.
 
-
-
-
-
-
-
-
+   The following two tables summarize this behavior from the perspective
+   of an existing relevant pin.
 
 
-Marlinspike & Perrin    Expires February 7, 2013               [Page 12]
+
+Marlinspike & Perrin    Expires February 9, 2013               [Page 12]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
 
-   If there is an active relevant pin:
+   Relevant pin is active:
 
-     +------------------+-----------------+--------------------------+
-     | Pin matches tack | Activation flag | Result                   |
-     +------------------+-----------------+--------------------------+
-     | Yes              | Enabled         | Extend activation period |
-     |                  |                 |                          |
-     | Yes              | Disabled        | -                        |
-     |                  |                 |                          |
-     | No, or no tack   | *               | -                        |
-     +------------------+-----------------+--------------------------+
+       +---------------+----------------+--------------------------+
+       | Matching tack | Tack is active | Result                   |
+       +---------------+----------------+--------------------------+
+       | Yes           | Yes            | Extend activation period |
+       |               |                |                          |
+       | Yes           | No             | -                        |
+       |               |                |                          |
+       | No            | -              | (Connection rejected)    |
+       +---------------+----------------+--------------------------+
 
-   If there is an inactive relevant pin:
+   Relevant pin is inactive:
 
-   +------------------+-----------------+------------------------------+
-   | Pin matches tack | Activation flag | Result                       |
-   +------------------+-----------------+------------------------------+
-   | Yes              | Enabled         | Activate pin                 |
-   |                  |                 |                              |
-   | Yes              | Disabled        | -                            |
-   |                  |                 |                              |
-   | No               | Enabled         | Delete pin; New inactive pin |
-   |                  |                 |                              |
-   | No               | Disabled        | Delete pin                   |
-   |                  |                 |                              |
-   | No tack          | *               | Delete pin                   |
-   +------------------+-----------------+------------------------------+
+             +---------------+----------------+--------------+
+             | Matching tack | Tack is active | Result       |
+             +---------------+----------------+--------------+
+             | Yes           | Yes            | Activate pin |
+             |               |                |              |
+             | Yes           | No             | -            |
+             |               |                |              |
+             | No            | -              | Delete pin   |
+             +---------------+----------------+--------------+
 
-   If there is no relevant pin:
+   After processing existing pins, unmatched tacks are considered:
 
-           +--------------+-----------------+------------------+
-           | Tack present | Activation flag | Result           |
-           +--------------+-----------------+------------------+
-           | Yes          | Enabled         | New inactive pin |
-           |              |                 |                  |
-           | Yes          | Disabled        | -                |
-           |              |                 |                  |
-           | No           | *               | -                |
-           +--------------+-----------------+------------------+
+              +--------------------------+------------------+
+              | Unmatched tack is active | Result           |
+              +--------------------------+------------------+
+              | Yes                      | New inactive pin |
+              |                          |                  |
+              | No                       | -                |
+              +--------------------------+------------------+
 
 
 
@@ -724,7 +718,13 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
 
 
-Marlinspike & Perrin    Expires February 7, 2013               [Page 13]
+
+
+
+
+
+
+Marlinspike & Perrin    Expires February 9, 2013               [Page 13]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -744,10 +744,10 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
    Some application protocols negotiate TLS as an optional feature (e.g.
    SMTP using STARTTLS [RFC3207]).  If such a server fails to negotiate
-   TLS and there is a relevant active pin, then the connection is
-   rejected by the pin.  If the server fails to negotiate TLS and there
-   is a relevant inactive pin, then this pin SHALL be deleted.  Note
-   that these steps are taken despite the absence of a TLS connection.
+   TLS and there are relevant active pins, then the connection is
+   rejected by the pin.  If the server fails to negotiate TLS, then any
+   relevant, inactive pins SHALL be deleted.  Note that these steps are
+   taken despite the absence of a TLS connection.
 
 6.3.  Certificate verification
 
@@ -780,7 +780,7 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
 
 
-Marlinspike & Perrin    Expires February 7, 2013               [Page 14]
+Marlinspike & Perrin    Expires February 9, 2013               [Page 14]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -792,11 +792,12 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
    fingerprint consists of the first 25 characters from the base32
    encoding of SHA256(public_key), split into 5 groups of 5 characters
    separated by periods.  Base32 encoding is as specified in [RFC4648],
-   except lowercase is used.  Examples:
+   except lowercase is used, and lowercase 'l' characters are converted
+   into less-visually-confusing '8' numerals.  Examples:
 
-      g5p5x.ov4vi.dgsjv.wxctt.c5iul
+      g5p5x.ov4vi.dgsjv.wxctt.c5iu8
 
-      quxiz.kpldu.uuedc.j5znm.7mqst
+      quxiz.kp8du.uuedc.j5znm.7mqst
 
       e25zs.cth7k.tscmp.5hxdp.wf47j
 
@@ -835,8 +836,7 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
 
 
-
-Marlinspike & Perrin    Expires February 7, 2013               [Page 15]
+Marlinspike & Perrin    Expires February 9, 2013               [Page 15]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -855,8 +855,8 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
    Aliases:  A TLS server may be referenced by multiple hostnames.
       Clients may pin any of these hostnames.  Server operators should
-      be careful when using such DNS aliases that hostnames are not
-      pinned inadvertently.
+      be careful when using DNS aliases that hostnames are not pinned
+      inadvertently.
 
    Generations:  To revoke older generations of tacks, the server
       operator SHOULD first provide all servers with a new generation of
@@ -875,24 +875,24 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
    Break signatures:  A break signature only needs to be published for a
       time interval equal to the maximum active period of any affected
-      pins.  For example, if the activation flag for a tack has only
-      been enabled on a particular website for 24 hours, to remove the
-      tack only requires publishing the break signature for 24 hours.
+      pins.  For example, if the tack has only been active on a
+      particular website for 24 hours, to remove the tack only requires
+      publishing the break signature for 24 hours.
 
-   Activation flag:  The activation flag SHOULD only be enabled once all
-      TLS servers sharing the same hostname have a tack.  Otherwise, a
+   Tack/pin activation:  Tacks should only be activated once all TLS
+      servers sharing the same hostname have a tack.  Otherwise, a
       client may activate a pin by contacting one server, then contact a
       different server at the same hostname that does not yet have a
       tack.
 
-   Pin deactivation:  The activation flag can be used to phase out tacks
-      for a hostname.  If all servers at a hostname disable the flag,
-      all existing pins for the hostname will eventually become
-      inactive, at which point the servers' tacks can be removed.
+   Tack/pin deactivation:  If all servers at a hostname deactivate their
+      tacks (by clearing the activation flag), all existing pins for the
+      hostname will eventually become inactive, at which point the
+      servers' tacks can be removed.
 
 
 
-Marlinspike & Perrin    Expires February 7, 2013               [Page 16]
+Marlinspike & Perrin    Expires February 9, 2013               [Page 16]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -948,7 +948,7 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
 
 
-Marlinspike & Perrin    Expires February 7, 2013               [Page 17]
+Marlinspike & Perrin    Expires February 9, 2013               [Page 17]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -1004,7 +1004,7 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
 
 
-Marlinspike & Perrin    Expires February 7, 2013               [Page 18]
+Marlinspike & Perrin    Expires February 9, 2013               [Page 18]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -1060,7 +1060,7 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
 
 
-Marlinspike & Perrin    Expires February 7, 2013               [Page 19]
+Marlinspike & Perrin    Expires February 9, 2013               [Page 19]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -1116,7 +1116,7 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
 
 
-Marlinspike & Perrin    Expires February 7, 2013               [Page 20]
+Marlinspike & Perrin    Expires February 9, 2013               [Page 20]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -1172,7 +1172,7 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
 
 
-Marlinspike & Perrin    Expires February 7, 2013               [Page 21]
+Marlinspike & Perrin    Expires February 9, 2013               [Page 21]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -1228,7 +1228,7 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
 
 
-Marlinspike & Perrin    Expires February 7, 2013               [Page 22]
+Marlinspike & Perrin    Expires February 9, 2013               [Page 22]
 
 Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
@@ -1284,5 +1284,5 @@ Authors' Addresses
 
 
 
-Marlinspike & Perrin    Expires February 7, 2013               [Page 23]
+Marlinspike & Perrin    Expires February 9, 2013               [Page 23]
 

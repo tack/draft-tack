@@ -120,7 +120,7 @@ combined with some metadata into each server's "tack".
 
 For each hostname, tacks are deployed to TLS servers in a two-stage process.
 First, each TLS server associated with the hostname is given a tack. Once this
-is completed, an "activation_flag" is enabled on the servers.
+is completed, tacks are activated on the servers.
 
 	</t>
 	
@@ -138,7 +138,7 @@ If a TLS private key is compromised, the tacks signing this key can be revoked
 by publishing a new tack containing a higher "min_generation".
 
 	</t>
-	<t hangText="Revoking TACK keys:">
+	<t hangText="Breaking TACK keys:">
 
 If a TACK private key is compromised, or a server operator wishes to stop
 using TACK or abruptly change its TACK key for any reason, a server can revoke
@@ -146,6 +146,22 @@ an entire TACK key (including all tacks and pins referring to it) by
 publishing a "break signature".
 
 	</t>
+	<t hangText="Deactivating tacks:">
+
+If a server operator wishes to stop deploying tacks but has lost the TACK key,
+all tacks for a hostname can be deactivated, allowing the server to remove the
+tacks within 30 days (at most).
+
+	</t>
+	<t hangText="Rollover:">
+
+If a server operator wishes to change the TACK key a hostname is pinned to,
+the server can introduce a new tack prior to breaking or deactivating the old
+tack. This lets clients acquire trust in the new tack before the old one is
+removed.
+
+	</t>
+	
 	</list>
 	<vspace blankLines="100" />	
 </t>
@@ -218,7 +234,7 @@ the TLS presentation language from <xref target="RFC5246"/>.
 
 	</t>
 <figure><artwork>
-enum (disabled(0), enabled(1)} TACK_Activation;
+enum (first_active(1), second_active(2), both_active(3)} TACK_Flags;
 
 struct {
    opaque public_key[64];
@@ -237,7 +253,7 @@ struct {
 struct {
    Tack tack&lt;0...332&gt;  /* 0...2 Tacks */
    Break_Sig break_sigs&lt;0...1024&gt;  /* 0...8 Break Sigs */
-   TACK_Activation activation_flag;
+   TACK_Flags activation_flags;
 } TACK_Extension;
 </artwork>
 </figure>
@@ -347,14 +363,15 @@ This field provides the server's tack. It MAY be empty, or MAY contain up to
 This field provides break signatures. It MAY be empty, or MAY contain up to 8
 break signatures.
 
-</t>
-<t hangText="activation_flag:">
+</t> 
 
-If this field is set to 1 ("enabled") and a tack is present, then the tack MAY
-be used by the pin activation algorithm in <xref target="creating"/> to
-create, activate, and extend the activation of TACK pins. This flag is
-typically toggled from a disabled to an enabled state once tacks have been
-deployed to all TLS servers for a hostname.
+<t hangText="activation_flags:">
+
+This field contains "activation flags" for the extension's tacks. If the low
+order bit is set, the first tack is considered active. If the next lowest bit
+it set, the second tack is considered active. An active tack MAY be used by
+the pin activation algorithm in <xref target="creating"/> to create, activate,
+and extend the activation of TACK pins.
 
 
 </t> </list> </t>
@@ -460,8 +477,8 @@ anchor="wellformed">
 <t>
 
 A TLS handshake is "well-formed" if the following are true. Unless otherwise
-specified, if any of the following checks are false a "bad_certificate" fatal
-error alert SHALL be sent.
+specified, if any of the following are false a "bad_certificate" fatal error
+alert SHALL be sent.
 
 <list style="numbers">
 
@@ -497,8 +514,8 @@ public key.</t> </list> </t>
 
 All pins in the store which are broken by break signatures SHALL be deleted. A
 pin is broken by a break signature if it matches the break signature and the
-ECDSA signature verifies correctly (if a break signature fails to verify, a
-fatal "bad_certificate" error alert SHALL be sent). </t>
+ECDSA signature verifies correctly.  If a break signature fails to verify, a
+fatal "bad_certificate" error alert SHALL be sent. </t>
 
 </section>
 
@@ -527,110 +544,100 @@ least one relevant, active pin with a matching tack, then the connection is
 
 <t>
 
-The TLS connection MAY be used to create, delete, and activate pins. Note that
-this "pin activation algorithm" is optional; a client MAY rely on an external
-source of pins.
+The TLS connection MAY be used to create, delete, and activate pins. This "pin
+activation algorithm" is optional; a client MAY rely on an external source of
+pins. If the connection was "rejected" by the previous processing step, then
+pin activation is skipped.
 
 </t>
 <t>
 
-The first step in pin activation is to delete a relevant but inactive pin
-unless there is a matching tack. Afterwards, the following steps are executed
-for each tack with an enabled activation flag:
+The first step in pin activation is to evaluate each relevant pin (there may
+be one or two). Since an unmatched, active pin will have already caused the
+connection to be rejected, there are only three cases: <list style="numbers">
 
+<t>An unmatched (inactive) pin SHALL be deleted.</t>
+
+<t>An (active or inactive) pin with matching tack(s) that are all inactive
+SHALL be left unchanged.</t>
+
+<t>An (active or inactive) pin with matching tack(s), at least one of which is
+active, SHALL have its "end time" set based on the current, initial, and end
+times:
+
+<figure><artwork>    
+    end = current + MIN(30 days, current - initial) 
+</artwork></figure> </t>
+</list>
 </t>
 
 <t>
 
-If there is a relevant pin and matching tack, the pin's "end time" SHALL be
-set using the below formula based on the current, initial, and end times:
+The second step in pin activation is to add new pins for any unmatched tacks.
+Each new pin uses the server's hostname, the tack's public key and
+min_generation (unless the store has a higher min_generation for the public
+key), an "initial time" set to the current time, and an "end time" of zero.
 
 </t> 
-<figure><artwork>
-end = current + MIN(30 days, current - initial)
-</artwork></figure>	
-<t>
-
-If there is no relevant pin, a new pin SHALL be added to the pin store. The
-new pin uses the server's hostname, the tack's public key and min_generation
-(unless the store has a higher min_generation for the public key), an "initial
-time" set to the current time, and an "end time" of zero.
-
-</t>
 
 <t>
 
-The following tables summarize this behavior.
-<vspace blankLines="100" />	
+The following two tables summarize this behavior from the perspective of an
+existing relevant pin. <vspace blankLines="100" />
 
 </t>
-<t>If there is an active relevant pin:</t>
+<t>Relevant pin is active:</t>
 
       <texttable>
-           <ttcol align='left'>Pin matches tack</ttcol>
-           <ttcol align='left'>Activation flag</ttcol>
+           <ttcol align='left'>Matching tack</ttcol>
+           <ttcol align='left'>Tack is active</ttcol>
            <ttcol align='left'>Result</ttcol>
 
            <c>Yes</c>
-           <c>Enabled</c>
+           <c>Yes</c>
            <c>Extend activation period</c>
 
            <c>Yes</c>
-           <c>Disabled</c>
+           <c>No</c>
            <c>-</c>
 
-           <c>No, or no tack</c>
-           <c>*</c>
+           <c>No</c>
            <c>-</c>
+           <c>(Connection rejected)</c>
 
        </texttable>
 
-<t>If there is an inactive relevant pin:</t>
+<t>Relevant pin is inactive:</t>
 
       <texttable>
-           <ttcol align='left'>Pin matches tack</ttcol>
-           <ttcol align='left'>Activation flag</ttcol>
+           <ttcol align='left'>Matching tack</ttcol>
+           <ttcol align='left'>Tack is active</ttcol>
            <ttcol align='left'>Result</ttcol>
 
            <c>Yes</c>
-           <c>Enabled</c>
+           <c>Yes</c>
            <c>Activate pin</c>
 
            <c>Yes</c>
-           <c>Disabled</c>
+           <c>No</c>
            <c>-</c>
 
            <c>No</c>
-           <c>Enabled</c>
-           <c>Delete pin; New inactive pin</c>
-
-           <c>No</c>
-           <c>Disabled</c>
-           <c>Delete pin</c>
-
-           <c>No tack</c>
-           <c>*</c>
+           <c>-</c>
            <c>Delete pin</c>
 
        </texttable>
 
-<t>If there is no relevant pin:</t>
+<t>After processing existing pins, unmatched tacks are considered:</t>
 
       <texttable>
-           <ttcol align='left'>Tack present</ttcol>
-           <ttcol align='left'>Activation flag</ttcol>
+           <ttcol align='left'>Unmatched tack is active</ttcol>
            <ttcol align='left'>Result</ttcol>
 
            <c>Yes</c>
-           <c>Enabled</c>
            <c>New inactive pin</c>
 
-           <c>Yes</c>
-           <c>Disabled</c>
-           <c>-</c>
-
            <c>No</c>
-           <c>*</c>
            <c>-</c>
 
        </texttable>
@@ -651,12 +658,14 @@ words, a pin for HTTPS at "example.com" implies nothing about POP3 or SMTP at
 referencing that key, regardless of application.</t> </section>
 
 <section title="TLS negotiation">
+
 <t>Some application protocols negotiate TLS as an optional feature (e.g. SMTP
 using STARTTLS <xref target="RFC3207"/>). If such a server fails to negotiate
-TLS and there is a relevant active pin, then the connection is rejected by the
-pin. If the server fails to negotiate TLS and there is a relevant inactive
-pin, then this pin SHALL be deleted. Note that these steps are taken despite
-the absence of a TLS connection.</t>
+TLS and there are relevant active pins, then the connection is rejected by the
+pin. If the server fails to negotiate TLS, then any relevant, inactive pins
+SHALL be deleted. Note that these steps are taken despite the absence of a TLS
+connection.</t>
+
 </section>
 
 <section title="Certificate verification" anchor="certver">
@@ -691,13 +700,14 @@ A "key fingerprint" may be used to represent a TACK public key to users in a
 form that is easy to compare and transcribe. A key fingerprint consists of the
 first 25 characters from the base32 encoding of SHA256(public_key), split into
 5 groups of 5 characters separated by periods. Base32 encoding is as specified
-in <xref target="RFC4648"/>, except lowercase is used. Examples:
+in <xref target="RFC4648"/>, except lowercase is used, and lowercase 'l'
+characters are converted into less-visually-confusing '8' numerals. Examples:
 
 </t>
 <t>
 <list>
-	<t>g5p5x.ov4vi.dgsjv.wxctt.c5iul</t>
-	<t>quxiz.kpldu.uuedc.j5znm.7mqst</t>
+	<t>g5p5x.ov4vi.dgsjv.wxctt.c5iu8</t>
+	<t>quxiz.kp8du.uuedc.j5znm.7mqst</t>
 	<t>e25zs.cth7k.tscmp.5hxdp.wf47j</t>
 </list>
 </t>
@@ -724,8 +734,8 @@ hostnames for a group of near-identical servers.
 <t hangText="Aliases:">
 
 A TLS server may be referenced by multiple hostnames. Clients may pin any of
-these hostnames. Server operators should be careful when using such DNS
-aliases that hostnames are not pinned inadvertently.
+these hostnames. Server operators should be careful when using DNS aliases
+that hostnames are not pinned inadvertently.
 
 </t>
 
@@ -749,22 +759,22 @@ key has limited value to an attacker.</t>
 <t hangText="Break signatures:">
 
 A break signature only needs to be published for a time interval equal to the
-maximum active period of any affected pins. For example, if the activation
-flag for a tack has only been enabled on a particular website for 24 hours, to
-remove the tack only requires publishing the break signature for 24 hours.
+maximum active period of any affected pins. For example, if the tack has only
+been active on a particular website for 24 hours, to remove the tack only
+requires publishing the break signature for 24 hours.
 
 </t>
-<t hangText="Activation flag:">
+<t hangText="Tack/pin activation:">
 
-The activation flag SHOULD only be enabled once all TLS servers sharing the
-same hostname have a tack. Otherwise, a client may activate a pin by
-contacting one server, then contact a different server at the same hostname
-that does not yet have a tack. </t>
+Tacks should only be activated once all TLS servers sharing the same hostname
+have a tack. Otherwise, a client may activate a pin by contacting one server,
+then contact a different server at the same hostname that does not yet have a
+tack. </t>
 
-<t hangText="Pin deactivation:">The activation flag can be used to phase out
-tacks for a hostname. If all servers at a hostname disable the flag, all
-existing pins for the hostname will eventually become inactive, at which point
-the servers' tacks can be removed.
+<t hangText="Tack/pin deactivation:">If all servers at a hostname deactivate
+their tacks (by clearing the activation flag), all existing pins for the
+hostname will eventually become inactive, at which point the servers' tacks
+can be removed.
 
 </t>
 
