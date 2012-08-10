@@ -553,17 +553,15 @@ pin activation is skipped.
 <t>
 
 The first step in pin activation is to evaluate each relevant pin (there may
-be one or two). Since an unmatched, active pin will have already caused the
-connection to be rejected, there are only three cases: <list style="numbers">
+be one or two). Since an unmatched active pin will have caused the connection
+to be rejected, there are only three cases: <list style="numbers">
 
 <t>An unmatched (inactive) pin SHALL be deleted.</t>
 
-<t>An (active or inactive) pin with matching tack(s) that are all inactive
-SHALL be left unchanged.</t>
+<t>A pin with matching inactive tacks SHALL be unchanged.</t>
 
-<t>An (active or inactive) pin with matching tack(s), at least one of which is
-active, SHALL have its "end time" set based on the current, initial, and end
-times:
+<t>An pin with matching tacks, at least one of which is active, SHALL have
+its "end time" set based on the current, initial, and end times:
 
 <figure><artwork>    
     end = current + MIN(30 days, current - initial) 
@@ -628,7 +626,7 @@ existing relevant pin. <vspace blankLines="100" />
 
        </texttable>
 
-<t>After processing existing pins, unmatched tacks are considered:</t>
+<t>After processing existing pins, unmatched tacks are added:</t>
 
       <texttable>
            <ttcol align='left'>Unmatched tack is active</ttcol>
