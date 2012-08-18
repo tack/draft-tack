@@ -120,7 +120,8 @@ combined with some metadata into each server's "tack".
 
 For each hostname, tacks are deployed to TLS servers in a two-stage process.
 First, each TLS server associated with the hostname is given a tack. Once this
-is completed, tacks are activated on the servers.
+is completed, the tacks are activated by setting the activation flag on each
+server.
 
 	</t>
 	
@@ -149,16 +150,16 @@ publishing a "break signature".
 	<t hangText="Deactivating tacks:">
 
 If a server operator wishes to stop deploying tacks but has lost the TACK key,
-all tacks for a hostname can be deactivated, allowing the server to remove the
-tacks within 30 days (at most).
+all tacks for a hostname can be deactivated via the activation flag, allowing
+the server to remove the tacks within 30 days (at most).
 
 	</t>
 	<t hangText="Rollover:">
 
 If a server operator wishes to change the TACK key a hostname is pinned to,
-the server can introduce a new tack prior to breaking or deactivating the old
-tack. This lets clients acquire trust in the new tack before the old one is
-removed.
+the server can publish a new tack alongside the old one. This lets clients
+activate pins for the new TACK key prior to the server deactivating or
+breaking the older pins.
 
 	</t>
 	
@@ -173,24 +174,36 @@ removed.
 	
 	<t>
 
-A TACK client maintains a store of pins for verifying TLS connections. Pins
-associate a hostname and a TACK key. When a client sees a new hostname and
-TACK key combination, an inactive pin is created. Every subsequent time the
-client sees the same pin, the pin is "activated" for a period equal to the
-timespan between the first time the pin was seen and the most recent time, up
-to a maximum period of 30 days.
+A TACK pin associates a hostname and a TACK key. Pins are grouped into "pin
+stores". A client may populate its pin stores by either performing "pin
+activation" directly, or by querying some other party. For example, a client
+application may have a pin activation store as well as a store which is
+periodically downloaded from the application vendor.
+</t> <t>
 
-</t> 
-<t>
+Whenever a client performing "pin activation" sees a hostname and TACK key
+combination not represented in the pin store, an inactive pin is created.
+Every subsequent time the client sees the same pin, the pin is "activated" for
+a period equal to the timespan between the first time the pin was seen and the
+most recent time, up to a maximum period of 30 days.
 
-Pin activation prevents an attacker with short-lived control of the hostname
-from activating long-lived pins. It also makes it safer for sites to
+</t>
+
+<t>Pin activation prevents an attacker with short-lived control of the
+hostname from activating long-lived pins. It also makes it safer for sites to
 experiment with tacks, as a new tack can be discarded without causing
 long-lived problems. The 30 day limit guarantees that a worst-case pin can be
 recovered from in reasonable time.
 
 </t>
+<t>
 
+A pin store may contain up to two pins per hostname. This allows for "pin
+rollover", where a server securely transitions from one pin to another. If
+both pins are simultaneously active, then the server must satisfy both of them
+by presenting a pair of tacks.
+
+</t>
 
  <t>In addition to creating and activating pins, a TLS connection can alter the
    clients's pin store by publishing revocation data:<list
@@ -204,7 +217,7 @@ TACK key, and rejects tacks from earlier generations.
 	<t hangText="Break signatures:">
 
 A TLS handshake may send break signatures which cause all pins for the
-broken key to be discarded.
+broken key to be deleted.
 
 	</t>
 
@@ -369,7 +382,7 @@ break signatures.
 
 This field contains "activation flags" for the extension's tacks. If the low
 order bit is set, the first tack is considered active. If the next lowest bit
-it set, the second tack is considered active. An active tack MAY be used by
+is set, the second tack is considered active. An active tack MAY be used by
 the pin activation algorithm in <xref target="creating"/> to create, activate,
 and extend the activation of TACK pins.
 
@@ -531,9 +544,9 @@ stored value SHALL be set to the tack's value.</t>
 
 <section title="Determine the store's status"> <t>
 
-If there is a relevant, active pin without a matching tack, then the
+If there is a relevant active pin without a matching tack, then the
 connection is "rejected". If the connection is not rejected and there is at
-least one relevant, active pin with a matching tack, then the connection is
+least one relevant active pin with a matching tack, then the connection is
 "accepted". Otherwise, the connection is "unpinned".
 
 </t>
@@ -553,41 +566,51 @@ pin activation is skipped.
 <t>
 
 The first step in pin activation is to evaluate each relevant pin (there may
-be one or two). Since an unmatched active pin will have caused the connection
-to be rejected, there are only three cases: <list style="numbers">
+be one or two): <list style="numbers">
 
-<t>An unmatched (inactive) pin SHALL be deleted.</t>
+<t>If a pin has no matching tacks, its handling will depend on whether the pin
+is active. If active, the connection will have been rejected, skipping pin
+activation. If inactive, the pin SHALL be deleted, since it is contradicted by 
+the connection.</t>
 
-<t>A pin with matching inactive tacks SHALL be unchanged.</t>
-
-<t>An pin with matching tacks, at least one of which is active, SHALL have
-its "end time" set based on the current, initial, and end times:
-
+<t>If a pin has matching tacks, its handling will depend on whether at least
+one of the tacks is active. If not, the pin is left unchanged. If so, then the
+pin SHALL have its "end time" set based on the current, initial, and end
+times:
 <figure><artwork>    
     end = current + MIN(30 days, current - initial) 
 </artwork></figure> </t>
 </list>
 </t>
 
-<t>
+<t> Since (1) deletes unmatched pins and (2) activates matched pins, all
+relevant pins will now be matched and active. </t>
 
-The second step in pin activation is to add new pins for any unmatched tacks.
-Each new pin uses the server's hostname, the tack's public key and
-min_generation (unless the store has a higher min_generation for the public
-key), an "initial time" set to the current time, and an "end time" of zero.
+<t>The remaining step in pin activation is to add new inactive pins for any
+unmatched tacks. Each new pin uses the server's hostname, the tack's public
+key and min_generation (unless the store has a higher min_generation for the
+public key), an "initial time" set to the current time, and an "end time" of
+zero.
 
 </t> 
 
+<t> There are always sufficient empty "slots" in the pin store for adding new
+pins without exceeding the limit of two pins per hostname. Since multiple pins
+cannot match the same tack, there are at least as many matching tacks as
+matching pins, thus there cannot be more unmatched tacks than empty pin slots.
+
+</t>
 <t>
 
-The following two tables summarize this behavior from the perspective of an
-existing relevant pin. <vspace blankLines="100" />
+The following tables summarize this behavior from the perspective of a pin.
+You can follow the lifecycle of a single pin from "New inactive pin" to
+"Delete pin".
 
 </t>
 <t>Relevant pin is active:</t>
 
       <texttable>
-           <ttcol align='left'>Matching tack</ttcol>
+           <ttcol align='left'>Pin matches a tack</ttcol>
            <ttcol align='left'>Tack is active</ttcol>
            <ttcol align='left'>Result</ttcol>
 
@@ -608,7 +631,7 @@ existing relevant pin. <vspace blankLines="100" />
 <t>Relevant pin is inactive:</t>
 
       <texttable>
-           <ttcol align='left'>Matching tack</ttcol>
+           <ttcol align='left'>Pin matches a tack</ttcol>
            <ttcol align='left'>Tack is active</ttcol>
            <ttcol align='left'>Result</ttcol>
 
@@ -626,7 +649,7 @@ existing relevant pin. <vspace blankLines="100" />
 
        </texttable>
 
-<t>After processing existing pins, unmatched tacks are added:</t>
+<t>Tack doesn't match any relevant pin:</t>
 
       <texttable>
            <ttcol align='left'>Unmatched tack is active</ttcol>
@@ -683,8 +706,7 @@ If TACK processing and certificate verification both complete without a fatal
 error, the client SHALL apply some policy to decide whether to accept the
 connection. The policy is up to the client. An example policy would be to
 accept the connection only if it passes certificate verification and is not
-rejected by a pin, or if the user elects to "connect anyway" despite
-certificate and/or pin failures.
+rejected by a pin.
 
 </t>
 
@@ -747,19 +769,20 @@ older-generation server which has not yet been updated.</t>
 
 <t hangText="Tack expiration:">
 
-It is recommended to set the tack expiration equal to the end-entity
-certificate expiration plus 30 days, allowing the tack and certificate to both
-be replaced at the same time. The extra 30 days ensures there is enough time
-to employ "pin deactivation" (see below) if the TACK private key is lost.
-Alternatively, short-lived tacks may be used so that a compromised TLS private
-key has limited value to an attacker.</t>
+When TACK is used in conjunction with certificates it is recommended to set
+the tack expiration equal to the end-entity certificate expiration plus 30
+days, allowing the tack and certificate to both be replaced at the same time.
+The extra 30 days ensures there is enough time to employ "pin deactivation"
+(see below) if the TACK private key is lost. Alternatively, short-lived tacks
+may be used so that a compromised TLS private key has limited value to an
+attacker.</t>
 
 <t hangText="Break signatures:">
 
 A break signature only needs to be published for a time interval equal to the
-maximum active period of any affected pins. For example, if the tack has only
-been active on a particular website for 24 hours, to remove the tack only
-requires publishing the break signature for 24 hours.
+maximum active period of any affected pins (30 days at most). For example, if
+the tack has only been active on a particular website for 24 hours, to remove
+the tack only requires publishing the break signature for 24 hours.
 
 </t>
 <t hangText="Tack/pin activation:">
@@ -771,14 +794,22 @@ tack. </t>
 
 <t hangText="Tack/pin deactivation:">If all servers at a hostname deactivate
 their tacks (by clearing the activation flag), all existing pins for the
-hostname will eventually become inactive, at which point the servers' tacks
-can be removed.
+hostname will eventually become inactive. The tacks can be removed after a
+time interval equal to the maximum active period of any affected pins (30 days
+at most).
+
+</t>
+
+<t hangText="Pin rollover:">When performing a rollover, the old and new tacks
+SHOULD be presented simultaneously for at least 60 days. This ensures that a
+pin activation client who is contacting the server at least once every 30 days
+will not have the length of its activation periods affected by the transition.
 
 </t>
 
 
+
 </list>
-<vspace blankLines="100" />	
 </t>
 </section> 
 <section title="For client implementers">
