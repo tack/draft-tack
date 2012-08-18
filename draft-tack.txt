@@ -286,22 +286,16 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
    A TACK pin associates a hostname and a TACK key.  Pins are grouped
    into "pin stores".  A client may populate its pin stores by either
    performing "pin activation" directly, or by querying some other
-   party.  For example, a client application may have a pin activation
-   store as well as a store which is periodically downloaded from the
-   application vendor.
+   party.  For example, a client application may have a store for pin
+   activation as well as a store whose contents are periodically fetched
+   from an update server.
 
    Whenever a client performing "pin activation" sees a hostname and
-   TACK key combination not represented in the pin store, an inactive
-   pin is created.  Every subsequent time the client sees the same pin,
-   the pin is "activated" for a period equal to the timespan between the
-   first time the pin was seen and the most recent time, up to a maximum
-   period of 30 days.
-
-   Pin activation prevents an attacker with short-lived control of the
-   hostname from activating long-lived pins.  It also makes it safer for
-   sites to experiment with tacks, as a new tack can be discarded
-   without causing long-lived problems.  The 30 day limit guarantees
-   that a worst-case pin can be recovered from in reasonable time.
+   TACK key combination not represented in the relevant pin store, an
+   inactive pin is created.  Every subsequent time the client sees the
+   same pin, the pin is "activated" for a period equal to the timespan
+   between the first time the pin was seen and the most recent time, up
+   to a maximum period of 30 days.
 
    A pin store may contain up to two pins per hostname.  This allows for
    "pin rollover", where a server securely transitions from one pin to
@@ -309,7 +303,7 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
    must satisfy both of them by presenting a pair of tacks.
 
    In addition to creating and activating pins, a TLS connection can
-   alter the clients's pin store by publishing revocation data:
+   alter client pin stores by publishing revocation data:
 
    Min_generation:  Each pin stores the highest "min_generation" value
       it has seen from the pinned TACK key, and rejects tacks from
@@ -317,6 +311,12 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
    Break signatures:  A TLS handshake may send break signatures which
       cause all pins for the broken key to be deleted.
+
+
+
+
+
+
 
 
 
@@ -353,8 +353,6 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
    "TACK_Extension", as defined below using the TLS presentation
    language from [RFC5246].
 
-   enum (first_active(1), second_active(2), both_active(3)} TACK_Flags;
-
    struct {
       opaque public_key[64];
       uint8  min_generation;
@@ -372,8 +370,10 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
    struct {
       Tack tack<0...332>  /* 0...2 Tacks */
       Break_Sig break_sigs<0...1024>  /* 0...8 Break Sigs */
-      TACK_Flags activation_flags;
+      uint8 activation_flags;
    } TACK_Extension;
+
+
 
 
 
@@ -526,11 +526,11 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
       pins within a pin store sharing the same TACK public key SHALL
       have the same min_generation.
 
-   A hostname along with all the above values comprises a "TACK pin".
-   Thus, each store can hold up to two pins for a hostname.  A pin
-   "matches" a tack or break signature if they both reference the same
-   TACK public key.  A pin is "relevant" if its hostname is equal to the
-   TLS server's hostname.
+   A hostname along with the above values comprises a "TACK pin".  Thus,
+   each store can hold up to two pins for a hostname (however, those two
+   pins MUST reference different public keys).  A pin "matches" a tack
+   or break signature if they reference the same public key.  A pin is
+   "relevant" if its hostname equals the TLS server's hostname.
 
 5.2.  High-level client processing
 
@@ -622,9 +622,10 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
    If there is a tack which has matching pins in the pin store, and the
    tack's generation is less than the stored min_generation, then the
    tack is revoked and the client SHALL send a fatal
-   "certificate_revoked" error alert.  If the tack's min_generation is
-   greater than the stored min_generation, the stored value SHALL be set
-   to the tack's value.
+   "certificate_revoked" error alert.
+
+   If the tack's min_generation is greater than the stored
+   min_generation, the stored value SHALL be set to the tack's value.
 
 5.3.4.  Determine the store's status
 
@@ -656,15 +657,14 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
 
        end = current + MIN(30 days, current - initial)
 
-   Since (1) deletes unmatched pins and (2) activates matched pins, all
-   relevant pins will now be matched and active.
+   In sum: (1) deletes unmatched pins, provided they are inactive; and
+   (2) activates matched pins, provided the matching tack is active.
 
    The remaining step in pin activation is to add new inactive pins for
    any unmatched tacks.  Each new pin uses the server's hostname, the
    tack's public key and min_generation (unless the store has a higher
    min_generation for the public key), an "initial time" set to the
    current time, and an "end time" of zero.
-
 
 
 
@@ -904,10 +904,12 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
       of any affected pins (30 days at most).
 
    Pin rollover:  When performing a rollover, the old and new tacks
-      SHOULD be presented simultaneously for at least 60 days.  This
+      SHOULD be published simultaneously for at least 60 days.  This
       ensures that a pin activation client who is contacting the server
       at least once every 30 days will not have the length of its
-      activation periods affected by the transition.
+      activation periods affected by the transition.  Example rollover
+      process: Add new tacks; activate new tacks; wait 30+ days;
+      deactivate old tacks; wait 30+ days; remove old tacks.
 
 8.2.  For client implementers
 
@@ -928,8 +930,6 @@ Internet-Draft    Trust Assertions for Certificate Keys      August 2012
       tacks if they expired less than T minutes ago, where T is a
       "tolerance bound" set to the client's maximum expected clock
       error.
-
-
 
 
 

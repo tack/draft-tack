@@ -177,25 +177,19 @@ breaking the older pins.
 A TACK pin associates a hostname and a TACK key. Pins are grouped into "pin
 stores". A client may populate its pin stores by either performing "pin
 activation" directly, or by querying some other party. For example, a client
-application may have a pin activation store as well as a store which is
-periodically downloaded from the application vendor.
-</t> <t>
+application may have a store for pin activation as well as a store whose
+contents are periodically fetched from an update server. </t>
+
+<t>
 
 Whenever a client performing "pin activation" sees a hostname and TACK key
-combination not represented in the pin store, an inactive pin is created.
-Every subsequent time the client sees the same pin, the pin is "activated" for
-a period equal to the timespan between the first time the pin was seen and the
-most recent time, up to a maximum period of 30 days.
+combination not represented in the relevant pin store, an inactive pin is
+created. Every subsequent time the client sees the same pin, the pin is
+"activated" for a period equal to the timespan between the first time the pin
+was seen and the most recent time, up to a maximum period of 30 days.
 
 </t>
 
-<t>Pin activation prevents an attacker with short-lived control of the
-hostname from activating long-lived pins. It also makes it safer for sites to
-experiment with tacks, as a new tack can be discarded without causing
-long-lived problems. The 30 day limit guarantees that a worst-case pin can be
-recovered from in reasonable time.
-
-</t>
 <t>
 
 A pin store may contain up to two pins per hostname. This allows for "pin
@@ -205,8 +199,8 @@ by presenting a pair of tacks.
 
 </t>
 
- <t>In addition to creating and activating pins, a TLS connection can alter the
-   clients's pin store by publishing revocation data:<list
+ <t>In addition to creating and activating pins, a TLS connection can alter
+   client pin stores by publishing revocation data:<list
 style="hanging"> <t hangText="Min_generation:">
 
 Each pin stores the highest "min_generation" value it has seen from the pinned
@@ -247,8 +241,6 @@ the TLS presentation language from <xref target="RFC5246"/>.
 
 	</t>
 <figure><artwork>
-enum (first_active(1), second_active(2), both_active(3)} TACK_Flags;
-
 struct {
    opaque public_key[64];
    uint8  min_generation;
@@ -266,7 +258,7 @@ struct {
 struct {
    Tack tack&lt;0...332&gt;  /* 0...2 Tacks */
    Break_Sig break_sigs&lt;0...1024&gt;  /* 0...8 Break Sigs */
-   TACK_Flags activation_flags;
+   uint8 activation_flags;
 } TACK_Extension;
 </artwork>
 </figure>
@@ -436,10 +428,11 @@ sharing the same TACK public key SHALL have the same min_generation.
 </t>
 <t>
 
-A hostname along with all the above values comprises a "TACK pin". Thus, each
-store can hold up to two pins for a hostname. A pin "matches" a tack or break
-signature if they both reference the same TACK public key. A pin is "relevant"
-if its hostname is equal to the TLS server's hostname.
+A hostname along with the above values comprises a "TACK pin". Thus, each
+store can hold up to two pins for a hostname (however, those two pins MUST
+reference different public keys). A pin "matches" a tack or break signature if
+they reference the same public key. A pin is "relevant" if its hostname
+equals the TLS server's hostname.
 
 </t>
 
@@ -537,6 +530,8 @@ fatal "bad_certificate" error alert SHALL be sent. </t>
 <t> If there is a tack which has matching pins in the pin store, and the
 tack's generation is less than the stored min_generation, then the tack is
 revoked and the client SHALL send a fatal "certificate_revoked" error alert.
+</t>
+<t>
 If the tack's min_generation is greater than the stored min_generation, the
 stored value SHALL be set to the tack's value.</t>
 
@@ -583,8 +578,8 @@ times:
 </list>
 </t>
 
-<t> Since (1) deletes unmatched pins and (2) activates matched pins, all
-relevant pins will now be matched and active. </t>
+<t> In sum: (1) deletes unmatched pins, provided they are inactive; and (2)
+activates matched pins, provided the matching tack is active. </t>
 
 <t>The remaining step in pin activation is to add new inactive pins for any
 unmatched tacks. Each new pin uses the server's hostname, the tack's public
@@ -801,13 +796,11 @@ at most).
 </t>
 
 <t hangText="Pin rollover:">When performing a rollover, the old and new tacks
-SHOULD be presented simultaneously for at least 60 days. This ensures that a
+SHOULD be published simultaneously for at least 60 days. This ensures that a
 pin activation client who is contacting the server at least once every 30 days
 will not have the length of its activation periods affected by the transition.
-
-</t>
-
-
+Example rollover process: Add new tacks; activate new tacks; wait 30+ days;
+deactivate old tacks; wait 30+ days; remove old tacks. </t>
 
 </list>
 </t>
