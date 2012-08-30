@@ -141,10 +141,9 @@ by publishing a new tack containing a higher "min_generation".
 	</t>
 	<t hangText="Breaking TACK keys:">
 
-If a TACK private key is compromised, or a server operator wishes to stop
-using TACK or abruptly change its TACK key for any reason, a server can revoke
-an entire TACK key (including all tacks and pins referring to it) by
-publishing a "break signature".
+If a server operator wishes to stop using TACK or abruptly change its TACK key
+for any reason, a server can revoke an entire TACK key (including all tacks
+and pins referring to it) by publishing a "break signature".
 
 	</t>
 	<t hangText="Deactivating tacks:">
@@ -178,13 +177,13 @@ A TACK pin associates a hostname and a TACK key. Pins are grouped into "pin
 stores". A client may populate its pin stores by either performing "pin
 activation" directly, or by querying some other party. For example, a client
 application may have a store for pin activation as well as a store whose
-contents are periodically fetched from an update server. </t>
+contents are periodically fetched from a server. </t>
 
 <t>
 
 Whenever a client performing "pin activation" sees a hostname and TACK key
-combination not represented in the relevant pin store, an inactive pin is
-created. Every subsequent time the client sees the same pin, the pin is
+combination not represented in the "pin activation" pin store, an inactive pin
+is created. Every subsequent time the client sees the same pin, the pin is
 "activated" for a period equal to the timespan between the first time the pin
 was seen and the most recent time, up to a maximum period of 30 days.
 
@@ -335,7 +334,7 @@ target="RFC6090"/>, and these strings are concatenated with the r value first.
 <t hangText="public_key:"> 
 
 This field specifies the TACK key being broken. The key is encoded as per
-tack.public_key.
+Tack.public_key.
 
 </t>
 
@@ -345,7 +344,7 @@ This field is an ECDSA signature by the Break_Sig's public key over the
 14 byte ASCII string "tack_break_sig". The field contains a pair of integers
 (r, s) representing an ECDSA signature as defined in <xref
 target="FIPS186-3"/>, using curve P-256 and SHA256. It is calculated and
-encoded as per tack.signature.
+encoded as per Tack.signature.
 
 </t>
 
@@ -360,8 +359,8 @@ encoded as per tack.signature.
 
 <t hangText="tack:">
 
-This field provides the server's tack. It MAY be empty, or MAY contain up to
-2 tacks. </t>
+This field provides the server's tack(s). It MAY be empty, or MAY contain up
+to 2 tacks. </t>
 
 <t hangText="break_sigs:">
 
@@ -444,9 +443,9 @@ equals the TLS server's hostname.
 
 A TACK client SHALL send the "tack_ext" extension defined previously, and
 SHALL send the "server_name" extension from <xref target="RFC6066"/>. If not
-resuming a session, the server MAY respond with a TACK_Extension. A client
-SHALL perform the following steps prior to using the connection (if no
-TACK_Extension is received, only 2C and 2D are performed):
+resuming a session, the server MAY respond with a TACK_Extension. Regardless
+of whether a TACK_Extension is returned, the client SHALL perform the
+following steps prior to using the connection:
 
 <list style="numbers">
  <t>Check whether the TLS handshake is "well-formed".</t>
@@ -457,6 +456,9 @@ TACK_Extension is received, only 2C and 2D are performed):
     <t>Determine the store's status.</t>
     <t>Perform pin activation (optional).</t>
 </list>
+
+<vspace blankLines="100" />	
+
 </t>
 </list>
 
@@ -589,13 +591,13 @@ zero.
 
 </t> 
 
-<t> There are always sufficient empty "slots" in the pin store for adding new
-pins without exceeding the limit of two pins per hostname. Since multiple pins
-cannot match the same tack, there are at least as many matching tacks as
-matching pins, thus there cannot be more unmatched tacks than empty pin slots.
+<t> (Note that there are always sufficient empty "slots" in the pin store for
+adding new pins without exceeding two pins per hostname. This is because the
+number of matching pins is always less than or equal to the number of matching
+tacks (since a single pin can match two tacks, but not vice versa). Thus, the
+number of empty pin slots must exceed or equal the number of unmatched tacks.)
 
-</t>
-<t>
+</t> <t>
 
 The following tables summarize this behavior from the perspective of a pin.
 You can follow the lifecycle of a single pin from "New inactive pin" to
@@ -715,14 +717,13 @@ A "key fingerprint" may be used to represent a TACK public key to users in a
 form that is easy to compare and transcribe. A key fingerprint consists of the
 first 25 characters from the base32 encoding of SHA256(public_key), split into
 5 groups of 5 characters separated by periods. Base32 encoding is as specified
-in <xref target="RFC4648"/>, except lowercase is used, and lowercase 'l'
-characters are converted into less-visually-confusing '8' numerals. Examples:
+in <xref target="RFC4648"/>, except lowercase is used. Examples:
 
 </t>
 <t>
 <list>
-	<t>g5p5x.ov4vi.dgsjv.wxctt.c5iu8</t>
-	<t>quxiz.kp8du.uuedc.j5znm.7mqst</t>
+	<t>g5p5x.ov4vi.dgsjv.wxctt.c5iul</t>
+	<t>quxiz.kpldu.uuedc.j5znm.7mqst</t>
 	<t>e25zs.cth7k.tscmp.5hxdp.wf47j</t>
 </list>
 </t>
