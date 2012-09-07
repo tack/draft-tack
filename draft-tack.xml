@@ -63,8 +63,8 @@ key without requiring sites to modify their existing certificate chains, and
 without limiting a site's flexibility to deploy different certificate chains
 on different servers or change certificate chains at any time. Since TACK pins
 are based on TACK keys (instead of CA keys), trust in CAs is not required.
-Additionally, the TACK key may be used to revoke previous TACK signatures (or
-even itself) in order to handle the compromise of TLS or TACK private keys.
+Additionally, the TACK key may be used to revoke previous TACK signatures in
+order to handle the compromise of TLS private keys.
 
 	</t>
 	<t>
@@ -139,26 +139,19 @@ If a TLS private key is compromised, the tacks signing this key can be revoked
 by publishing a new tack containing a higher "min_generation".
 
 	</t>
-	<t hangText="Breaking TACK keys:">
-
-If a server operator wishes to stop using TACK or abruptly change its TACK key
-for any reason, a server can revoke an entire TACK key (including all tacks
-and pins referring to it) by publishing a "break signature".
-
-	</t>
 	<t hangText="Deactivating tacks:">
 
-If a server operator wishes to stop deploying tacks but has lost the TACK key,
-all tacks for a hostname can be deactivated via the activation flag, allowing
-the server to remove the tacks within 30 days (at most).
+If a server operator wishes to stop deploying tacks, all tacks for a hostname
+can be deactivated via the activation flag, allowing the server to remove the
+tacks within 30 days (at most).
 
 	</t>
 	<t hangText="Rollover:">
 
 If a server operator wishes to change the TACK key a hostname is pinned to,
 the server can publish a new tack alongside the old one. This lets clients
-activate pins for the new TACK key prior to the server deactivating or
-breaking the older pins.
+activate pins for the new TACK key prior to the server deactivating the older
+pins.
 
 	</t>
 	
@@ -199,23 +192,11 @@ by presenting a pair of tacks.
 </t>
 
  <t>In addition to creating and activating pins, a TLS connection can alter
-   client pin stores by publishing revocation data:<list
-style="hanging"> <t hangText="Min_generation:">
+client pin stores by publishing new "min_generation" values in a tack. Each
+pin stores the highest "min_generation" value it has seen from the pinned TACK
+key, and rejects tacks from earlier generations.
+</t>
 
-Each pin stores the highest "min_generation" value it has seen from the pinned
-TACK key, and rejects tacks from earlier generations.
-
-	</t>
-
-	<t hangText="Break signatures:">
-
-A TLS handshake may send break signatures which cause all pins for the
-broken key to be deleted.
-
-	</t>
-
-	</list>
-	</t>
 </section>
 </section>
 
@@ -250,13 +231,7 @@ struct {
 } Tack;  /* 166 bytes */
 
 struct {
-   opaque public_key[64];
-   opaque signature[64];
-} Break_Sig;  /* 128 bytes */
-
-struct {
-   Tack tack&lt;0...332&gt;  /* 0...2 Tacks */
-   Break_Sig break_sigs&lt;0...1024&gt;  /* 0...8 Break Sigs */
+   Tack tack&lt;166...332&gt;  /* 1 or 2 Tacks */
    uint8 activation_flags;
 } TACK_Extension;
 </artwork>
@@ -327,47 +302,13 @@ target="RFC6090"/>, and these strings are concatenated with the r value first.
 </t>
 </section>
 
-<section title="Break_Sig fields">
-<t>
-<list style="hanging">
-
-<t hangText="public_key:"> 
-
-This field specifies the TACK key being broken. The key is encoded as per
-Tack.public_key.
-
-</t>
-
-<t hangText="signature:">
-
-This field is an ECDSA signature by the Break_Sig's public key over the
-14 byte ASCII string "tack_break_sig". The field contains a pair of integers
-(r, s) representing an ECDSA signature as defined in <xref
-target="FIPS186-3"/>, using curve P-256 and SHA256. It is calculated and
-encoded as per Tack.signature.
-
-</t>
-
-
-</list>
-</t>
-</section>
-
 <section title="TACK_Extension fields">
 <t>
 <list style="hanging">
 
 <t hangText="tack:">
 
-This field provides the server's tack(s). It MAY be empty, or MAY contain up
-to 2 tacks. </t>
-
-<t hangText="break_sigs:">
-
-This field provides break signatures. It MAY be empty, or MAY contain up to 8
-break signatures.
-
-</t> 
+This field provides the server's tack(s). It SHALL contain 1 or 2 tacks. </t>
 
 <t hangText="activation_flags:">
 
@@ -379,8 +320,6 @@ and extend the activation of TACK pins.
 
 
 </t> </list> </t>
-
-<t> Note that both the "tack" and "break_sigs" fields MAY be empty. </t>
 
 </section>
 
@@ -429,9 +368,9 @@ sharing the same TACK public key SHALL have the same min_generation.
 
 A hostname along with the above values comprises a "TACK pin". Thus, each
 store can hold up to two pins for a hostname (however, those two pins MUST
-reference different public keys). A pin "matches" a tack or break signature if
-they reference the same public key. A pin is "relevant" if its hostname
-equals the TLS server's hostname.
+reference different public keys). A pin "matches" a tack if they reference the
+same public key. A pin is "relevant" if its hostname equals the TLS server's
+hostname.
 
 </t>
 
@@ -451,7 +390,6 @@ following steps prior to using the connection:
  <t>Check whether the TLS handshake is "well-formed".</t>
  <t>For each pin store, do:
 <list style="letters">
-    <t>Delete pins based on break signatures.</t>
     <t>Check tack generation and update min_generation.</t>
     <t>Determine the store's status.</t>
     <t>Perform pin activation (optional).</t>
@@ -514,16 +452,6 @@ SubjectPublicKeyInfo.</t>
 
  <t>"signature" is a correct ECDSA signature that verifies using the tack's
 public key.</t> </list> </t>
-
-</section>
-
-<section title="Delete pins based on break signatures">
-<t>
-
-All pins in the store which are broken by break signatures SHALL be deleted. A
-pin is broken by a break signature if it matches the break signature and the
-ECDSA signature verifies correctly.  If a break signature fails to verify, a
-fatal "bad_certificate" error alert SHALL be sent. </t>
 
 </section>
 
@@ -672,8 +600,7 @@ You can follow the lifecycle of a single pin from "New inactive pin" to
 words, a pin for HTTPS at "example.com" implies nothing about POP3 or SMTP at
 "example.com". </t>
 
-<t>However, a break signature for a key SHOULD be used to delete all pins
-referencing that key, regardless of application.</t> </section>
+</section>
 
 <section title="TLS negotiation">
 
@@ -773,14 +700,6 @@ The extra 30 days ensures there is enough time to employ "pin deactivation"
 may be used so that a compromised TLS private key has limited value to an
 attacker.</t>
 
-<t hangText="Break signatures:">
-
-A break signature only needs to be published for a time interval equal to the
-maximum active period of any affected pins (30 days at most). For example, if
-the tack has only been active on a particular website for 24 hours, to remove
-the tack only requires publishing the break signature for 24 hours.
-
-</t>
 <t hangText="Tack/pin activation:">
 
 Tacks should only be activated once all TLS servers sharing the same hostname
@@ -813,11 +732,10 @@ deactivate old tacks; wait 30+ days; remove old tacks. </t>
 
 It is possible for a client to maintain a pin store based entirely on its own
 TLS connections. However, such a client runs the risk of creating incorrect
-pins, failing to keep its pins active, or failing to receive revocation
-information (min_generation updates and break signatures). Clients are advised
-to collaborate and make use of 3rd-party trust infrastructure so that pin data
-can be aggregated and shared. This will require additional protocols outside
-the scope of this document.
+pins, failing to keep its pins active, or failing to receive min_generation
+updates. Clients are advised to collaborate and make use of 3rd-party trust
+infrastructure so that pin data can be aggregated and shared. This will
+require additional protocols outside the scope of this document.
 
 </t> <t hangText="Clock synchronization:">
 
