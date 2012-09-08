@@ -529,8 +529,8 @@ Internet-Draft    Trust Assertions for Certificate Keys   September 2012
    1.  The handshake protocol negotiates a cryptographically secure
        ciphersuite and finishes succesfully.
 
-   2.  If a TACK_Extension is present all length fields are correct and
-       the tacks are "well-formed" by the rules below.
+   2.  If a TACK_Extension is present all length fields are correct, the
+       activation_flags is <= 3, and the tacks are "well-formed".
 
    A tack is "well-formed" if:
 
