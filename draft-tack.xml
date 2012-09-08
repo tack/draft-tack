@@ -457,11 +457,11 @@ public key.</t> </list> </t>
 
 <section title="Check tack generations and update stored min_generations">
 
-<t> If a tack has matching pins in the pin store and a generation less than
-the stored min_generation, then that tack is revoked and the client SHALL send
-a fatal "certificate_revoked" error alert. If a tack has matching pins and a
-min_generation greater than the stored min_generation, the stored value SHALL
-be set to the tack's value.</t>
+<t>If any tack has matching pins and a min_generation greater than the stored
+min_generation, the stored value SHALL be set to the tack's value. Following
+this, check that any tack with matching pins has a generation greater than or
+equal to the stored min_generation. If not, that tack is revoked and the
+client SHALL send a fatal "certificate_revoked" error alert.</t>
 
 </section> 
 
