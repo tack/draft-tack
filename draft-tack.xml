@@ -433,7 +433,7 @@ alert SHALL be sent.
 and finishes succesfully.</t>
 
 <t>If a TACK_Extension is present all length fields are correct, the
-activation_flags is &lt;= 3, and the tacks are "well-formed".</t>
+"activation_flags" is &lt;= 3, and the tacks are "well-formed".</t>
 
 </list> 
 </t>
@@ -510,10 +510,10 @@ times:
 activates matched pins, provided the matching tack is active. </t>
 
 <t>The remaining step in pin activation is to add new inactive pins for any
-unmatched tacks. Each new pin uses the server's hostname, the tack's public
-key and min_generation (unless the store has a higher min_generation for the
-public key), an "initial time" set to the current time, and an "end time" of
-zero.
+unmatched active tacks. Each new pin uses the server's hostname, the tack's
+public key and min_generation (unless the store has a higher min_generation
+for the public key), an "initial time" set to the current time, and an "end
+time" of zero.
 
 </t> 
 

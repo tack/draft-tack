@@ -530,7 +530,7 @@ Internet-Draft    Trust Assertions for Certificate Keys   September 2012
        ciphersuite and finishes succesfully.
 
    2.  If a TACK_Extension is present all length fields are correct, the
-       activation_flags is <= 3, and the tacks are "well-formed".
+       "activation_flags" is <= 3, and the tacks are "well-formed".
 
    A tack is "well-formed" if:
 
@@ -595,10 +595,10 @@ Internet-Draft    Trust Assertions for Certificate Keys   September 2012
    (2) activates matched pins, provided the matching tack is active.
 
    The remaining step in pin activation is to add new inactive pins for
-   any unmatched tacks.  Each new pin uses the server's hostname, the
-   tack's public key and min_generation (unless the store has a higher
-   min_generation for the public key), an "initial time" set to the
-   current time, and an "end time" of zero.
+   any unmatched active tacks.  Each new pin uses the server's hostname,
+   the tack's public key and min_generation (unless the store has a
+   higher min_generation for the public key), an "initial time" set to
+   the current time, and an "end time" of zero.
 
    (Note that there are always sufficient empty "slots" in the pin store
    for adding new pins without exceeding two pins per hostname.  This is
