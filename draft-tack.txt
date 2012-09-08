@@ -78,8 +78,8 @@ Table of Contents
      5.2.  High-level client processing . . . . . . . . . . . . . . .  9
      5.3.  Client processing details  . . . . . . . . . . . . . . . . 10
        5.3.1.  Check whether the TLS handshake is well-formed . . . . 10
-       5.3.2.  Check tack generations and update stored
-               min_generations  . . . . . . . . . . . . . . . . . . . 10
+       5.3.2.  Update stored min_generations and check tack
+               generations  . . . . . . . . . . . . . . . . . . . . . 10
        5.3.3.  Determine the store's status . . . . . . . . . . . . . 11
        5.3.4.  Pin activation (optional)  . . . . . . . . . . . . . . 11
    6.  Application protocols and TACK . . . . . . . . . . . . . . . . 13
@@ -488,7 +488,7 @@ Internet-Draft    Trust Assertions for Certificate Keys   September 2012
 
    2.  For each pin store, do:
 
-       A.  Check tack generations and update stored min_generations.
+       A.  Update stored min_generations and check tack generations.
 
        B.  Determine the store's status.
 
@@ -545,7 +545,7 @@ Internet-Draft    Trust Assertions for Certificate Keys   September 2012
    4.  "signature" is a correct ECDSA signature that verifies using the
        tack's public key.
 
-5.3.2.  Check tack generations and update stored min_generations
+5.3.2.  Update stored min_generations and check tack generations
 
    If any tack has matching pins and a min_generation greater than the
    stored min_generation, the stored value SHALL be set to the tack's

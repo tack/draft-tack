@@ -391,7 +391,7 @@ following steps prior to using the connection:
  <t>Check whether the TLS handshake is "well-formed".</t>
  <t>For each pin store, do:
 <list style="letters">
-    <t>Check tack generations and update stored min_generations.</t>
+    <t>Update stored min_generations and check tack generations.</t>
     <t>Determine the store's status.</t>
     <t>Perform pin activation (optional).</t>
 </list>
@@ -455,7 +455,7 @@ public key.</t> </list> </t>
 
 </section>
 
-<section title="Check tack generations and update stored min_generations">
+<section title="Update stored min_generations and check tack generations">
 
 <t>If any tack has matching pins and a min_generation greater than the stored
 min_generation, the stored value SHALL be set to the tack's value. Following
