@@ -432,9 +432,8 @@ alert SHALL be sent.
 <t>The handshake protocol negotiates a cryptographically secure ciphersuite
 and finishes succesfully.</t>
 
-<t>The handshake contains a syntactically-valid TACK_Extension.</t>
-
-<t>If tacks are present, they are "well-formed" by the rules below.</t>
+<t>If a TACK_Extension is present all length fields are correct and the
+tacks are "well-formed" by the rules below.</t>
 
 </list> 
 </t>

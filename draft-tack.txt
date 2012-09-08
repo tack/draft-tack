@@ -529,9 +529,8 @@ Internet-Draft    Trust Assertions for Certificate Keys   September 2012
    1.  The handshake protocol negotiates a cryptographically secure
        ciphersuite and finishes succesfully.
 
-   2.  The handshake contains a syntactically-valid TACK_Extension.
-
-   3.  If tacks are present, they are "well-formed" by the rules below.
+   2.  If a TACK_Extension is present all length fields are correct and
+       the tacks are "well-formed" by the rules below.
 
    A tack is "well-formed" if:
 
@@ -553,6 +552,7 @@ Internet-Draft    Trust Assertions for Certificate Keys   September 2012
    client SHALL send a fatal "certificate_revoked" error alert.  If a
    tack has matching pins and a min_generation greater than the stored
    min_generation, the stored value SHALL be set to the tack's value.
+
 
 
 
