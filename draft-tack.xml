@@ -63,8 +63,9 @@ key without requiring sites to modify their existing certificate chains, and
 without limiting a site's flexibility to deploy different certificate chains
 on different servers or change certificate chains at any time. Since TACK pins
 are based on TACK keys (instead of CA keys), trust in CAs is not required.
-Additionally, the TACK key may be used to revoke previous TACK signatures in
-order to handle the compromise of TLS private keys.
+Additionally, the TACK key may be used to revoke compromised TLS private keys,
+and TACK key rollovers may be performed to recover from suspect or compromised
+TACK keys.
 
 	</t>
 	<t>
@@ -231,8 +232,8 @@ struct {
 } Tack;  /* 166 bytes */
 
 struct {
-   Tack tack&lt;166...332&gt;  /* 1 or 2 Tacks */
-   uint8 activation_flags;
+   Tack tacks&lt;166...332&gt;    /* 1 or 2 Tacks */
+   uint8 activation_flags;  /* 0...3 */
 } TACK_Extension;
 </artwork>
 </figure>
@@ -390,7 +391,7 @@ following steps prior to using the connection:
  <t>Check whether the TLS handshake is "well-formed".</t>
  <t>For each pin store, do:
 <list style="letters">
-    <t>Check tack generation and update min_generation.</t>
+    <t>Check tack generations and update stored min_generations.</t>
     <t>Determine the store's status.</t>
     <t>Perform pin activation (optional).</t>
 </list>
@@ -406,7 +407,7 @@ remaining steps (see <xref target="details"/> for details).
 
 </t>
 
-<t>Based on step 2C, each store will report one of three statuses for the
+<t>Based on step 2B, each store will report one of three statuses for the
 connection: "accepted", "rejected", or "unpinned". A rejected connection might
 indicate a network attack. If the connection is rejected the client SHOULD
 send a fatal "access_denied" error alert and close the connection. </t> 
@@ -455,15 +456,13 @@ public key.</t> </list> </t>
 
 </section>
 
-<section title="Check tack generation and update min_generation">
+<section title="Check tack generations and update stored min_generations">
 
-<t> If there is a tack which has matching pins in the pin store, and the
-tack's generation is less than the stored min_generation, then the tack is
-revoked and the client SHALL send a fatal "certificate_revoked" error alert.
-</t>
-<t>
-If the tack's min_generation is greater than the stored min_generation, the
-stored value SHALL be set to the tack's value.</t>
+<t> If a tack has matching pins in the pin store and a generation less than
+the stored min_generation, then that tack is revoked and the client SHALL send
+a fatal "certificate_revoked" error alert. If a tack has matching pins and a
+min_generation greater than the stored min_generation, the stored value SHALL
+be set to the tack's value.</t>
 
 </section> 
 
@@ -525,9 +524,11 @@ number of matching pins is always less than or equal to the number of matching
 tacks (since a single pin can match two tacks, but not vice versa). Thus, the
 number of empty pin slots must exceed or equal the number of unmatched tacks.)
 
-</t> <t>
+<vspace blankLines="100" />
 
-The following tables summarize this behavior from the perspective of a pin.
+</t> 
+
+<t>The following tables summarize this behavior from the perspective of a pin.
 You can follow the lifecycle of a single pin from "New inactive pin" to
 "Delete pin".
 
@@ -733,17 +734,18 @@ deactivate old tacks; wait 30+ days; remove old tacks. </t>
 It is possible for a client to maintain a pin store based entirely on its own
 TLS connections. However, such a client runs the risk of creating incorrect
 pins, failing to keep its pins active, or failing to receive min_generation
-updates. Clients are advised to collaborate and make use of 3rd-party trust
-infrastructure so that pin data can be aggregated and shared. This will
-require additional protocols outside the scope of this document.
+updates. Clients are advised to make use of 3rd-party trust infrastructure so
+that pin data can be aggregated and shared. This will require additional
+protocols outside the scope of this document.
 
 </t> <t hangText="Clock synchronization:">
 
 A client SHOULD take measures to prevent tacks from being erroneously rejected
-due to an inaccurate client clock. Such methods MAY include using time
-synchronization protocols such as NTP <xref target="RFC5905"/>, or accepting
-seemingly-expired tacks if they expired less than T minutes ago, where T is a
-"tolerance bound" set to the client's maximum expected clock error.
+as expired due to an inaccurate client clock. Such methods MAY include using
+time synchronization protocols such as NTP <xref target="RFC5905"/>, or
+accepting seemingly-expired tacks if they expired less than T minutes ago,
+where T is a "tolerance bound" set to the client's maximum expected clock
+error.
 
 </t>
 
