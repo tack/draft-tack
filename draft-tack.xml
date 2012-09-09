@@ -435,6 +435,8 @@ and finishes succesfully.</t>
 <t>If a TACK_Extension is present all length fields are correct, the
 "activation_flags" is &lt;= 3, and the tacks are "well-formed".</t>
 
+ <t>If there are two tacks, they have different "public_key" fields.</t>
+
 </list> 
 </t>
 
@@ -450,18 +452,17 @@ send a fatal "certificate_expired" error alert.</t>
  <t>"target_hash" is equal to the SHA256 hash of the server's
 SubjectPublicKeyInfo.</t>
 
- <t>"signature" is a correct ECDSA signature that verifies using the tack's
-public key.</t> </list> </t>
+ <t>"signature" is a correct ECDSA signature.</t> </list> </t>
 
 </section>
 
 <section title="Update stored min_generations and check tack generations">
 
-<t>If any tack has matching pins and a min_generation greater than the stored
-min_generation, the stored value SHALL be set to the tack's value. Following
-this, check that any tack with matching pins has a generation greater than or
-equal to the stored min_generation. If not, that tack is revoked and the
-client SHALL send a fatal "certificate_revoked" error alert.</t>
+<t>If a tack has matching pins in the pin store and a generation less than the
+stored min_generation, then that tack is revoked and the client SHALL send a
+fatal "certificate_revoked" error alert. If a tack has matching pins and a
+min_generation greater than the stored min_generation, the stored value SHALL
+be set to the tack's value.</t>
 
 </section> 
 
@@ -519,11 +520,8 @@ time" of zero.
 
 <t> (Note that there are always sufficient empty "slots" in the pin store for
 adding new pins without exceeding two pins per hostname. This is because the
-number of matching pins is always less than or equal to the number of matching
-tacks (since a single pin can match two tacks, but not vice versa). Thus, the
-number of empty pin slots must exceed or equal the number of unmatched tacks.)
-
-<vspace blankLines="100" />
+number of matching pins equals the number of matching tacks, so the number of
+empty pin slots equals the number of unmatched tacks.)
 
 </t> 
 
