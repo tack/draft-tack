@@ -391,7 +391,7 @@ following steps prior to using the connection:
  <t>Check whether the TLS handshake is "well-formed".</t>
  <t>For each pin store, do:
 <list style="letters">
-    <t>Update stored min_generations and check tack generations.</t>
+    <t>Check tack generations and update min_generations.</t>
     <t>Determine the store's status.</t>
     <t>Perform pin activation (optional).</t>
 </list>
@@ -456,7 +456,7 @@ SubjectPublicKeyInfo.</t>
 
 </section>
 
-<section title="Update stored min_generations and check tack generations">
+<section title="Check tack generations and update min_generations">
 
 <t>If a tack has matching pins in the pin store and a generation less than the
 stored min_generation, then that tack is revoked and the client SHALL send a
@@ -468,10 +468,10 @@ be set to the tack's value.</t>
 
 <section title="Determine the store's status"> <t>
 
-If there is a relevant active pin without a matching tack, then the
-connection is "rejected". If the connection is not rejected and there is at
-least one relevant active pin with a matching tack, then the connection is
-"accepted". Otherwise, the connection is "unpinned".
+If there is a relevant active pin without a matching tack, then the connection
+is "rejected". If the connection is not rejected and there is a relevant
+active pin with a matching tack, then the connection is "accepted". Otherwise,
+the connection is "unpinned".
 
 </t>
 
