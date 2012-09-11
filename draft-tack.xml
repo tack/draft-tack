@@ -232,8 +232,8 @@ struct {
 } Tack;  /* 166 bytes */
 
 struct {
-   Tack tacks&lt;166...332&gt;    /* 1 or 2 Tacks */
-   uint8 activation_flags;  /* 0...3 */
+   Tack   tacks&lt;166...332&gt;   /* 1 or 2 Tacks */
+   uint8  activation_flags;  /* 0...3 */
 } TACK_Extension;
 </artwork>
 </figure>
@@ -432,8 +432,9 @@ alert SHALL be sent.
 <t>The handshake protocol negotiates a cryptographically secure ciphersuite
 and finishes succesfully.</t>
 
-<t>If a TACK_Extension is present all length fields are correct, the
-"activation_flags" is &lt;= 3, and the tacks are "well-formed".</t>
+<t>If a TACK_Extension is present all length fields are correct,
+"activation_flags" is &lt;= 3, and the tacks are "well-formed" (see
+below).</t>
 
  <t>If there are two tacks, they have different "public_key" fields.</t>
 
@@ -449,8 +450,7 @@ A tack is "well-formed" if:
  <t>"expiration" specifies a time in the future, otherwise the client SHALL
 send a fatal "certificate_expired" error alert.</t>
 
- <t>"target_hash" is equal to the SHA256 hash of the server's
-SubjectPublicKeyInfo.</t>
+ <t>"target_hash" is a correct hash of the SubjectPublicKeyInfo.</t>
 
  <t>"signature" is a correct ECDSA signature.</t> </list> </t>
 
@@ -492,20 +492,18 @@ pin activation is skipped.
 The first step in pin activation is to evaluate each relevant pin (there may
 be one or two): <list style="numbers">
 
-<t>If a pin has no matching tacks, its handling will depend on whether the pin
+<t>If a pin has no matching tack, its handling will depend on whether the pin
 is active. If active, the connection will have been rejected, skipping pin
-activation. If inactive, the pin SHALL be deleted, since it is contradicted by 
+activation. If inactive, the pin SHALL be deleted, since it is contradicted by
 the connection.</t>
 
-<t>If a pin has matching tacks, its handling will depend on whether at least
-one of the tacks is active. If not, the pin is left unchanged. If so, then the
-pin SHALL have its "end time" set based on the current, initial, and end
-times:
-<figure><artwork>    
-    end = current + MIN(30 days, current - initial) 
-</artwork></figure> </t>
-</list>
-</t>
+<t>If a pin has a matching tack, its handling will depend on whether the tack
+is active. If inactive, the pin is left unchanged. If active, the pin SHALL
+have its "end time" set based on the current, initial, and end times:
+
+<figure><artwork> 
+    end = current + MIN(30 days, current - initial)
+</artwork></figure> </t> </list> </t>
 
 <t> In sum: (1) deletes unmatched pins, provided they are inactive; and (2)
 activates matched pins, provided the matching tack is active. </t>
