@@ -202,22 +202,22 @@ key, and rejects tacks from earlier generations.
 </section>
 
 <section title="TACK Extension">
-	<section title="Definition of TACK_Extension">
+	<section title="Definition of TackExtension">
 	<t>
 
-A new TLS ExtensionType ("tack_ext") is defined and MAY be included by a TLS
+A new TLS ExtensionType ("tack") is defined and MAY be included by a TLS
 client in the ClientHello message defined in <xref target="RFC5246"/>.
 
 </t>
 <figure><artwork>
-enum {tack_ext(TBD), (65535)} ExtensionType;
+enum {tack(TBD), (65535)} ExtensionType;
 </artwork></figure>	
 <t>
 
 The "extension_data" field of this ClientHello extension SHALL be empty. A TLS
 server which is not resuming a TLS session MAY respond with an extension of
-type "tack_ext" in the ServerHello. The "extension_data" field of this
-ServerHello extension SHALL contain a "TACK_Extension", as defined below using
+type "tack" in the ServerHello. The "extension_data" field of this
+ServerHello extension SHALL contain a "TackExtension", as defined below using
 the TLS presentation language from <xref target="RFC5246"/>.
 
 	</t>
@@ -234,7 +234,7 @@ struct {
 struct {
    Tack   tacks&lt;166...332&gt;   /* 1 or 2 Tacks */
    uint8  activation_flags;  /* 0...3 */
-} TACK_Extension;
+} TackExtension;
 </artwork>
 </figure>
 <t>
@@ -242,7 +242,7 @@ struct {
 
 </t>
 </section>
-<section title="Explanation of TACK_Extension fields">
+<section title="Explanation of TackExtension fields">
 
 <section title="Tack fields">
 <t>
@@ -303,11 +303,11 @@ target="RFC6090"/>, and these strings are concatenated with the r value first.
 </t>
 </section>
 
-<section title="TACK_Extension fields">
+<section title="TackExtension fields">
 <t>
 <list style="hanging">
 
-<t hangText="tack:">
+<t hangText="tacks:">
 
 This field provides the server's tack(s). It SHALL contain 1 or 2 tacks. </t>
 
@@ -381,11 +381,11 @@ hostname.
 
 <t>
 
-A TACK client SHALL send the "tack_ext" extension defined previously, and
-SHALL send the "server_name" extension from <xref target="RFC6066"/>. If not
-resuming a session, the server MAY respond with a TACK_Extension. Regardless
-of whether a TACK_Extension is returned, the client SHALL perform the
-following steps prior to using the connection:
+A TACK client SHALL send the "tack" extension defined previously, and SHALL
+send the "server_name" extension from <xref target="RFC6066"/>. If not
+resuming a session, the server MAY respond with a TackExtension. Regardless of
+whether a TackExtension is returned, the client SHALL perform the following
+steps prior to using the connection:
 
 <list style="numbers">
  <t>Check whether the TLS handshake is "well-formed".</t>
@@ -432,7 +432,7 @@ alert SHALL be sent.
 <t>The handshake protocol negotiates a cryptographically secure ciphersuite
 and finishes succesfully.</t>
 
-<t>If a TACK_Extension is present all length fields are correct,
+<t>If a TackExtension is present all length fields are correct,
 "activation_flags" is &lt;= 3, and the tacks are "well-formed" (see
 below).</t>
 
@@ -838,7 +838,7 @@ in this document would then be known as "v1" tacks.
 	<t>
 
 IANA is requested to add an entry to the existing TLS ExtensionType registry,
-defined in <xref target="RFC5246"/>, for tack_ext(TBD) as defined in this
+defined in <xref target="RFC5246"/>, for "tack"(TBD) as defined in this
 document.
 
  </t>
