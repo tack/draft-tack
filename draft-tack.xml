@@ -121,7 +121,7 @@ combined with some metadata into each server's "tack".
 
 For each hostname, tacks are deployed to TLS servers in a two-stage process.
 First, each TLS server associated with the hostname is given a tack. Once this
-is completed, the tacks are activated by setting the activation flag on each
+is completed, the tacks are activated by setting the "activation flag" on each
 server.
 
 	</t>
@@ -432,7 +432,7 @@ alert SHALL be sent.
 <t>The handshake protocol negotiates a cryptographically secure ciphersuite
 and finishes succesfully.</t>
 
-<t>If a TackExtension is present all length fields are correct,
+<t>If a TackExtension is present then all length fields are correct,
 "activation_flags" is &lt;= 3, and the tacks are "well-formed" (see
 below).</t>
 
@@ -704,7 +704,7 @@ then contact a different server at the same hostname that does not yet have a
 tack. </t>
 
 <t hangText="Tack/pin deactivation:">If all servers at a hostname deactivate
-their tacks (by clearing the activation flag), all existing pins for the
+their tacks (by clearing the activation flags), all existing pins for the
 hostname will eventually become inactive. The tacks can be removed after a
 time interval equal to the maximum active period of any affected pins (30 days
 at most).
@@ -738,9 +738,9 @@ protocols outside the scope of this document.
 A client SHOULD take measures to prevent tacks from being erroneously rejected
 as expired due to an inaccurate client clock. Such methods MAY include using
 time synchronization protocols such as NTP <xref target="RFC5905"/>, or
-accepting seemingly-expired tacks if they expired less than T minutes ago,
-where T is a "tolerance bound" set to the client's maximum expected clock
-error.
+accepting seemingly-expired tacks as "well-formed" if they expired less than T
+minutes ago, where T is a "tolerance bound" set to the client's maximum
+expected clock error.
 
 </t>
 
