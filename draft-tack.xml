@@ -284,7 +284,7 @@ midnight UTC, January 1 1970. </t>
 This field is a hash of the TLS server's SubjectPublicKeyInfo <xref
 target="RFC5280"/> using the SHA256 algorithm from <xref target="FIPS180-2"/>.
 The SubjectPublicKeyInfo is typically conveyed as part of the server's X.509
-certificate.
+end-entity certificate.
 
 </t>
 
@@ -715,8 +715,8 @@ at most).
 new tacks SHOULD be active simultaneously for at least 60 days. This ensures
 that any pin activation client who is contacting the server at intervals of 30
 days or less will not have its activation periods interrupted. Example
-process: activate new tacks; wait 60+ days; deactivate old
-tacks; wait 30+ days; remove old tacks. </t>
+process: activate new tacks; wait 60 days; deactivate old
+tacks; wait 30 days; remove old tacks. </t>
 
 </list>
 </t>

@@ -418,7 +418,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
    target_hash:  This field is a hash of the TLS server's
       SubjectPublicKeyInfo [RFC5280] using the SHA256 algorithm from
       [FIPS180-2].  The SubjectPublicKeyInfo is typically conveyed as
-      part of the server's X.509 certificate.
+      part of the server's X.509 end-entity certificate.
 
    signature:  This field is an ECDSA signature by the tack's public key
       over the 8 byte ASCII string "tack_sig" followed by the contents
@@ -846,7 +846,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
       ensures that any pin activation client who is contacting the
       server at intervals of 30 days or less will not have its
       activation periods interrupted.  Example process: activate new
-      tacks; wait 60+ days; deactivate old tacks; wait 30+ days; remove
+      tacks; wait 60 days; deactivate old tacks; wait 30 days; remove
       old tacks.
 
 8.2.  For client implementers
