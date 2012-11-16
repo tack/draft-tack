@@ -354,19 +354,19 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
    from [RFC5246].
 
    struct {
-      opaque public_key[64];
-      uint8  min_generation;
-      uint8  generation;
-      uint32 expiration;
-      uint16 flags;
-      opaque target_hash[32];
-      opaque signature[64];
-   } Tack;  /* 168 bytes */
+     opaque public_key[64];     /* NIST P-256 curve */
+     uint32 revocation_list;    /* uint4 min_generation[8] */
+     uint8  revocation_vals;    /* uint4 class, uint4 generation */
+     uint32 expiration;         /* minutes since epoch */
+     uint16 flags;              /* name flag (bit 0) */
+     opaque target_hash[32];    /* SHA256 */
+     opaque signature[64];      /* ECDSA-P256-SHA256 */
+   } Tack;                      /* 171 bytes */
 
    struct {
-      Tack   tacks<166...332>   /* 1 or 2 Tacks */
-      uint16 flags;
-   } TackExtension;
+     Tack   tacks<171...342>    /* 1 or 2 tacks */
+     uint16 flags;              /* activation flags (bits 0,1) */
+   } TackExtension;             /* 175 or 346 bytes */
 
 
 
@@ -406,18 +406,24 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
       an uncompressed subjectPublicKey from [RFC5480], except that the
       initial 0x04 byte is omitted).
 
-   min_generation:  This field publishes a min_generation value.
+   revocation_list:  This field publishes eight "min_generation" values,
+      one for each of the "revocation classes" 0-7.  Each min_generation
+      is a value from 0-15; the value for class 0 is stored in the first
+      4 bits; for class 1 in the next 4 bits, and so on.
 
-   generation:  This field assigns each tack a generation.  Generations
-      less than a published min_generation are considered revoked.
+   revocation_vals:  This field assigns each tack a revocation class
+      (from 0-7; encoded in the high 4 bits) and a generation (from
+      0-15; encoded in the low 4 bits).  If a min_generation higher than
+      the generation has been published for the class, the tack is
+      considered revoked.
 
    expiration:  This field specifies a time after which the tack is
       considered expired.  The time is encoded as the number of minutes,
       excluding leap seconds, after midnight UTC, January 1 1970.
 
    flags:  This field contains the "name flag" for the tack in its low-
-      order bit.  If the name flag is set, the tack is considered "name-
-      bound".  Any other bits MAY be set and MUST be ignored.
+      order bit.  If the name flag is set, the tack is "name-bound".
+      All other bits are reserved for future use and MUST be ignored.
 
    target_hash:  This field is a hash of the TLS server's
       SubjectPublicKeyInfo [RFC5280] using the SHA256 algorithm from
@@ -430,17 +436,11 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
       1.  The 8 byte ASCII string "tack_sig".
 
       2.  The contents of the tack prior to the "signature" field (i.e.
-          the first 104 bytes of the tack).
+          the first 107 bytes of the tack).
 
       3.  If the tack is "name-bound", the "ServerName" value as sent by
           a client in the "server_name" extension [RFC6066].  Any
           uppercase characters in "HostName" are converted to lowercase.
-
-      The field contains a pair of integers (r, s) representing an ECDSA
-      signature as defined in [FIPS186-3], using curve P-256 and SHA256.
-      Each integer is encoded as a 32-byte octet string using the
-      Integer-to-Octet-String algorithm from [RFC6090], and these
-      strings are concatenated with the r value first.
 
 
 
@@ -448,6 +448,12 @@ Marlinspike & Perrin      Expires May 19, 2013                  [Page 8]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
+
+      The field contains a pair of integers (r, s) representing an ECDSA
+      signature as defined in [FIPS186-3], using curve P-256 and SHA256.
+      Each integer is encoded as a 32-byte octet string using the
+      Integer-to-Octet-String algorithm from [RFC6090], and these
+      strings are concatenated with the r value first.
 
 4.2.2.  TackExtension fields
 
@@ -459,14 +465,8 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
       first tack is considered active.  If the next lowest bit is set,
       the second tack is considered active.  An active tack MAY be used
       by the pin activation algorithm in Section 5.3.4 to create,
-      activate, and extend the activation of TACK pins.  Any other bits
-      MAY be set and MUST be ignored.
-
-
-
-
-
-
+      activate, and extend the activation of TACK pins.  All other bits
+      are reserved for future use and MUST be ignored.
 
 
 
