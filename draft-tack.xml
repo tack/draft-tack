@@ -505,8 +505,8 @@ have its "end time" set based on the current, initial, and end times:
     end = current + MIN(30 days, current - initial)
 </artwork></figure> </t> </list> </t>
 
-<t> In sum: (1) deletes unmatched pins, provided they are inactive; and (2)
-activates matched pins, provided the matching tack is active. </t>
+<t> In sum: (1) deletes unmatched inactive pins; and (2) activates matched
+pins with active tacks. </t>
 
 <t>The remaining step in pin activation is to add new inactive pins for any
 unmatched active tacks. Each new pin uses the server's hostname, the tack's
