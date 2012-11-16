@@ -136,7 +136,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
    servers or change certificate chains at any time.  Since TACK pins
    are based on TACK keys (instead of CA keys), trust in CAs is not
    required.  Additionally, the TACK key may be used to revoke
-   compromised TLS private keys, and TACK key rollovers may be performed
+   compromised TLS private keys, and overlapping TACK keys may be used
    to recover from suspect or compromised TACK keys.
 
    If requested, a compliant server will send a TLS Extension containing
@@ -262,10 +262,10 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
       activation flag, allowing the server to remove the tacks within 30
       days (at most).
 
-   Rollover:  If a server operator wishes to change the TACK key a
-      hostname is pinned to, the server can publish a new tack alongside
-      the old one.  This lets clients activate pins for the new TACK key
-      prior to the server deactivating the older pins.
+   Overlapping tacks:  If a server operator wishes to change the TACK
+      key a hostname is pinned to, the server can publish a new tack
+      alongside the old one.  This lets clients activate pins for the
+      new TACK key prior to the server deactivating the older pins.
 
 
 
@@ -298,8 +298,8 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
    time, up to a maximum period of 30 days.
 
    A pin store may contain up to two pins per hostname.  This allows for
-   "pin rollover", where a server securely transitions from one pin to
-   another.  If both pins are simultaneously active, then the server
+   overlapping pins when a server is securely transitioning from one pin
+   to another.  If both pins are simultaneously active, then the server
    must satisfy both of them by presenting a pair of tacks.
 
    In addition to creating and activating pins, a TLS connection can
@@ -841,13 +841,13 @@ Marlinspike & Perrin      Expires May 19, 2013                 [Page 15]
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
-   Pin rollover:  When performing a rollover, the old and new tacks
-      SHOULD be published simultaneously for at least 60 days.  This
-      ensures that a pin activation client who is contacting the server
-      at least once every 30 days will not have the length of its
-      activation periods affected by the transition.  Example rollover
-      process: Add new tacks; activate new tacks; wait 30+ days;
-      deactivate old tacks; wait 30+ days; remove old tacks.
+   Tack/pin overlap:  When publishing overlapping tacks, the old and new
+      tacks SHOULD be active simultaneously for at least 60 days.  This
+      ensures that any pin activation client who is contacting the
+      server at intervals of 30 days or less will not have its
+      activation periods interrupted.  Example process: activate new
+      tacks; wait 60+ days; deactivate old tacks; wait 30+ days; remove
+      old tacks.
 
 8.2.  For client implementers
 
