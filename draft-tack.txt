@@ -72,32 +72,32 @@ Table of Contents
      4.1.  Definition of TackExtension  . . . . . . . . . . . . . . .  7
      4.2.  Explanation of TackExtension fields  . . . . . . . . . . .  8
        4.2.1.  Tack fields  . . . . . . . . . . . . . . . . . . . . .  8
-       4.2.2.  TackExtension fields . . . . . . . . . . . . . . . . .  8
-   5.  Client processing  . . . . . . . . . . . . . . . . . . . . . .  9
-     5.1.  TACK pins  . . . . . . . . . . . . . . . . . . . . . . . .  9
-     5.2.  High-level client processing . . . . . . . . . . . . . . .  9
-     5.3.  Client processing details  . . . . . . . . . . . . . . . . 10
-       5.3.1.  Check whether the TLS handshake is well-formed . . . . 10
-       5.3.2.  Check tack generations and update min_generations  . . 10
-       5.3.3.  Determine the store's status . . . . . . . . . . . . . 11
-       5.3.4.  Pin activation (optional)  . . . . . . . . . . . . . . 11
-   6.  Application protocols and TACK . . . . . . . . . . . . . . . . 13
-     6.1.  Pin scope  . . . . . . . . . . . . . . . . . . . . . . . . 13
-     6.2.  TLS negotiation  . . . . . . . . . . . . . . . . . . . . . 13
-     6.3.  Certificate verification . . . . . . . . . . . . . . . . . 13
-   7.  Fingerprints . . . . . . . . . . . . . . . . . . . . . . . . . 14
-   8.  Advice . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15
-     8.1.  For server operators . . . . . . . . . . . . . . . . . . . 15
-     8.2.  For client implementers  . . . . . . . . . . . . . . . . . 16
-   9.  Security considerations  . . . . . . . . . . . . . . . . . . . 17
-     9.1.  For server operators . . . . . . . . . . . . . . . . . . . 17
-     9.2.  For client implementers  . . . . . . . . . . . . . . . . . 17
-     9.3.  Note on algorithm agility  . . . . . . . . . . . . . . . . 18
-   10. IANA considerations  . . . . . . . . . . . . . . . . . . . . . 19
-     10.1. New entry for the TLS ExtensionType Registry . . . . . . . 19
-   11. Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 20
-   12. Normative references . . . . . . . . . . . . . . . . . . . . . 21
-   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 22
+       4.2.2.  TackExtension fields . . . . . . . . . . . . . . . . .  9
+   5.  Client processing  . . . . . . . . . . . . . . . . . . . . . . 10
+     5.1.  TACK pins  . . . . . . . . . . . . . . . . . . . . . . . . 10
+     5.2.  High-level client processing . . . . . . . . . . . . . . . 10
+     5.3.  Client processing details  . . . . . . . . . . . . . . . . 11
+       5.3.1.  Check whether the TLS handshake is well-formed . . . . 11
+       5.3.2.  Check tack generations and update min_generations  . . 11
+       5.3.3.  Determine the store's status . . . . . . . . . . . . . 12
+       5.3.4.  Pin activation (optional)  . . . . . . . . . . . . . . 12
+   6.  Application protocols and TACK . . . . . . . . . . . . . . . . 14
+     6.1.  Pin scope  . . . . . . . . . . . . . . . . . . . . . . . . 14
+     6.2.  TLS negotiation  . . . . . . . . . . . . . . . . . . . . . 14
+     6.3.  Certificate verification . . . . . . . . . . . . . . . . . 14
+   7.  Fingerprints . . . . . . . . . . . . . . . . . . . . . . . . . 15
+   8.  Advice . . . . . . . . . . . . . . . . . . . . . . . . . . . . 16
+     8.1.  For server operators . . . . . . . . . . . . . . . . . . . 16
+     8.2.  For client implementers  . . . . . . . . . . . . . . . . . 17
+   9.  Security considerations  . . . . . . . . . . . . . . . . . . . 18
+     9.1.  For server operators . . . . . . . . . . . . . . . . . . . 18
+     9.2.  For client implementers  . . . . . . . . . . . . . . . . . 18
+     9.3.  Note on algorithm agility  . . . . . . . . . . . . . . . . 19
+   10. IANA considerations  . . . . . . . . . . . . . . . . . . . . . 20
+     10.1. New entry for the TLS ExtensionType Registry . . . . . . . 20
+   11. Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 21
+   12. Normative references . . . . . . . . . . . . . . . . . . . . . 22
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 23
 
 
 
@@ -358,15 +358,15 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
       uint8  min_generation;
       uint8  generation;
       uint32 expiration;
+      uint16 flags;
       opaque target_hash[32];
       opaque signature[64];
-   } Tack;  /* 166 bytes */
+   } Tack;  /* 168 bytes */
 
    struct {
       Tack   tacks<166...332>   /* 1 or 2 Tacks */
-      uint8  activation_flags;  /* 0...3 */
+      uint16 flags;
    } TackExtension;
-
 
 
 
@@ -415,36 +415,92 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
       considered expired.  The time is encoded as the number of minutes,
       excluding leap seconds, after midnight UTC, January 1 1970.
 
+   flags:  This field contains the "name flag" for the tack in its low-
+      order bit.  If the name flag is set, the tack is considered "name-
+      bound".  Any other bits MAY be set and MUST be ignored.
+
    target_hash:  This field is a hash of the TLS server's
       SubjectPublicKeyInfo [RFC5280] using the SHA256 algorithm from
       [FIPS180-2].  The SubjectPublicKeyInfo is typically conveyed as
       part of the server's X.509 end-entity certificate.
 
    signature:  This field is an ECDSA signature by the tack's public key
-      over the 8 byte ASCII string "tack_sig" followed by the contents
-      of the tack prior to the "signature" field (i.e. the preceding 102
-      bytes).  The field contains a pair of integers (r, s) representing
-      an ECDSA signature as defined in [FIPS186-3], using curve P-256
-      and SHA256.  Each integer is encoded as a 32-byte octet string
-      using the Integer-to-Octet-String algorithm from [RFC6090], and
-      these strings are concatenated with the r value first.
+      over the following values, concatenated in sequence:
+
+      1.  The 8 byte ASCII string "tack_sig".
+
+      2.  The contents of the tack prior to the "signature" field (i.e.
+          the first 104 bytes of the tack).
+
+      3.  If the tack is "name-bound", the "ServerName" value as sent by
+          a client in the "server_name" extension [RFC6066].  Any
+          uppercase characters in "HostName" are converted to lowercase.
+
+      The field contains a pair of integers (r, s) representing an ECDSA
+      signature as defined in [FIPS186-3], using curve P-256 and SHA256.
+      Each integer is encoded as a 32-byte octet string using the
+      Integer-to-Octet-String algorithm from [RFC6090], and these
+      strings are concatenated with the r value first.
+
+
+
+Marlinspike & Perrin      Expires May 19, 2013                  [Page 8]
+
+Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+
 
 4.2.2.  TackExtension fields
 
    tacks:  This field provides the server's tack(s).  It SHALL contain 1
       or 2 tacks.
 
-   activation_flags:  This field contains "activation flags" for the
-      extension's tacks.  If the low order bit is set, the first tack is
-      considered active.  If the next lowest bit is set, the second tack
-      is considered active.  An active tack MAY be used by the pin
-      activation algorithm in Section 5.3.4 to create, activate, and
-      extend the activation of TACK pins.
+   flags:  This field contains "activation flags" for the extension's
+      tacks in the two low-order bits.  If the lowest bit is set, the
+      first tack is considered active.  If the next lowest bit is set,
+      the second tack is considered active.  An active tack MAY be used
+      by the pin activation algorithm in Section 5.3.4 to create,
+      activate, and extend the activation of TACK pins.  Any other bits
+      MAY be set and MUST be ignored.
 
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                  [Page 8]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Marlinspike & Perrin      Expires May 19, 2013                  [Page 9]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -500,7 +556,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                  [Page 9]
+Marlinspike & Perrin      Expires May 19, 2013                 [Page 10]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -556,7 +612,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 10]
+Marlinspike & Perrin      Expires May 19, 2013                 [Page 11]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -612,7 +668,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 11]
+Marlinspike & Perrin      Expires May 19, 2013                 [Page 12]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -668,7 +724,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 12]
+Marlinspike & Perrin      Expires May 19, 2013                 [Page 13]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -724,7 +780,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 13]
+Marlinspike & Perrin      Expires May 19, 2013                 [Page 14]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -780,7 +836,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 14]
+Marlinspike & Perrin      Expires May 19, 2013                 [Page 15]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -836,7 +892,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 15]
+Marlinspike & Perrin      Expires May 19, 2013                 [Page 16]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -892,7 +948,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 16]
+Marlinspike & Perrin      Expires May 19, 2013                 [Page 17]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -948,7 +1004,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 17]
+Marlinspike & Perrin      Expires May 19, 2013                 [Page 18]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -1004,7 +1060,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 18]
+Marlinspike & Perrin      Expires May 19, 2013                 [Page 19]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -1060,7 +1116,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 19]
+Marlinspike & Perrin      Expires May 19, 2013                 [Page 20]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -1116,7 +1172,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 20]
+Marlinspike & Perrin      Expires May 19, 2013                 [Page 21]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -1172,7 +1228,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 21]
+Marlinspike & Perrin      Expires May 19, 2013                 [Page 22]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -1228,5 +1284,5 @@ Authors' Addresses
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 22]
+Marlinspike & Perrin      Expires May 19, 2013                 [Page 23]
 

@@ -227,13 +227,14 @@ struct {
    uint8  min_generation;
    uint8  generation;
    uint32 expiration;
+   uint16 flags;   
    opaque target_hash[32];
    opaque signature[64];
-} Tack;  /* 166 bytes */
+} Tack;  /* 168 bytes */
 
 struct {
    Tack   tacks&lt;166...332&gt;   /* 1 or 2 Tacks */
-   uint8  activation_flags;  /* 0...3 */
+   uint16 flags;
 } TackExtension;
 </artwork>
 </figure>
@@ -279,6 +280,15 @@ This field specifies a time after which the tack is considered expired. The
 time is encoded as the number of minutes, excluding leap seconds, after
 midnight UTC, January 1 1970. </t>
 
+<t hangText="flags:">
+
+This field contains the "name flag" for the tack in its low-order bit. If the
+name flag is set, the tack is considered "name-bound". Any other bits MAY be
+set and MUST be ignored.
+
+</t>
+
+
 <t hangText="target_hash:"> 
 
 This field is a hash of the TLS server's SubjectPublicKeyInfo <xref
@@ -290,13 +300,22 @@ end-entity certificate.
 
 <t hangText="signature:">
 
-This field is an ECDSA signature by the tack's public key over the 8 byte
-ASCII string "tack_sig" followed by the contents of the tack prior to the
-"signature" field (i.e. the preceding 102 bytes). The field contains a pair of
-integers (r, s) representing an ECDSA signature as defined in <xref
-target="FIPS186-3"/>, using curve P-256 and SHA256. Each integer is encoded as
-a 32-byte octet string using the Integer-to-Octet-String algorithm from <xref
-target="RFC6090"/>, and these strings are concatenated with the r value first.
+This field is an ECDSA signature by the tack's public key over the following
+values, concatenated in sequence:
+<list style="numbers">
+    <t>The 8 byte ASCII string "tack_sig".</t>
+    <t>The contents of the tack prior to the "signature" field (i.e. the first
+104 bytes of the tack).</t>
+    <t>If the tack is "name-bound", the "ServerName" value as sent by a
+    client in the "server_name" extension <xref target="RFC6066"/>. Any
+    uppercase characters in "HostName" are converted to lowercase.</t>
+
+</list>
+The field contains a pair of integers (r, s) representing an ECDSA signature
+as defined in <xref target="FIPS186-3"/>, using curve P-256 and SHA256. Each
+integer is encoded as a 32-byte octet string using the Integer-to-Octet-String
+algorithm from <xref target="RFC6090"/>, and these strings are concatenated
+with the r value first.
 
 </t>
 </list>
@@ -311,13 +330,14 @@ target="RFC6090"/>, and these strings are concatenated with the r value first.
 
 This field provides the server's tack(s). It SHALL contain 1 or 2 tacks. </t>
 
-<t hangText="activation_flags:">
+<t hangText="flags:">
 
-This field contains "activation flags" for the extension's tacks. If the low
-order bit is set, the first tack is considered active. If the next lowest bit
-is set, the second tack is considered active. An active tack MAY be used by
-the pin activation algorithm in <xref target="creating"/> to create, activate,
-and extend the activation of TACK pins.
+This field contains "activation flags" for the extension's tacks in the two
+low-order bits. If the lowest bit is set, the first tack is considered active.
+If the next lowest bit is set, the second tack is considered active. An active
+tack MAY be used by the pin activation algorithm in <xref target="creating"/>
+to create, activate, and extend the activation of TACK pins. Any other bits
+MAY be set and MUST be ignored.
 
 
 </t> </list> </t>
