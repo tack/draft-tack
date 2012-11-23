@@ -13,10 +13,9 @@ Expires: May 26, 2013
 Abstract
 
    This document defines TACK, a TLS Extension that enables a TLS server
-   to support "pinning" to a self-chosen signing key (aka "TACK key").
-   A client contacting a pinned host will require the server to present
-   a "tack" containing the TACK key and a signature from the TACK key
-   over the TLS server's public key.
+   to support "pinning" to a self-chosen signing key.  A client
+   contacting a pinned host will require the server to present a
+   signature from the signing key over the TLS server's public key.
 
 Status of this Memo
 
@@ -49,6 +48,7 @@ Copyright Notice
    include Simplified BSD License text as described in Section 4.e of
    the Trust Legal Provisions and are provided without warranty as
    described in the Simplified BSD License.
+
 
 
 
@@ -124,14 +124,14 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
    TLS connection when contacting a particular TLS host.
 
    TACK allows clients to pin to a server-chosen signing key, known as a
-   "TACK key", which signs the server's TLS keys.  This enables pinning
-   without limiting a site's flexibility to deploy different
-   certificates and TLS keys on different servers or at different times.
-   Since pins can be based on TACK keys (instead of CA keys), trust in
-   CAs is not required.  Additionally, a TACK key may be used to revoke
-   compromised TLS private keys, and a pair of "overlapping" TACK keys
-   may be used to quickly introduce a new TACK key if an older one has
-   become compromised or suspect.
+   "tack-signing key" or "TSK", which signs the server's TLS keys.  This
+   enables pinning without limiting a site's flexibility to deploy
+   different certificates and TLS keys on different servers or at
+   different times.  Since pins can be based on tack-signing keys
+   instead of CA keys, trust in CAs is not required.  Additionally, a
+   TSK may be used to revoke compromised TLS private keys, and a pair of
+   "overlapping" TSKs may be used to quickly introduce a new TSK if an
+   older one has become compromised or suspect.
 
 1.2.  Requirements notation
 
@@ -192,7 +192,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
       uint32 expiration;
       opaque target_hash[32];
       opaque signature[64];
-   } tack;  /* 166 bytes */
+   } Tack;  /* 166 bytes */
 
    struct {
       Tack tacks<166...332>   /* 1 or 2 Tacks */
@@ -229,20 +229,19 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 2.2.1.  Tack fields
 
-   public_key:  This field specifies the tack's public key.  The field
-      contains a pair of integers (x, y) representing a point on the
-      elliptic curve P-256 defined in [FIPS186-3].  Each integer is
-      encoded as a 32-byte octet string using the Integer-to-Octet-
-      String algorithm from [RFC6090], and these strings are
-      concatenated with the x value first.  (NOTE: This is equivalent to
-      an uncompressed subjectPublicKey from [RFC5480], except that the
-      initial 0x04 byte is omitted).
+   public_key:  This field specifies the public component of the TSK
+      which has signed this tack.  The field contains a pair of integers
+      (x, y) representing a point on the elliptic curve P-256 defined in
+      [FIPS186-3].  Each integer is encoded as a 32-byte octet string
+      using the Integer-to-Octet-String algorithm from [RFC6090], and
+      these strings are concatenated with the x value first.  (NOTE:
+      This is equivalent to an uncompressed subjectPublicKey from
+      [RFC5480], except that the initial 0x04 byte is omitted).
 
-   min_generation:  This field publishes a min_generation value for the
-      TACK key.
+   min_generation:  This field publishes a min_generation for the TSK.
 
    generation:  This field assigns each tack a generation.  Generations
-      less than a published min_generation from the TACK key are
+      less than the highest published min_generation for the TSK are
       considered revoked.
 
    expiration:  This field specifies a time after which the tack is
@@ -254,9 +253,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
       [FIPS180-2].  The SubjectPublicKeyInfo is typically conveyed as
       part of the server's X.509 end-entity certificate.
 
-   signature:  This field is an ECDSA signature by the tack's public key
-      over the 8 byte ASCII string "tack_sig" followed by the contents
-      of the tack prior to the "signature" field (i.e. the preceding 102
+   signature:  This field is an ECDSA signature by the tack's TSK over
+      the 8 byte ASCII string "tack_sig" followed by the contents of the
+      tack prior to the "signature" field (i.e. the preceding 102
       bytes).  The field contains a pair of integers (r, s) representing
       an ECDSA signature as defined in [FIPS186-3], using curve P-256
       and SHA256.  Each integer is encoded as a 32-byte octet string
@@ -267,6 +266,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
    tacks:  This field provides the server's tack(s).  It SHALL contain 1
       or 2 tacks.
+
 
 
 
@@ -304,30 +304,30 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 3.2.  Comparing pins and tacks
 
    A client MAY wish to compare valid tacks against one or two TACK pins
-   which are relevant to the connection.  Each TACK pin contains:
+   which are relevant to the connection.  Each pin contains:
 
-   TACK public key (or hash):  A public key or a cryptographically-
+   Tack-signing key (or hash):  A public key or a cryptographically-
       secure, second preimage-resistant hash of a public key.  A pin
       "matches" a tack if they reference the same public key.
 
    Min_generation:  A single byte used to detect revoked tacks.
 
-   If a pin has a matching, valid tack with a generation less the pin's
-   min_generation, the tack is revoked.  If the tack has a
-   min_generation greater than the pin's min_generation, the pin's
-   min_generation MAY be updated to the tack's value for future use.
+   If a pin has a matching, valid tack and the tack's generation is less
+   than the pin's min_generation, the tack is revoked.  If the tack has
+   a min_generation greater than the pin's min_generation, the pin's
+   min_generation SHOULD be updated to the tack's value for future use.
 
    If a pin has a matching, valid, nonrevoked tack, the pin and
    connection "confirm" each other.  Otherwise, the pin and connection
    "contradict" each other.
 
-   It is undefined how the client receives TACK pins.  It is also
-   undefined how the client responds to revoked tacks or confirmed vs
-   contradicted connections.  These aspects are left to other
-   specifications and client policy.  However, if a client closes a TLS
-   connection due to a revoked tack, the client SHOULD send a fatal
-   "certificate_revoked" alert; if a client closes a connection due to a
-   contradicted pin, the client SHOULD send an "access_denied" alert.
+   It is undefined how the client receives pins.  It is also undefined
+   how the client responds to revoked tacks or confirmed vs contradicted
+   connections.  These aspects are left to other specifications and
+   client policy.  However, if a client closes a TLS connection due to a
+   revoked tack, the client SHOULD send a fatal "certificate_revoked"
+   alert; if a client closes a connection due to a contradicted pin, the
+   client SHOULD send an "access_denied" alert.
 
 
 
@@ -341,13 +341,13 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 4.1.  For server operators
 
-   Key reuse:  All servers that are pinned to a single TACK key are able
-      to impersonate each other, since clients will perceive their tacks
-      as equivalent.  Thus, TACK keys SHOULD NOT be reused with
-      different hostnames unless these hostnames are closely related.
-      Examples where it would be safe to reuse a TACK key are hostnames
-      aliased to the same host, hosts sharing the same TLS key, or
-      hostnames for a group of near-identical servers.
+   Key reuse:  All servers that are pinned to a single TSK are able to
+      impersonate each other, since clients will perceive their tacks as
+      equivalent.  Thus, TSKs SHOULD NOT be reused with different
+      hostnames unless these hostnames are closely related.  Examples
+      where it would be safe to reuse a TSK are hostnames aliased to the
+      same host, hosts sharing the same TLS key, or hostnames for a
+      group of near-identical servers.
 
    Generations:  To revoke older generations of tacks, the server
       operator SHOULD first provide all servers with a new generation of
@@ -397,15 +397,15 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 5.1.  For server operators
 
-   All servers pinned to the same TACK key can impersonate each other
-   (see Section 4.1).  Think carefully about this risk if using the same
-   TACK key for multiple hostnames.
+   All servers pinned to the same TSK can impersonate each other (see
+   Section 4.1).  Think carefully about this risk if using the same TSK
+   for multiple hostnames.
 
-   Make backup copies of the TACK private key and keep all copies in
+   Make backup copies of the TSK's private key and keep all copies in
    secure locations where they can't be compromised.
 
-   A TACK private key MUST NOT be used to perform any non-TACK
-   cryptographic operations.  For example, using a TACK key for email
+   A TSK's private key MUST NOT be used to perform any non-TACK
+   cryptographic operations.  For example, using a TSK for email
    encryption, code-signing, or any other purpose MUST NOT be done.
 
    HTTP cookies [RFC6265] set by a pinned host can be stolen by a

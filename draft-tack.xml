@@ -24,10 +24,9 @@
 			<t>
 
 This document defines TACK, a TLS Extension that enables a TLS server to
-support "pinning" to a self-chosen signing key (aka "TACK key"). A client
-contacting a pinned host will require the server to present a "tack"
-containing the TACK key and a signature from the TACK key over the TLS
-server's public key.
+support "pinning" to a self-chosen signing key. A client contacting a pinned
+host will require the server to present a signature from the signing key over
+the TLS server's public key.
 
 			</t>
 		</abstract>
@@ -48,13 +47,13 @@ contacting a particular TLS host.
  </t>
 	<t>
 
-TACK allows clients to pin to a server-chosen signing key, known as a "TACK
-key", which signs the server's TLS keys. This enables pinning without limiting
-a site's flexibility to deploy different certificates and TLS keys on
-different servers or at different times. Since pins can be based on TACK keys
-(instead of CA keys), trust in CAs is not required. Additionally, a TACK key
-may be used to revoke compromised TLS private keys, and a pair of
-"overlapping" TACK keys may be used to quickly introduce a new TACK key if an
+TACK allows clients to pin to a server-chosen signing key, known as a
+"tack-signing key" or "TSK", which signs the server's TLS keys. This enables
+pinning without limiting a site's flexibility to deploy different certificates
+and TLS keys on different servers or at different times. Since pins can be
+based on tack-signing keys instead of CA keys, trust in CAs is not required.
+Additionally, a TSK may be used to revoke compromised TLS private keys, and a
+pair of "overlapping" TSKs may be used to quickly introduce a new TSK if an
 older one has become compromised or suspect.
 
 	</t>
@@ -117,26 +116,26 @@ struct {
 
 	<t hangText="public_key:">
 
-This field specifies the tack's public key. The field contains a pair of
-integers (x, y) representing a point on the elliptic curve P-256 defined in
-<xref target="FIPS186-3"/>. Each integer is encoded as a 32-byte octet string
-using the Integer-to-Octet-String algorithm from <xref target="RFC6090"/>, and
-these strings are concatenated with the x value first. (NOTE: This is
-equivalent to an uncompressed subjectPublicKey from <xref target="RFC5480"/>,
-except that the initial 0x04 byte is omitted).
+This field specifies the public component of the TSK which has signed this
+tack. The field contains a pair of integers (x, y) representing a point on the
+elliptic curve P-256 defined in <xref target="FIPS186-3"/>. Each integer is
+encoded as a 32-byte octet string using the Integer-to-Octet-String algorithm
+from <xref target="RFC6090"/>, and these strings are concatenated with the x
+value first. (NOTE: This is equivalent to an uncompressed subjectPublicKey
+from <xref target="RFC5480"/>, except that the initial 0x04 byte is omitted).
 
 	</t>	
 
 <t hangText="min_generation:"> 
 
-This field publishes a min_generation value for the TACK key.
+This field publishes a min_generation for the TSK.
 
 </t>
 
 <t hangText="generation:"> 
 
-This field assigns each tack a generation. Generations less than a published
-min_generation from the TACK key are considered revoked.
+This field assigns each tack a generation. Generations less than the highest
+published min_generation for the TSK are considered revoked.
 
 </t>
 
@@ -157,8 +156,8 @@ end-entity certificate.
 
 <t hangText="signature:">
 
-This field is an ECDSA signature by the tack's public key over the 8 byte
-ASCII string "tack_sig" followed by the contents of the tack prior to the
+This field is an ECDSA signature by the tack's TSK over the 8 byte ASCII
+string "tack_sig" followed by the contents of the tack prior to the
 "signature" field (i.e. the preceding 102 bytes). The field contains a pair of
 integers (r, s) representing an ECDSA signature as defined in <xref
 target="FIPS186-3"/>, using curve P-256 and SHA256. Each integer is encoded as
@@ -212,11 +211,11 @@ SHALL send a fatal "certificate_expired" error alert.</t>
 <t>
 
    A client MAY wish to compare valid tacks against one or two TACK pins which
-   are relevant to the connection. Each TACK pin contains:
+   are relevant to the connection. Each pin contains:
 
 <list style="hanging">
 
-<t hangText="TACK public key (or hash):">
+<t hangText="Tack-signing key (or hash):">
 
 A public key or a cryptographically-secure, second preimage-resistant hash of
 a public key. A pin "matches" a tack if they reference the same public key.
@@ -229,10 +228,10 @@ A single byte used to detect revoked tacks.
 
 </list> </t> <t>
 
-If a pin has a matching, valid tack with a generation less the pin's
-min_generation, the tack is revoked. If the tack has a min_generation greater
-than the pin's min_generation, the pin's min_generation MAY be updated to the
-tack's value for future use.
+If a pin has a matching, valid tack and the tack's generation is less than the
+pin's min_generation, the tack is revoked. If the tack has a min_generation
+greater than the pin's min_generation, the pin's min_generation SHOULD be
+updated to the tack's value for future use.
 
 </t> <t>
 
@@ -242,8 +241,8 @@ tack's value for future use.
    
     </t> <t>
 
-It is undefined how the client receives TACK pins. It is also undefined how
-the client responds to revoked tacks or confirmed vs contradicted connections.
+It is undefined how the client receives pins. It is also undefined how the
+client responds to revoked tacks or confirmed vs contradicted connections.
 These aspects are left to other specifications and client policy. However, if
 a client closes a TLS connection due to a revoked tack, the client SHOULD send
 a fatal "certificate_revoked" alert; if a client closes a connection due to a
@@ -263,10 +262,10 @@ contradicted pin, the client SHOULD send an "access_denied" alert.
 
 <t hangText="Key reuse:">
 
-All servers that are pinned to a single TACK key are able to impersonate each
-other, since clients will perceive their tacks as equivalent. Thus, TACK keys
+All servers that are pinned to a single TSK are able to impersonate each
+other, since clients will perceive their tacks as equivalent. Thus, TSKs
 SHOULD NOT be reused with different hostnames unless these hostnames are
-closely related. Examples where it would be safe to reuse a TACK key are
+closely related. Examples where it would be safe to reuse a TSK are
 hostnames aliased to the same host, hosts sharing the same TLS key, or
 hostnames for a group of near-identical servers.
 
@@ -314,20 +313,20 @@ expected clock error.
 <section title="For server operators">	
         <t>
 
-All servers pinned to the same TACK key can impersonate each other (see <xref
-target="servadvice"/>). Think carefully about this risk if using the same TACK
-key for multiple hostnames.
+All servers pinned to the same TSK can impersonate each other (see <xref
+target="servadvice"/>). Think carefully about this risk if using the same TSK
+for multiple hostnames.
 
 </t> <t>
 
-Make backup copies of the TACK private key and keep all copies in secure
+Make backup copies of the TSK's private key and keep all copies in secure
 locations where they can't be compromised.
 
 </t>
 <t>
 
-A TACK private key MUST NOT be used to perform any non-TACK cryptographic
-operations. For example, using a TACK key for email encryption, code-signing,
+A TSK's private key MUST NOT be used to perform any non-TACK cryptographic
+operations. For example, using a TSK for email encryption, code-signing,
 or any other purpose MUST NOT be done.
 
 </t> <t>
