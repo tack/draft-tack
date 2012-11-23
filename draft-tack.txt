@@ -60,27 +60,27 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 Table of Contents
 
    1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
-   2.  Requirements notation  . . . . . . . . . . . . . . . . . . . .  4
-   3.  TACK Extension . . . . . . . . . . . . . . . . . . . . . . . .  5
-     3.1.  Definition of TackExtension  . . . . . . . . . . . . . . .  5
-     3.2.  Explanation of TackExtension fields  . . . . . . . . . . .  6
-       3.2.1.  Tack fields  . . . . . . . . . . . . . . . . . . . . .  6
-       3.2.2.  TackExtension fields . . . . . . . . . . . . . . . . .  6
-   4.  Client processing  . . . . . . . . . . . . . . . . . . . . . .  7
-     4.1.  Validating tacks . . . . . . . . . . . . . . . . . . . . .  7
-     4.2.  TACK pins  . . . . . . . . . . . . . . . . . . . . . . . .  7
-   5.  Advice . . . . . . . . . . . . . . . . . . . . . . . . . . . .  8
+     1.1.  Overview . . . . . . . . . . . . . . . . . . . . . . . . .  3
+     1.2.  Requirements notation  . . . . . . . . . . . . . . . . . .  3
+   2.  TACK Extension . . . . . . . . . . . . . . . . . . . . . . . .  4
+     2.1.  Definition of TackExtension  . . . . . . . . . . . . . . .  4
+     2.2.  Explanation of TackExtension fields  . . . . . . . . . . .  5
+       2.2.1.  Tack fields  . . . . . . . . . . . . . . . . . . . . .  5
+       2.2.2.  TackExtension fields . . . . . . . . . . . . . . . . .  5
+   3.  Client processing  . . . . . . . . . . . . . . . . . . . . . .  6
+     3.1.  Validating tacks . . . . . . . . . . . . . . . . . . . . .  6
+     3.2.  Comparing pins and tacks . . . . . . . . . . . . . . . . .  6
+   4.  Advice . . . . . . . . . . . . . . . . . . . . . . . . . . . .  7
+     4.1.  For server operators . . . . . . . . . . . . . . . . . . .  7
+     4.2.  For client implementers  . . . . . . . . . . . . . . . . .  7
+   5.  Security considerations  . . . . . . . . . . . . . . . . . . .  8
      5.1.  For server operators . . . . . . . . . . . . . . . . . . .  8
-     5.2.  For client implementers  . . . . . . . . . . . . . . . . .  8
-   6.  Security considerations  . . . . . . . . . . . . . . . . . . .  9
-     6.1.  For server operators . . . . . . . . . . . . . . . . . . .  9
-     6.2.  Note on algorithm agility  . . . . . . . . . . . . . . . .  9
-   7.  IANA considerations  . . . . . . . . . . . . . . . . . . . . . 10
-     7.1.  New entry for the TLS ExtensionType Registry . . . . . . . 10
-   8.  Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 11
-   9.  Normative references . . . . . . . . . . . . . . . . . . . . . 12
-   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 13
-
+     5.2.  Note on algorithm agility  . . . . . . . . . . . . . . . .  8
+   6.  IANA considerations  . . . . . . . . . . . . . . . . . . . . .  9
+     6.1.  New entry for the TLS ExtensionType Registry . . . . . . .  9
+   7.  Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 10
+   8.  Normative references . . . . . . . . . . . . . . . . . . . . . 11
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 12
 
 
 
@@ -115,6 +115,8 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 1.  Introduction
 
+1.1.  Overview
+
    Traditionally, a TLS client verifies a TLS server's public key using
    a certificate chain issued by some public CA.  "Pinning" is a way for
    clients to obtain increased certainty in server public keys.  Clients
@@ -127,17 +129,15 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
    certificates and TLS keys on different servers or at different times.
    Since pins can be based on TACK keys (instead of CA keys), trust in
    CAs is not required.  Additionally, a TACK key may be used to revoke
-   compromised TLS private keys, and overlapping TACK keys may be used
-   to recover from suspect or compromised TACK keys.
+   compromised TLS private keys, and a pair of "overlapping" TACK keys
+   may be used to quickly introduce a new TACK key if an older one has
+   become compromised or suspect.
 
+1.2.  Requirements notation
 
-
-
-
-
-
-
-
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [RFC2119].
 
 
 
@@ -169,34 +169,34 @@ Marlinspike & Perrin      Expires May 26, 2013                  [Page 3]
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
-2.  Requirements notation
+2.  TACK Extension
 
-   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
-   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
-   document are to be interpreted as described in [RFC2119].
+2.1.  Definition of TackExtension
 
+   A new TLS ExtensionType ("tack") is defined and MAY be included by a
+   TLS client in the ClientHello message defined in [RFC5246].
 
+   enum {tack(TBD), (65535)} ExtensionType;
 
+   The "extension_data" field of this ClientHello extension SHALL be
+   empty.  A TLS server which is not resuming a TLS session MAY respond
+   with an extension of type "tack" in the ServerHello.  The
+   "extension_data" field of this ServerHello extension SHALL contain a
+   "TackExtension", as defined below using the TLS presentation language
+   from [RFC5246].
 
+   struct {
+      opaque public_key[64];
+      uint8  min_generation;
+      uint8  generation;
+      uint32 expiration;
+      opaque target_hash[32];
+      opaque signature[64];
+   } tack;  /* 166 bytes */
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+   struct {
+      Tack tacks<166...332>   /* 1 or 2 Tacks */
+   } TackExtension;
 
 
 
@@ -225,65 +225,9 @@ Marlinspike & Perrin      Expires May 26, 2013                  [Page 4]
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
-3.  TACK Extension
+2.2.  Explanation of TackExtension fields
 
-3.1.  Definition of TackExtension
-
-   A new TLS ExtensionType ("tack") is defined and MAY be included by a
-   TLS client in the ClientHello message defined in [RFC5246].
-
-   enum {tack(TBD), (65535)} ExtensionType;
-
-   The "extension_data" field of this ClientHello extension SHALL be
-   empty.  A TLS server which is not resuming a TLS session MAY respond
-   with an extension of type "tack" in the ServerHello.  The
-   "extension_data" field of this ServerHello extension SHALL contain a
-   "TackExtension", as defined below using the TLS presentation language
-   from [RFC5246].
-
-   struct {
-      opaque public_key[64];
-      uint8  min_generation;
-      uint8  generation;
-      uint32 expiration;
-      opaque target_hash[32];
-      opaque signature[64];
-   } Tack;  /* 166 bytes */
-
-   struct {
-      Tack tacks<166...332>   /* 1 or 2 Tacks */
-   } TackExtension;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Marlinspike & Perrin      Expires May 26, 2013                  [Page 5]
-
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
-
-
-3.2.  Explanation of TackExtension fields
-
-3.2.1.  Tack fields
+2.2.1.  Tack fields
 
    public_key:  This field specifies the tack's public key.  The field
       contains a pair of integers (x, y) representing a point on the
@@ -294,10 +238,12 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
       an uncompressed subjectPublicKey from [RFC5480], except that the
       initial 0x04 byte is omitted).
 
-   min_generation:  This field publishes a min_generation value.
+   min_generation:  This field publishes a min_generation value for the
+      TACK key.
 
    generation:  This field assigns each tack a generation.  Generations
-      less than a published min_generation are considered revoked.
+      less than a published min_generation from the TACK key are
+      considered revoked.
 
    expiration:  This field specifies a time after which the tack is
       considered expired.  The time is encoded as the number of minutes,
@@ -317,7 +263,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
       using the Integer-to-Octet-String algorithm from [RFC6090], and
       these strings are concatenated with the r value first.
 
-3.2.2.  TackExtension fields
+2.2.2.  TackExtension fields
 
    tacks:  This field provides the server's tack(s).  It SHALL contain 1
       or 2 tacks.
@@ -330,16 +276,14 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-
-
-Marlinspike & Perrin      Expires May 26, 2013                  [Page 6]
+Marlinspike & Perrin      Expires May 26, 2013                  [Page 5]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
-4.  Client processing
+3.  Client processing
 
-4.1.  Validating tacks
+3.1.  Validating tacks
 
    Upon receiving a TackExtension, the client SHALL validate each tack
    by checking that the following statements are true.  If not, the
@@ -357,11 +301,10 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
    5.  Each "signature" is a correct ECDSA signature.
 
-4.2.  TACK pins
+3.2.  Comparing pins and tacks
 
    A client MAY wish to compare valid tacks against one or two TACK pins
-   which are relevant to the connection.  Each TACK pin SHALL contain
-   the following values:
+   which are relevant to the connection.  Each TACK pin contains:
 
    TACK public key (or hash):  A public key or a cryptographically-
       secure, second preimage-resistant hash of a public key.  A pin
@@ -369,33 +312,34 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
    Min_generation:  A single byte used to detect revoked tacks.
 
-   If a valid tack has a matching pin and a generation less the pin's
-   min_generation, then that tack is considered "revoked".  If a tack
-   has a matching pin and a min_generation greater than the pin's
-   min_generation, the pin's min_generation MAY be updated to the tack's
-   value for future use.
+   If a pin has a matching, valid tack with a generation less the pin's
+   min_generation, the tack is revoked.  If the tack has a
+   min_generation greater than the pin's min_generation, the pin's
+   min_generation MAY be updated to the tack's value for future use.
 
-   If a pin has a matching, valid, nonrevoked tack, the pin is said to
-   "agree" with the TLS connection.  Otherwise, the pin "disagrees" with
-   the connection.
+   If a pin has a matching, valid, nonrevoked tack, the pin and
+   connection "confirm" each other.  Otherwise, the pin and connection
+   "contradict" each other.
 
    It is undefined how the client receives TACK pins.  It is also
-   undefined how the client responds to revoked tacks or connections
-   that agree or disagree with a pin.  These aspects are left to future
-   specifications and/or local policy.
+   undefined how the client responds to revoked tacks or confirmed vs
+   contradicted connections.  These aspects are left to other
+   specifications and client policy.  However, if a client closes a TLS
+   connection due to a revoked tack, the client SHOULD send a fatal
+   "certificate_revoked" alert; if a client closes a connection due to a
+   contradicted pin, the client SHOULD send an "access_denied" alert.
 
 
 
 
-
-Marlinspike & Perrin      Expires May 26, 2013                  [Page 7]
+Marlinspike & Perrin      Expires May 26, 2013                  [Page 6]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
-5.  Advice
+4.  Advice
 
-5.1.  For server operators
+4.1.  For server operators
 
    Key reuse:  All servers that are pinned to a single TACK key are able
       to impersonate each other, since clients will perceive their tacks
@@ -419,7 +363,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
       short-lived tacks may be used so that a compromised TLS private
       key has limited value to an attacker.
 
-5.2.  For client implementers
+4.2.  For client implementers
 
    Clock synchronization:  A client SHOULD take measures to prevent
       tacks from being erroneously rejected as expired due to an
@@ -444,17 +388,17 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 26, 2013                  [Page 8]
+Marlinspike & Perrin      Expires May 26, 2013                  [Page 7]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
-6.  Security considerations
+5.  Security considerations
 
-6.1.  For server operators
+5.1.  For server operators
 
    All servers pinned to the same TACK key can impersonate each other
-   (see Section 5.1).  Think carefully about this risk if using the same
+   (see Section 4.1).  Think carefully about this risk if using the same
    TACK key for multiple hostnames.
 
    Make backup copies of the TACK private key and keep all copies in
@@ -473,7 +417,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
    cookie should only be presented back to the originating host (not its
    subdomains), and should only be sent over HTTPS (not HTTP) [RFC6265].
 
-6.2.  Note on algorithm agility
+5.2.  Note on algorithm agility
 
    If the need arises for tacks using different cryptographic algorithms
    (e.g., if SHA256 or ECDSA are shown to be weak), a "v2" version of
@@ -500,14 +444,14 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 26, 2013                  [Page 9]
+Marlinspike & Perrin      Expires May 26, 2013                  [Page 8]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
-7.  IANA considerations
+6.  IANA considerations
 
-7.1.  New entry for the TLS ExtensionType Registry
+6.1.  New entry for the TLS ExtensionType Registry
 
    IANA is requested to add an entry to the existing TLS ExtensionType
    registry, defined in [RFC5246], for "tack"(TBD) as defined in this
@@ -556,12 +500,12 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 26, 2013                 [Page 10]
+Marlinspike & Perrin      Expires May 26, 2013                  [Page 9]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
-8.  Acknowledgements
+7.  Acknowledgements
 
    Valuable feedback has been provided by Adam Langley, Chris Palmer,
    Nate Lawson, and Joseph Bonneau.
@@ -612,12 +556,12 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 26, 2013                 [Page 11]
+Marlinspike & Perrin      Expires May 26, 2013                 [Page 10]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
-9.  Normative references
+8.  Normative references
 
    [FIPS180-2]
               National Institute of Standards and Technology, "Secure
@@ -668,7 +612,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 26, 2013                 [Page 12]
+Marlinspike & Perrin      Expires May 26, 2013                 [Page 11]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -724,5 +668,5 @@ Authors' Addresses
 
 
 
-Marlinspike & Perrin      Expires May 26, 2013                 [Page 13]
+Marlinspike & Perrin      Expires May 26, 2013                 [Page 12]
 

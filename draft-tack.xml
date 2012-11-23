@@ -35,6 +35,8 @@ server's public key.
 
     <middle>
 		<section anchor="intro" title="Introduction">
+		<section title="Overview">
+
 			<t>
 
 Traditionally, a TLS client verifies a TLS server's public key using a
@@ -51,8 +53,9 @@ key", which signs the server's TLS keys. This enables pinning without limiting
 a site's flexibility to deploy different certificates and TLS keys on
 different servers or at different times. Since pins can be based on TACK keys
 (instead of CA keys), trust in CAs is not required. Additionally, a TACK key
-may be used to revoke compromised TLS private keys, and overlapping TACK keys
-may be used to recover from suspect or compromised TACK keys.
+may be used to revoke compromised TLS private keys, and a pair of
+"overlapping" TACK keys may be used to quickly introduce a new TACK key if an
+older one has become compromised or suspect.
 
 	</t>
 
@@ -64,7 +67,7 @@ may be used to recover from suspect or compromised TACK keys.
 "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as
 described in <xref target="RFC2119"/>.</t> 
 </section>
-
+</section>
 
 <section title="TACK Extension">
 	<section title="Definition of TackExtension">
@@ -126,14 +129,14 @@ except that the initial 0x04 byte is omitted).
 
 <t hangText="min_generation:"> 
 
-This field publishes a min_generation value.
+This field publishes a min_generation value for the TACK key.
 
 </t>
 
 <t hangText="generation:"> 
 
 This field assigns each tack a generation. Generations less than a published
-min_generation are considered revoked.
+min_generation from the TACK key are considered revoked.
 
 </t>
 
@@ -204,13 +207,12 @@ SHALL send a fatal "certificate_expired" error alert.</t>
 </section>
 
 
-<section title="TACK pins">
+<section title="Comparing pins and tacks">
 
 <t>
 
    A client MAY wish to compare valid tacks against one or two TACK pins which
-   are relevant to the connection. Each TACK pin SHALL contain the following
-   values:
+   are relevant to the connection. Each TACK pin contains:
 
 <list style="hanging">
 
@@ -225,30 +227,29 @@ a public key. A pin "matches" a tack if they reference the same public key.
 A single byte used to detect revoked tacks.
 </t>
 
-</list>
-</t>
-<t>
-    
-   If a valid tack has a matching pin and a generation less the pin's
-   min_generation, then that tack is considered "revoked". If a tack has a
-   matching pin and a min_generation greater than the pin's min_generation,
-   the pin's min_generation MAY be updated to the tack's value for future use.    
-    
-</t>
-<t>
+</list> </t> <t>
 
-   If a pin has a matching, valid, nonrevoked tack, the pin is said to "agree"
-   with the TLS connection. Otherwise, the pin "disagrees" with the
-   connection.
+If a pin has a matching, valid tack with a generation less the pin's
+min_generation, the tack is revoked. If the tack has a min_generation greater
+than the pin's min_generation, the pin's min_generation MAY be updated to the
+tack's value for future use.
+
+</t> <t>
+
+   If a pin has a matching, valid, nonrevoked tack, the pin and connection
+   "confirm" each other. Otherwise, the pin and connection "contradict" each
+   other.
    
-   </t> <t>
-   
-    It is undefined how the client receives TACK pins. It is also undefined
-   how the client responds to revoked tacks or connections that agree or
-   disagree with a pin. These aspects are left to future specifications and/or
-   local policy.
-   
-   </t>
+    </t> <t>
+
+It is undefined how the client receives TACK pins. It is also undefined how
+the client responds to revoked tacks or confirmed vs contradicted connections.
+These aspects are left to other specifications and client policy. However, if
+a client closes a TLS connection due to a revoked tack, the client SHOULD send
+a fatal "certificate_revoked" alert; if a client closes a connection due to a
+contradicted pin, the client SHOULD send an "access_denied" alert.
+
+ </t>
 
 </section>
 
