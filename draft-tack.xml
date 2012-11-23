@@ -282,10 +282,10 @@ older-generation server which has not yet been updated.</t>
 <t hangText="Tack expiration:">
 
 When TACK is used in conjunction with certificates it is recommended to set
-the tack expiration equal to the end-entity certificate (or a later date),
-allowing the tack and certificate to both be replaced at the same time.
-Alternatively, short-lived tacks may be used so that a compromised TLS private
-key has limited value to an attacker.</t>
+the tack expiration equal to the end-entity certificate's expiration (or a
+later date), allowing the tack and certificate to both be replaced at the same
+time. Alternatively, short-lived tacks may be used so that a compromised TLS
+private key has limited value to an attacker.</t>
 
 </list>
 </t>

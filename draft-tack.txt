@@ -358,10 +358,10 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
    Tack expiration:  When TACK is used in conjunction with certificates
       it is recommended to set the tack expiration equal to the end-
-      entity certificate (or a later date), allowing the tack and
-      certificate to both be replaced at the same time.  Alternatively,
-      short-lived tacks may be used so that a compromised TLS private
-      key has limited value to an attacker.
+      entity certificate's expiration (or a later date), allowing the
+      tack and certificate to both be replaced at the same time.
+      Alternatively, short-lived tacks may be used so that a compromised
+      TLS private key has limited value to an attacker.
 
 4.2.  For client implementers
 
