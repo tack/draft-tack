@@ -557,9 +557,9 @@ that hostnames are not pinned inadvertently.
 <t hangText="Pin activation:">
 
 Pin descriptions should only be activated once all TLS servers sharing the
-same hostname have a description. Otherwise, a client may activate a
+same hostname have the description. Otherwise, a client may activate a
 description by contacting one server, then contact a different server at the
-same hostname that does not yet have a description. </t>
+same hostname that does not yet have the description. </t>
 
 <t hangText="Pin deactivation:">If all servers at a hostname deactivate their
 pin descriptions (by clearing the activation flags), all existing pins for the
