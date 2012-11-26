@@ -3,8 +3,8 @@
 
 TLS Working Group                                         M. Marlinspike
 Internet-Draft                                            T. Perrin, Ed.
-Intended status: Standards Track                       November 22, 2012
-Expires: May 26, 2013
+Intended status: Standards Track                       November 25, 2012
+Expires: May 29, 2013
 
 
                  Trust Assertions for Certificate Keys
@@ -32,7 +32,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on May 26, 2013.
+   This Internet-Draft will expire on May 29, 2013.
 
 Copyright Notice
 
@@ -52,7 +52,7 @@ Copyright Notice
 
 
 
-Marlinspike & Perrin      Expires May 26, 2013                  [Page 1]
+Marlinspike & Perrin      Expires May 29, 2013                  [Page 1]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -69,7 +69,8 @@ Table of Contents
        2.2.2.  TackExtension fields . . . . . . . . . . . . . . . . .  5
    3.  Client processing  . . . . . . . . . . . . . . . . . . . . . .  6
      3.1.  Validating tacks . . . . . . . . . . . . . . . . . . . . .  6
-     3.2.  Comparing pins and tacks . . . . . . . . . . . . . . . . .  6
+     3.2.  Handling revocation  . . . . . . . . . . . . . . . . . . .  6
+     3.3.  Comparing pins and tacks . . . . . . . . . . . . . . . . .  6
    4.  Advice . . . . . . . . . . . . . . . . . . . . . . . . . . . .  7
      4.1.  For server operators . . . . . . . . . . . . . . . . . . .  7
      4.2.  For client implementers  . . . . . . . . . . . . . . . . .  7
@@ -107,8 +108,7 @@ Table of Contents
 
 
 
-
-Marlinspike & Perrin      Expires May 26, 2013                  [Page 2]
+Marlinspike & Perrin      Expires May 29, 2013                  [Page 2]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -164,7 +164,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 26, 2013                  [Page 3]
+Marlinspike & Perrin      Expires May 29, 2013                  [Page 3]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -195,7 +195,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
    } Tack;  /* 166 bytes */
 
    struct {
-      Tack tacks<166...332>   /* 1 or 2 Tacks */
+      Tack tacks<166...332>;   /* 1 or 2 Tacks */
    } TackExtension;
 
 
@@ -220,7 +220,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 26, 2013                  [Page 4]
+Marlinspike & Perrin      Expires May 29, 2013                  [Page 4]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -276,7 +276,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 26, 2013                  [Page 5]
+Marlinspike & Perrin      Expires May 29, 2013                  [Page 5]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -301,38 +301,38 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
    5.  Each "signature" is a correct ECDSA signature.
 
-3.2.  Comparing pins and tacks
+3.2.  Handling revocation
+
+   A client MAY keep a revocation store consisting of a map associating
+   TSKs to min_generation values.  If a tack's signing key is listed in
+   such a store and the tack's generation is less than the store's
+   min_generation, the tack is revoked.  If the tack has a
+   min_generation greater than the store's min_generation, the store's
+   min_generation SHOULD be updated to the tack's value for future use.
+
+   It is undefined how the client responds to revoked tacks.  However,
+   if a client closes a TLS connection due to a revoked tack, the client
+   SHOULD send a fatal "certificate_revoked" alert
+
+3.3.  Comparing pins and tacks
 
    A client MAY wish to compare valid tacks against one or two TACK pins
-   which are relevant to the connection.  Each pin contains:
-
-   Tack-signing key (or hash):  A public key or a cryptographically-
-      secure, second preimage-resistant hash of a public key.  A pin
-      "matches" a tack if they reference the same public key.
-
-   Min_generation:  A single byte used to detect revoked tacks.
-
-   If a pin has a matching, valid tack and the tack's generation is less
-   than the pin's min_generation, the tack is revoked.  If the tack has
-   a min_generation greater than the pin's min_generation, the pin's
-   min_generation SHOULD be updated to the tack's value for future use.
+   which are relevant to the connection.  Each pin refers to a public
+   key or a cryptographically-secure, second preimage-resistant hash of
+   a public key.  A pin "matches" a tack if they reference the same
+   public key.  It is undefined how the client receives pins.
 
    If a pin has a matching, valid, nonrevoked tack, the pin and
    connection "confirm" each other.  Otherwise, the pin and connection
-   "contradict" each other.
-
-   It is undefined how the client receives pins.  It is also undefined
-   how the client responds to revoked tacks or confirmed vs contradicted
-   connections.  These aspects are left to other specifications and
-   client policy.  However, if a client closes a TLS connection due to a
-   revoked tack, the client SHOULD send a fatal "certificate_revoked"
-   alert; if a client closes a connection due to a contradicted pin, the
-   client SHOULD send an "access_denied" alert.
+   "contradict" each other.  How the client responds to confirmed or
+   contradicted connections is left to other specifications and client
+   policy.  If a client closes a connection due to a contradicted pin,
+   the client SHOULD send an "access_denied" alert.
 
 
 
 
-Marlinspike & Perrin      Expires May 26, 2013                  [Page 6]
+Marlinspike & Perrin      Expires May 29, 2013                  [Page 6]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -388,7 +388,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 26, 2013                  [Page 7]
+Marlinspike & Perrin      Expires May 29, 2013                  [Page 7]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -444,7 +444,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 26, 2013                  [Page 8]
+Marlinspike & Perrin      Expires May 29, 2013                  [Page 8]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -500,7 +500,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 26, 2013                  [Page 9]
+Marlinspike & Perrin      Expires May 29, 2013                  [Page 9]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -556,7 +556,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 26, 2013                 [Page 10]
+Marlinspike & Perrin      Expires May 29, 2013                 [Page 10]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -612,7 +612,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 26, 2013                 [Page 11]
+Marlinspike & Perrin      Expires May 29, 2013                 [Page 11]
 
 Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
@@ -668,5 +668,5 @@ Authors' Addresses
 
 
 
-Marlinspike & Perrin      Expires May 26, 2013                 [Page 12]
+Marlinspike & Perrin      Expires May 29, 2013                 [Page 12]
 

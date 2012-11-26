@@ -99,7 +99,7 @@ struct {
 } Tack;  /* 166 bytes */
 
 struct {
-   Tack tacks&lt;166...332&gt;   /* 1 or 2 Tacks */
+   Tack tacks&lt;166...332&gt;;   /* 1 or 2 Tacks */
 } TackExtension;
 </artwork>
 </figure>
@@ -205,48 +205,43 @@ SHALL send a fatal "certificate_expired" error alert.</t>
 </t> 
 </section>
 
+<section title="Handling revocation">
 
+<t>A client MAY keep a revocation store consisting of a map associating TSKs
+to min_generation values. If a tack's signing key is listed in such a store
+and the tack's generation is less than the store's min_generation, the tack is
+revoked. If the tack has a min_generation greater than the store's
+min_generation, the store's min_generation SHOULD be updated to the tack's
+value for future use.
+
+</t>
+<t>
+
+It is undefined how the client responds to revoked tacks. However, if a client
+closes a TLS connection due to a revoked tack, the client SHOULD send a fatal
+"certificate_revoked" alert
+
+</t>
+</section>
 <section title="Comparing pins and tacks">
+
+<t> A client MAY wish to compare valid tacks against one or two TACK pins
+which are relevant to the connection. Each pin refers to a public key or a
+cryptographically-secure, second preimage-resistant hash of a public key. A
+pin "matches" a tack if they reference the same public key. It is undefined
+how the client receives pins. </t>
 
 <t>
 
-   A client MAY wish to compare valid tacks against one or two TACK pins which
-   are relevant to the connection. Each pin contains:
-
-<list style="hanging">
-
-<t hangText="Tack-signing key (or hash):">
-
-A public key or a cryptographically-secure, second preimage-resistant hash of
-a public key. A pin "matches" a tack if they reference the same public key.
-
-</t> 
-<t hangText="Min_generation:">
-
-A single byte used to detect revoked tacks.
-</t>
-
-</list> </t> <t>
-
-If a pin has a matching, valid tack and the tack's generation is less than the
-pin's min_generation, the tack is revoked. If the tack has a min_generation
-greater than the pin's min_generation, the pin's min_generation SHOULD be
-updated to the tack's value for future use.
 
 </t> <t>
 
-   If a pin has a matching, valid, nonrevoked tack, the pin and connection
-   "confirm" each other. Otherwise, the pin and connection "contradict" each
-   other.
-   
-    </t> <t>
-
-It is undefined how the client receives pins. It is also undefined how the
-client responds to revoked tacks or confirmed vs contradicted connections.
-These aspects are left to other specifications and client policy. However, if
-a client closes a TLS connection due to a revoked tack, the client SHOULD send
-a fatal "certificate_revoked" alert; if a client closes a connection due to a
-contradicted pin, the client SHOULD send an "access_denied" alert.
+If a pin has a matching, valid, nonrevoked tack, the pin and connection
+"confirm" each other. Otherwise, the pin and connection "contradict" each
+other. How the client responds to confirmed or contradicted connections is
+left to other specifications and client policy. If a client closes a
+connection due to a contradicted pin, the client SHOULD send an
+"access_denied" alert.
 
  </t>
 
