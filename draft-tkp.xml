@@ -689,42 +689,10 @@ Lawson, and Joseph Bonneau.
 
     <back>
         <references title='Normative references'>
-	
-<reference
-  anchor="FIPS180-2"
-  target="http://csrc.nist.gov/publications/fips/fips180-2/fips180-2.pdf">
-  <front>
-    <title>Secure Hash Standard</title>
-    <author>
-      <organization>National Institute of Standards and Technology</organization>
-    </author>
-    <date month="August" year="2002" />
-  </front>
-  <seriesInfo name="FIPS" value="PUB 180-2" />
-</reference>
-
-<reference 
-	anchor="FIPS186-3" 
-	target="http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf">
-<front>
-<title>Digital Signature Standard</title>
-<author>
-<organization>National Institute of Standards and Technology</organization>
-</author>
-<date month="June" year="2009" />
-</front>
-<seriesInfo name="FIPS" value="PUB 186-3" />
-</reference>
-
 			<?rfc include="bib/reference.RFC.2119.xml"?>
 			<?rfc include="bib/reference.RFC.3207.xml"?>
-			<?rfc include="bib/reference.RFC.4648.xml"?>
 			<?rfc include="bib/reference.RFC.5246.xml"?>
-			<?rfc include="bib/reference.RFC.5280.xml"?>			
-			<?rfc include="bib/reference.RFC.5480.xml"?>
-			<?rfc include="bib/reference.RFC.5905.xml"?>
 			<?rfc include="bib/reference.RFC.6066.xml"?>			
-			<?rfc include="bib/reference.RFC.6090.xml"?>			
 			<?rfc include="bib/reference.RFC.6265.xml"?>
 	</references>
 </back>

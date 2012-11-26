@@ -424,7 +424,7 @@ Internet-Draft               TLS Key Pinning               November 2012
       Section 5.3.3 to create, activate, and extend the activation of
       TKP pins.
 
-   elements:  This field contains 1 or 2 PinDescriptions.
+   descriptions:  This field contains 1 or 2 PinDescriptions.
 
 
 
@@ -588,8 +588,8 @@ Internet-Draft               TLS Key Pinning               November 2012
 
    The remaining step in pin activation is to add new inactive pins for
    any unmatched active descriptions.  Each new pin uses the server's
-   hostname, the description (or its hash),?? an "initial time" set to
-   the current time, and an "end time" of zero.
+   hostname, the description (or its hash), an "initial time" set to the
+   current time, and an "end time" of zero.
 
    (Note that there are always sufficient empty "slots" in the pin store
    for adding new pins without exceeding two pins per hostname.  This is
@@ -739,10 +739,10 @@ Internet-Draft               TLS Key Pinning               November 2012
       inadvertently.
 
    Pin activation:  Pin descriptions should only be activated once all
-      TLS servers sharing the same hostname have a description.
+      TLS servers sharing the same hostname have the description.
       Otherwise, a client may activate a description by contacting one
       server, then contact a different server at the same hostname that
-      does not yet have a description.
+      does not yet have the description.
 
    Pin deactivation:  If all servers at a hostname deactivate their pin
       descriptions (by clearing the activation flags), all existing pins
@@ -955,49 +955,49 @@ Internet-Draft               TLS Key Pinning               November 2012
 
 11.  Normative references
 
-   [FIPS180-2]
-              National Institute of Standards and Technology, "Secure
-              Hash Standard", FIPS PUB 180-2, August 2002, <http://
-              csrc.nist.gov/publications/fips/fips180-2/fips180-2.pdf>.
-
-   [FIPS186-3]
-              National Institute of Standards and Technology, "Digital
-              Signature Standard", FIPS PUB 186-3, June 2009, <http://
-              csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf>.
-
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119, March 1997.
 
    [RFC3207]  Hoffman, P., "SMTP Service Extension for Secure SMTP over
               Transport Layer Security", RFC 3207, February 2002.
 
-   [RFC4648]  Josefsson, S., "The Base16, Base32, and Base64 Data
-              Encodings", RFC 4648, October 2006.
-
    [RFC5246]  Dierks, T. and E. Rescorla, "The Transport Layer Security
               (TLS) Protocol Version 1.2", RFC 5246, August 2008.
-
-   [RFC5280]  Cooper, D., Santesson, S., Farrell, S., Boeyen, S.,
-              Housley, R., and W. Polk, "Internet X.509 Public Key
-              Infrastructure Certificate and Certificate Revocation List
-              (CRL) Profile", RFC 5280, May 2008.
-
-   [RFC5480]  Turner, S., Brown, D., Yiu, K., Housley, R., and T. Polk,
-              "Elliptic Curve Cryptography Subject Public Key
-              Information", RFC 5480, March 2009.
-
-   [RFC5905]  Mills, D., Martin, J., Burbank, J., and W. Kasch, "Network
-              Time Protocol Version 4: Protocol and Algorithms
-              Specification", RFC 5905, June 2010.
 
    [RFC6066]  Eastlake, D., "Transport Layer Security (TLS) Extensions:
               Extension Definitions", RFC 6066, January 2011.
 
-   [RFC6090]  McGrew, D., Igoe, K., and M. Salter, "Fundamental Elliptic
-              Curve Cryptography Algorithms", RFC 6090, February 2011.
-
    [RFC6265]  Barth, A., "HTTP State Management Mechanism", RFC 6265,
               April 2011.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
