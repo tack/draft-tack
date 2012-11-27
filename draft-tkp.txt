@@ -3,8 +3,8 @@
 
 TLS Working Group                                         M. Marlinspike
 Internet-Draft                                            T. Perrin, Ed.
-Intended status: Standards Track                       November 25, 2012
-Expires: May 29, 2013
+Intended status: Standards Track                       November 26, 2012
+Expires: May 30, 2013
 
 
                             TLS Key Pinning
@@ -33,7 +33,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on May 29, 2013.
+   This Internet-Draft will expire on May 30, 2013.
 
 Copyright Notice
 
@@ -52,7 +52,7 @@ Copyright Notice
 
 
 
-Marlinspike & Perrin      Expires May 29, 2013                  [Page 1]
+Marlinspike & Perrin      Expires May 30, 2013                  [Page 1]
 
 Internet-Draft               TLS Key Pinning               November 2012
 
@@ -75,8 +75,9 @@ Table of Contents
      5.2.  High-level client processing . . . . . . . . . . . . . . .  9
      5.3.  Client processing details  . . . . . . . . . . . . . . . . 10
        5.3.1.  Check whether the TLS handshake is well-formed . . . . 10
-       5.3.2.  Determine the store's status . . . . . . . . . . . . . 10
-       5.3.3.  Pin activation (optional)  . . . . . . . . . . . . . . 11
+       5.3.2.  Check tack generations and update min_generations  . . 10
+       5.3.3.  Determine the store's status . . . . . . . . . . . . . 11
+       5.3.4.  Pin activation (optional)  . . . . . . . . . . . . . . 11
    6.  Application protocols and TKP  . . . . . . . . . . . . . . . . 13
      6.1.  Pin scope  . . . . . . . . . . . . . . . . . . . . . . . . 13
      6.2.  TLS negotiation  . . . . . . . . . . . . . . . . . . . . . 13
@@ -107,8 +108,7 @@ Table of Contents
 
 
 
-
-Marlinspike & Perrin      Expires May 29, 2013                  [Page 2]
+Marlinspike & Perrin      Expires May 30, 2013                  [Page 2]
 
 Internet-Draft               TLS Key Pinning               November 2012
 
@@ -164,7 +164,7 @@ Internet-Draft               TLS Key Pinning               November 2012
 
 
 
-Marlinspike & Perrin      Expires May 29, 2013                  [Page 3]
+Marlinspike & Perrin      Expires May 30, 2013                  [Page 3]
 
 Internet-Draft               TLS Key Pinning               November 2012
 
@@ -220,7 +220,7 @@ Internet-Draft               TLS Key Pinning               November 2012
 
 
 
-Marlinspike & Perrin      Expires May 29, 2013                  [Page 4]
+Marlinspike & Perrin      Expires May 30, 2013                  [Page 4]
 
 Internet-Draft               TLS Key Pinning               November 2012
 
@@ -276,7 +276,7 @@ Internet-Draft               TLS Key Pinning               November 2012
 
 
 
-Marlinspike & Perrin      Expires May 29, 2013                  [Page 5]
+Marlinspike & Perrin      Expires May 30, 2013                  [Page 5]
 
 Internet-Draft               TLS Key Pinning               November 2012
 
@@ -332,7 +332,7 @@ Internet-Draft               TLS Key Pinning               November 2012
 
 
 
-Marlinspike & Perrin      Expires May 29, 2013                  [Page 6]
+Marlinspike & Perrin      Expires May 30, 2013                  [Page 6]
 
 Internet-Draft               TLS Key Pinning               November 2012
 
@@ -388,7 +388,7 @@ Internet-Draft               TLS Key Pinning               November 2012
 
 
 
-Marlinspike & Perrin      Expires May 29, 2013                  [Page 7]
+Marlinspike & Perrin      Expires May 30, 2013                  [Page 7]
 
 Internet-Draft               TLS Key Pinning               November 2012
 
@@ -421,7 +421,7 @@ Internet-Draft               TLS Key Pinning               November 2012
       first description is considered active.  If the next lowest bit is
       set, the second description is considered active.  An active
       description MAY be used by the pin activation algorithm in
-      Section 5.3.3 to create, activate, and extend the activation of
+      Section 5.3.4 to create, activate, and extend the activation of
       TKP pins.
 
    descriptions:  This field contains 1 or 2 PinDescriptions.
@@ -444,7 +444,7 @@ Internet-Draft               TLS Key Pinning               November 2012
 
 
 
-Marlinspike & Perrin      Expires May 29, 2013                  [Page 8]
+Marlinspike & Perrin      Expires May 30, 2013                  [Page 8]
 
 Internet-Draft               TLS Key Pinning               November 2012
 
@@ -466,6 +466,10 @@ Internet-Draft               TLS Key Pinning               November 2012
    PinDescription (or hash):  A PinDescription or a cryptographically-
       secure, second preimage-resistant hash of a PinDescription.
 
+   min_generation:  A single byte used to detect revoked tacks for any
+      of the tack-signing keys in the PinDescription (this field can be
+      omitted if the PinDescription mentions no tack-signing keys).
+
    A hostname along with the above values comprises a "TKP pin".  Thus,
    each store can hold up to two pins for a hostname (however, those two
    pins MUST reference different PinDescriptions).  A pin "matches" a
@@ -484,13 +488,11 @@ Internet-Draft               TLS Key Pinning               November 2012
 
    2.  For each pin store, do:
 
-       A.  Determine the store's status.
+       A.  Check tack generations and update min_generations.
 
-       B.  Perform pin activation (optional).
+       B.  Determine the store's status.
 
-
-
-
+       C.  Perform pin activation (optional).
 
 
 
@@ -498,9 +500,7 @@ Internet-Draft               TLS Key Pinning               November 2012
 
 
 
-
-
-Marlinspike & Perrin      Expires May 29, 2013                  [Page 9]
+Marlinspike & Perrin      Expires May 30, 2013                  [Page 9]
 
 Internet-Draft               TLS Key Pinning               November 2012
 
@@ -509,7 +509,7 @@ Internet-Draft               TLS Key Pinning               November 2012
    client SHALL send a fatal error alert and close the connection,
    skipping the remaining steps (see Section 5.3 for details).
 
-   Based on step 2A, each store will report one of three statuses for
+   Based on step 2B, each store will report one of three statuses for
    the connection: "accepted", "rejected", or "unpinned".  A rejected
    connection might indicate a network attack.  If the connection is
    rejected the client MAY send a fatal "access_denied" error alert and
@@ -540,7 +540,32 @@ Internet-Draft               TLS Key Pinning               November 2012
        is of type "tack_signing_key" and refers to a tack signing key
        from a server tack.
 
-5.3.2.  Determine the store's status
+   5.  It is undefined how the client responds to revoked tacks.
+       However, if a client closes a TLS connection due to a revoked
+       tack, the client SHOULD send a fatal "certificate_revoked" alert.
+
+5.3.2.  Check tack generations and update min_generations
+
+   If a PinDescription matches a pin in the pin store and lists a tack-
+   signing key for which there's a tack with a generation less than the
+   pin's min_generation, then that tack is revoked.  If the tack has a
+   min_generation greater than the stored min_generation, the pin's
+   value SHALL be set to the tack's value.
+
+
+
+
+
+Marlinspike & Perrin      Expires May 30, 2013                 [Page 10]
+
+Internet-Draft               TLS Key Pinning               November 2012
+
+
+   It is undefined how the client responds to revoked tacks.  However,
+   if a client closes a TLS connection due to a revoked tack, the client
+   SHOULD send a fatal "certificate_revoked" alert
+
+5.3.3.  Determine the store's status
 
    If there is a relevant active pin without a matching description,
    then the connection is "rejected".  If the connection is not rejected
@@ -548,20 +573,7 @@ Internet-Draft               TLS Key Pinning               November 2012
    the connection is "accepted".  Otherwise, the connection is
    "unpinned".
 
-
-
-
-
-
-
-
-
-Marlinspike & Perrin      Expires May 29, 2013                 [Page 10]
-
-Internet-Draft               TLS Key Pinning               November 2012
-
-
-5.3.3.  Pin activation (optional)
+5.3.4.  Pin activation (optional)
 
    The TLS connection MAY be used to create, delete, and activate pins.
    This "pin activation algorithm" is optional; a client MAY rely on an
@@ -597,25 +609,17 @@ Internet-Draft               TLS Key Pinning               November 2012
    descriptions, so the number of empty pin slots equals the number of
    unmatched descriptions.)
 
-   The following tables summarize this behavior from the perspective of
-   a pin.  You can follow the lifecycle of a single pin from "New
-   inactive pin" to "Delete pin".
 
 
 
-
-
-
-
-
-
-
-
-
-Marlinspike & Perrin      Expires May 29, 2013                 [Page 11]
+Marlinspike & Perrin      Expires May 30, 2013                 [Page 11]
 
 Internet-Draft               TLS Key Pinning               November 2012
 
+
+   The following tables summarize this behavior from the perspective of
+   a pin.  You can follow the lifecycle of a single pin from "New
+   inactive pin" to "Delete pin".
 
    Relevant pin is active:
 
@@ -664,11 +668,7 @@ Internet-Draft               TLS Key Pinning               November 2012
 
 
 
-
-
-
-
-Marlinspike & Perrin      Expires May 29, 2013                 [Page 12]
+Marlinspike & Perrin      Expires May 30, 2013                 [Page 12]
 
 Internet-Draft               TLS Key Pinning               November 2012
 
@@ -724,7 +724,7 @@ Internet-Draft               TLS Key Pinning               November 2012
 
 
 
-Marlinspike & Perrin      Expires May 29, 2013                 [Page 13]
+Marlinspike & Perrin      Expires May 30, 2013                 [Page 13]
 
 Internet-Draft               TLS Key Pinning               November 2012
 
@@ -780,7 +780,7 @@ Internet-Draft               TLS Key Pinning               November 2012
 
 
 
-Marlinspike & Perrin      Expires May 29, 2013                 [Page 14]
+Marlinspike & Perrin      Expires May 30, 2013                 [Page 14]
 
 Internet-Draft               TLS Key Pinning               November 2012
 
@@ -836,7 +836,7 @@ Internet-Draft               TLS Key Pinning               November 2012
 
 
 
-Marlinspike & Perrin      Expires May 29, 2013                 [Page 15]
+Marlinspike & Perrin      Expires May 30, 2013                 [Page 15]
 
 Internet-Draft               TLS Key Pinning               November 2012
 
@@ -892,7 +892,7 @@ Internet-Draft               TLS Key Pinning               November 2012
 
 
 
-Marlinspike & Perrin      Expires May 29, 2013                 [Page 16]
+Marlinspike & Perrin      Expires May 30, 2013                 [Page 16]
 
 Internet-Draft               TLS Key Pinning               November 2012
 
@@ -948,7 +948,7 @@ Internet-Draft               TLS Key Pinning               November 2012
 
 
 
-Marlinspike & Perrin      Expires May 29, 2013                 [Page 17]
+Marlinspike & Perrin      Expires May 30, 2013                 [Page 17]
 
 Internet-Draft               TLS Key Pinning               November 2012
 
@@ -1004,7 +1004,7 @@ Internet-Draft               TLS Key Pinning               November 2012
 
 
 
-Marlinspike & Perrin      Expires May 29, 2013                 [Page 18]
+Marlinspike & Perrin      Expires May 30, 2013                 [Page 18]
 
 Internet-Draft               TLS Key Pinning               November 2012
 
@@ -1060,5 +1060,5 @@ Authors' Addresses
 
 
 
-Marlinspike & Perrin      Expires May 29, 2013                 [Page 19]
+Marlinspike & Perrin      Expires May 30, 2013                 [Page 19]
 

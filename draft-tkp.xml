@@ -283,10 +283,15 @@ time in the past, the pin is "inactive". If set to a future time, the pin is
 "active" until that time.
 
 </t> 
-
 <t hangText="PinDescription (or hash):">
 
 A PinDescription or a cryptographically-secure, second preimage-resistant hash of a PinDescription.
+
+</t> <t hangText="min_generation:">
+
+A single byte used to detect revoked tacks for any of the tack-signing keys in
+the PinDescription (this field can be omitted if the PinDescription mentions
+no tack-signing keys).
 
 </t> 
 
@@ -318,6 +323,7 @@ steps prior to using the connection:
  <t>Check whether the TLS handshake is "well-formed".</t>
  <t>For each pin store, do:
 <list style="letters">
+    <t>Check tack generations and update min_generations.</t>
     <t>Determine the store's status.</t>
     <t>Perform pin activation (optional).</t>
 </list>
@@ -333,7 +339,7 @@ remaining steps (see <xref target="details"/> for details).
 
 </t>
 
-<t>Based on step 2A, each store will report one of three statuses for the
+<t>Based on step 2B, each store will report one of three statuses for the
 connection: "accepted", "rejected", or "unpinned". A rejected connection might
 indicate a network attack. If the connection is rejected the client MAY
 send a fatal "access_denied" error alert and close the connection. </t> 
@@ -367,10 +373,36 @@ and "activation_flags" is &lt;= 3.</t>
 is of type "x509_key" and refers to a SubjectPublicKeyInfo from the server's
 certificate chain, or (b) is of type "tack_signing_key" and refers to a tack
 signing key from a server tack.</t>
+<t>
+It is undefined how the client responds to revoked tacks. However, if a client
+closes a TLS connection due to a revoked tack, the client SHOULD send a fatal
+"certificate_revoked" alert.
+</t>
+
 
 </list> </t>
 
 </section>
+<section title="Check tack generations and update min_generations">
+
+<t>If a PinDescription matches a pin in the pin store and lists a tack-signing
+key for which there's a tack with a generation less than the pin's
+min_generation, then that tack is revoked. If the tack has a min_generation
+greater than the stored min_generation, the pin's value SHALL be set to the
+tack's value.
+<vspace blankLines="100" />	
+
+</t>
+
+<t>
+
+It is undefined how the client responds to revoked tacks. However, if a client
+closes a TLS connection due to a revoked tack, the client SHOULD send a fatal
+"certificate_revoked" alert
+
+</t>
+
+</section> 
 
 <section title="Determine the store's status"> <t>
 
@@ -378,7 +410,6 @@ If there is a relevant active pin without a matching description, then the
 connection is "rejected". If the connection is not rejected and there is a
 relevant active pin with a matching description, then the connection is
 "accepted". Otherwise, the connection is "unpinned".
-<vspace blankLines="100" />	
 
 </t>
 
@@ -427,13 +458,13 @@ description (or its hash), an "initial time" set to the current time, and an
 adding new pins without exceeding two pins per hostname. This is because the
 number of matching pins equals the number of matching descriptions, so the
 number of empty pin slots equals the number of unmatched descriptions.)
+<vspace blankLines="100" />	
 
 </t> 
 
 <t>The following tables summarize this behavior from the perspective of a pin.
 You can follow the lifecycle of a single pin from "New inactive pin" to
 "Delete pin".
-<vspace blankLines="100" />	
 
 </t>
 <t>Relevant pin is active:</t>
