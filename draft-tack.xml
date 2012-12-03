@@ -651,12 +651,10 @@ older-generation server which has not yet been updated.</t>
 <t hangText="Tack expiration:">
 
 When TACK is used in conjunction with certificates it is recommended to set
-the tack expiration equal to the end-entity certificate expiration plus 30
-days, allowing the tack and certificate to both be replaced at the same time.
-The extra 30 days ensures there is enough time to employ "pin deactivation"
-(see below) if the TSK private key is lost. Alternatively, short-lived tacks
-may be used so that a compromised TLS private key has limited value to an
-attacker.</t>
+the tack expiration equal to the end-entity certificate's expiration (or a
+later date), so that the tack and certificate can both be replaced at the same
+time. Alternatively, short-lived tacks may be used so that a compromised TLS
+private key has limited value to an attacker.</t>
 
 <t hangText="Tack/pin activation:">
 
