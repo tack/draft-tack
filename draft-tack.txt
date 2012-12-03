@@ -177,7 +177,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
    Selection of a tack-signing key (TSK):  The server operator first
       chooses the ECDSA signing key to use for a set of hostnames.  It
-      is safest to use a different TSKs for each hostname, though a TSK
+      is safest to use a different TSK for each hostname, though a TSK
       may be reused for closely-related hostnames (such as aliases for
       the same host, or hosts sharing the same TLS key).
 
@@ -249,8 +249,8 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
    In addition to creating and activating pins, a TLS connection can
    alter client pin stores by publishing new "min_generation" values in
    a tack.  Each pin stores the highest "min_generation" value it has
-   seen from the pinned TACK key, and rejects tacks from earlier
-   generations.
+   seen from the pinned TSK, and rejects tacks from earlier generations.
+
 
 
 
@@ -341,14 +341,14 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 3.2.1.  Tack fields
 
-   public_key:  This field specifies the tack's public key.  The field
-      contains a pair of integers (x, y) representing a point on the
-      elliptic curve P-256 defined in [FIPS186-3].  Each integer is
-      encoded as a 32-byte octet string using the Integer-to-Octet-
-      String algorithm from [RFC6090], and these strings are
-      concatenated with the x value first.  (NOTE: This is equivalent to
-      an uncompressed subjectPublicKey from [RFC5480], except that the
-      initial 0x04 byte is omitted).
+   public_key:  This field specifies the public component of the TSK
+      that has signed this tack.  The field contains a pair of integers
+      (x, y) representing a point on the elliptic curve P-256 defined in
+      [FIPS186-3].  Each integer is encoded as a 32-byte octet string
+      using the Integer-to-Octet-String algorithm from [RFC6090], and
+      these strings are concatenated with the x value first.  (NOTE:
+      This is equivalent to an uncompressed subjectPublicKey from
+      [RFC5480], except that the initial 0x04 byte is omitted).
 
    min_generation:  This field publishes a min_generation for the TSK.
 
@@ -365,9 +365,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
       [FIPS180-2].  The SubjectPublicKeyInfo is typically conveyed as
       part of the server's X.509 end-entity certificate.
 
-   signature:  This field is an ECDSA signature by the tack's public key
-      over the 8 byte ASCII string "tack_sig" followed by the contents
-      of the tack prior to the "signature" field (i.e. the preceding 102
+   signature:  This field is an ECDSA signature by the tack's TSK over
+      the 8 byte ASCII string "tack_sig" followed by the contents of the
+      tack prior to the "signature" field (i.e. the preceding 102
       bytes).  The field contains a pair of integers (r, s) representing
       an ECDSA signature as defined in [FIPS186-3], using curve P-256
       and SHA256.  Each integer is encoded as a 32-byte octet string
@@ -699,12 +699,10 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
    Tack expiration:  When TACK is used in conjunction with certificates
       it is recommended to set the tack expiration equal to the end-
-      entity certificate expiration plus 30 days, allowing the tack and
-      certificate to both be replaced at the same time.  The extra 30
-      days ensures there is enough time to employ "pin deactivation"
-      (see below) if the TSK private key is lost.  Alternatively, short-
-      lived tacks may be used so that a compromised TLS private key has
-      limited value to an attacker.
+      entity certificate's expiration (or a later date), so that the
+      tack and certificate can both be replaced at the same time.
+      Alternatively, short-lived tacks may be used so that a compromised
+      TLS private key has limited value to an attacker.
 
    Tack/pin activation:  Tacks should only be activated once all TLS
       servers sharing the same hostname have a tack.  Otherwise, a
@@ -718,9 +716,11 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
       removed after a time interval equal to the maximum active period
       of any affected pins (30 days at most).
 
-
-
-
+   Tack/pin overlap:  When publishing overlapping tacks, the old and new
+      tacks SHOULD be active simultaneously for at least 60 days.  This
+      ensures that any pin activation client who is contacting the
+      server at intervals of 30 days or less will not have its
+      activation periods interrupted.  Example process: activate new
 
 
 
@@ -729,11 +729,6 @@ Marlinspike & Perrin      Expires June 5, 2013                 [Page 13]
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
-   Tack/pin overlap:  When publishing overlapping tacks, the old and new
-      tacks SHOULD be active simultaneously for at least 60 days.  This
-      ensures that any pin activation client who is contacting the
-      server at intervals of 30 days or less will not have its
-      activation periods interrupted.  Example process: activate new
       tacks; wait 60 days; deactivate old tacks; wait 30 days; remove
       old tacks.
 
@@ -755,6 +750,11 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
       seemingly-expired tacks as "well-formed" if they expired less than
       T minutes ago, where T is a "tolerance bound" set to the client's
       maximum expected clock error.
+
+
+
+
+
 
 
 

@@ -89,8 +89,8 @@ described in <xref target="RFC2119"/>.</t>
 	<t hangText="Selection of a tack-signing key (TSK):">	
 
 The server operator first chooses the ECDSA signing key to use for a set of
-hostnames. It is safest to use a different TSKs for each hostname, though a
-TSK may be reused for closely-related hostnames (such as aliases for the same
+hostnames. It is safest to use a different TSK for each hostname, though a TSK
+may be reused for closely-related hostnames (such as aliases for the same
 host, or hosts sharing the same TLS key).
 
 	</t> 
@@ -178,8 +178,7 @@ both of them by presenting a pair of tacks.
 
  <t>In addition to creating and activating pins, a TLS connection can alter
 client pin stores by publishing new "min_generation" values in a tack. Each
-pin stores the highest "min_generation" value it has seen from the pinned TACK
-key, and rejects tacks from earlier generations.
+pin stores the highest "min_generation" value it has seen from the pinned TSK, and rejects tacks from earlier generations.
 </t>
 
 </section>
@@ -234,13 +233,13 @@ struct {
 
 	<t hangText="public_key:">
 
-This field specifies the tack's public key. The field contains a pair of
-integers (x, y) representing a point on the elliptic curve P-256 defined in
-<xref target="FIPS186-3"/>. Each integer is encoded as a 32-byte octet string
-using the Integer-to-Octet-String algorithm from <xref target="RFC6090"/>, and
-these strings are concatenated with the x value first. (NOTE: This is
-equivalent to an uncompressed subjectPublicKey from <xref target="RFC5480"/>,
-except that the initial 0x04 byte is omitted).
+This field specifies the public component of the TSK that has signed this
+tack. The field contains a pair of integers (x, y) representing a point on the
+elliptic curve P-256 defined in <xref target="FIPS186-3"/>. Each integer is
+encoded as a 32-byte octet string using the Integer-to-Octet-String algorithm
+from <xref target="RFC6090"/>, and these strings are concatenated with the x
+value first. (NOTE: This is equivalent to an uncompressed subjectPublicKey
+from <xref target="RFC5480"/>, except that the initial 0x04 byte is omitted).
 
 	</t>	
 
@@ -273,8 +272,8 @@ end-entity certificate.
 
 <t hangText="signature:">
 
-This field is an ECDSA signature by the tack's public key over the 8 byte
-ASCII string "tack_sig" followed by the contents of the tack prior to the
+This field is an ECDSA signature by the tack's TSK over the 8 byte ASCII
+string "tack_sig" followed by the contents of the tack prior to the
 "signature" field (i.e. the preceding 102 bytes). The field contains a pair of
 integers (r, s) representing an ECDSA signature as defined in <xref
 target="FIPS186-3"/>, using curve P-256 and SHA256. Each integer is encoded as
