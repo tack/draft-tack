@@ -454,13 +454,12 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
    skipping the remaining steps (see Section 4.3 for details).
 
    Based on step 2B, each store will report one of three statuses for
-   the connection: "accepted", "rejected", or "unpinned".  A rejected
-   connection might indicate a network attack.  If the connection is
-   rejected the client SHOULD send a fatal "access_denied" error alert
-   and close the connection.
-
-   A client MAY perform additional verification steps before using an
-   accepted or unpinned connection.  See Section 5.3 for an example.
+   the connection: "confirmed", "contradicted", or "unpinned".  A
+   contradicted connection might indicate a network attack.  How the
+   client responds to confirmed or contradicted connections is left to
+   other specifications and client policy (see Section 5.3 for an
+   example).  If a client closes a connection due to a contradicting
+   pin, the client SHOULD send an "access_denied" alert.
 
 4.3.  Client processing details
 
@@ -500,6 +499,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
+
 Marlinspike & Perrin      Expires June 5, 2013                  [Page 9]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
@@ -508,15 +508,15 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 4.3.3.  Determine the store's status
 
    If there is a relevant active pin without a matching tack, then the
-   connection is "rejected".  If the connection is not rejected and
-   there is a relevant active pin with a matching tack, then the
-   connection is "accepted".  Otherwise, the connection is "unpinned".
+   connection is "contradicted".  If the connection is not contradicted
+   and there is a relevant active pin with a matching tack, then the
+   connection is "confirmed".  Otherwise, the connection is "unpinned".
 
 4.3.4.  Pin activation (optional)
 
    The TLS connection MAY be used to create, delete, and activate pins.
    This "pin activation algorithm" is optional; a client MAY rely on an
-   external source of pins.  If the connection was "rejected" by the
+   external source of pins.  If the connection was "contradicted" by the
    previous processing step, then pin activation is skipped.
 
    The first step in pin activation is to evaluate each relevant pin
@@ -524,8 +524,8 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
    1.  If a pin has no matching tack, its handling will depend on
        whether the pin is active.  If active, the connection will have
-       been rejected, skipping pin activation.  If inactive, the pin
-       SHALL be deleted, since it is contradicted by the connection.
+       been contradicted, skipping pin activation.  If inactive, the pin
+       SHALL be deleted.
 
    2.  If a pin has a matching tack, its handling will depend on whether
        the tack is active.  If inactive, the pin is left unchanged.  If
@@ -563,15 +563,15 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
    Relevant pin is active:
 
-    +--------------------+----------------+--------------------------+
-    | Pin matches a tack | Tack is active | Result                   |
-    +--------------------+----------------+--------------------------+
-    | Yes                | Yes            | Extend activation period |
-    |                    |                |                          |
-    | Yes                | No             | -                        |
-    |                    |                |                          |
-    | No                 | -              | (Connection rejected)    |
-    +--------------------+----------------+--------------------------+
+    +--------------------+----------------+---------------------------+
+    | Pin matches a tack | Tack is active | Result                    |
+    +--------------------+----------------+---------------------------+
+    | Yes                | Yes            | Extend activation period  |
+    |                    |                |                           |
+    | Yes                | No             | -                         |
+    |                    |                |                           |
+    | No                 | -              | (Connection contradicted) |
+    +--------------------+----------------+---------------------------+
 
    Relevant pin is inactive:
 
@@ -630,9 +630,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
    Some application protocols negotiate TLS as an optional feature (e.g.
    SMTP using STARTTLS [RFC3207]).  If such a server fails to negotiate
    TLS and there are relevant active pins, then the connection is
-   rejected by the pin.  If the server fails to negotiate TLS, then any
-   relevant, inactive pins SHALL be deleted.  Note that these steps are
-   taken despite the absence of a TLS connection.
+   contradicted by the pin.  If the server fails to negotiate TLS, then
+   any relevant, inactive pins SHALL be deleted.  Note that these steps
+   are taken despite the absence of a TLS connection.
 
 5.3.  Certificate verification
 
@@ -644,10 +644,10 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
    certificate error is discovered.
 
    If TACK processing and certificate verification both complete without
-   a fatal error, the client SHALL apply some policy to decide whether
-   to accept the connection.  The policy is up to the client.  An
-   example policy would be to accept the connection only if it passes
-   certificate verification and is not rejected by a pin.
+   a fatal error, then client behavior is left to other specifications
+   and client policy.  An example client policy would be to allow the
+   connection to proceed only if it passes certificate verification and
+   is not contradicted by a pin.
 
 
 
@@ -819,9 +819,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
    TLS servers without correct tacks.  To mitigate these risks, a TACK
    client SHOULD allow the user to edit or clear the pin store.
 
-   Aside from rejecting TLS connections, clients SHOULD NOT take any
-   actions which would reveal to a network observer the state of the
-   client's pin store, as this would allow an attacker to know in
+   Aside from possibly rejecting TLS connections, clients SHOULD NOT
+   take any actions which would reveal to a network observer the state
+   of the client's pin store, as this would allow an attacker to know in
    advance whether a "man-in-the-middle" attack on a particular TLS
    connection will succeed or be detected.
 
