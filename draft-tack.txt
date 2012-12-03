@@ -81,19 +81,19 @@ Table of Contents
      6.1.  Pin scope  . . . . . . . . . . . . . . . . . . . . . . . . 13
      6.2.  TLS negotiation  . . . . . . . . . . . . . . . . . . . . . 13
      6.3.  Certificate verification . . . . . . . . . . . . . . . . . 13
-   7.  Fingerprints . . . . . . . . . . . . . . . . . . . . . . . . . 14
-   8.  Advice . . . . . . . . . . . . . . . . . . . . . . . . . . . . 15
-     8.1.  For server operators . . . . . . . . . . . . . . . . . . . 15
+   7.  Advice . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
+     7.1.  For server operators . . . . . . . . . . . . . . . . . . . 14
+     7.2.  For client implementers  . . . . . . . . . . . . . . . . . 15
+   8.  Security considerations  . . . . . . . . . . . . . . . . . . . 16
+     8.1.  For server operators . . . . . . . . . . . . . . . . . . . 16
      8.2.  For client implementers  . . . . . . . . . . . . . . . . . 16
-   9.  Security considerations  . . . . . . . . . . . . . . . . . . . 17
-     9.1.  For server operators . . . . . . . . . . . . . . . . . . . 17
-     9.2.  For client implementers  . . . . . . . . . . . . . . . . . 17
-     9.3.  Note on algorithm agility  . . . . . . . . . . . . . . . . 18
-   10. IANA considerations  . . . . . . . . . . . . . . . . . . . . . 19
-     10.1. New entry for the TLS ExtensionType Registry . . . . . . . 19
-   11. Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 20
-   12. Normative references . . . . . . . . . . . . . . . . . . . . . 21
-   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 22
+     8.3.  Note on algorithm agility  . . . . . . . . . . . . . . . . 17
+   9.  IANA considerations  . . . . . . . . . . . . . . . . . . . . . 18
+     9.1.  New entry for the TLS ExtensionType Registry . . . . . . . 18
+   10. Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 19
+   11. Normative references . . . . . . . . . . . . . . . . . . . . . 20
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 21
+
 
 
 
@@ -590,7 +590,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
        end = current + MIN(30 days, current - initial)
 
-   In sum: (1) deletes unmatched inactive pins; and (2) activates
+   In sum: (1) deletes unmatched inactive pins, and (2) activates
    matched pins with active tacks.
 
    The remaining step in pin activation is to add new inactive pins for
@@ -729,65 +729,9 @@ Marlinspike & Perrin      Expires June 5, 2013                 [Page 13]
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
-7.  Fingerprints
+7.  Advice
 
-   A "key fingerprint" may be used to represent a TSK public key to
-   users in a form that is easy to compare and transcribe.  A key
-   fingerprint consists of the first 25 characters from the base32
-   encoding of SHA256(public_key), split into 5 groups of 5 characters
-   separated by periods.  Base32 encoding is as specified in [RFC4648],
-   except lowercase is used.  Examples:
-
-      g5p5x.ov4vi.dgsjv.wxctt.c5iul
-
-      quxiz.kpldu.uuedc.j5znm.7mqst
-
-      e25zs.cth7k.tscmp.5hxdp.wf47j
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 14]
-
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
-
-
-8.  Advice
-
-8.1.  For server operators
+7.1.  For server operators
 
    Key reuse:  All servers that are pinned to a single TSK are able to
       impersonate each other, since clients will perceive their tacks as
@@ -836,7 +780,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 15]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 14]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -849,7 +793,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
       tacks; wait 60 days; deactivate old tacks; wait 30 days; remove
       old tacks.
 
-8.2.  For client implementers
+7.2.  For client implementers
 
    Sharing pin information:  It is possible for a client to maintain a
       pin store based entirely on its own TLS connections.  However,
@@ -892,17 +836,17 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 16]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 15]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
-9.  Security considerations
+8.  Security considerations
 
-9.1.  For server operators
+8.1.  For server operators
 
    All servers pinned to the same TSK can impersonate each other (see
-   Section 8.1).  Think carefully about this risk if using the same TSK
+   Section 7.1).  Think carefully about this risk if using the same TSK
    for multiple hostnames.
 
    Make backup copies of the TSK private key and keep all copies in
@@ -921,7 +865,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
    cookie should only be presented back to the originating host (not its
    subdomains), and should only be sent over HTTPS (not HTTP) [RFC6265].
 
-9.2.  For client implementers
+8.2.  For client implementers
 
    A TACK pin store may contain private details of the client's
    connection history.  An attacker may be able to access this
@@ -948,12 +892,12 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 17]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 16]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
-9.3.  Note on algorithm agility
+8.3.  Note on algorithm agility
 
    If the need arises for tacks using different cryptographic algorithms
    (e.g., if SHA256 or ECDSA are shown to be weak), a "v2" version of
@@ -1004,14 +948,14 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 18]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 17]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
-10.  IANA considerations
+9.  IANA considerations
 
-10.1.  New entry for the TLS ExtensionType Registry
+9.1.  New entry for the TLS ExtensionType Registry
 
    IANA is requested to add an entry to the existing TLS ExtensionType
    registry, defined in [RFC5246], for "tack"(TBD) as defined in this
@@ -1060,12 +1004,12 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 19]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 18]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
-11.  Acknowledgements
+10.  Acknowledgements
 
    Valuable feedback has been provided by Adam Langley, Chris Palmer,
    Nate Lawson, and Joseph Bonneau.
@@ -1116,12 +1060,12 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 20]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 19]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
-12.  Normative references
+11.  Normative references
 
    [FIPS180-2]
               National Institute of Standards and Technology, "Secure
@@ -1138,9 +1082,6 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
    [RFC3207]  Hoffman, P., "SMTP Service Extension for Secure SMTP over
               Transport Layer Security", RFC 3207, February 2002.
-
-   [RFC4648]  Josefsson, S., "The Base16, Base32, and Base64 Data
-              Encodings", RFC 4648, October 2006.
 
    [RFC5246]  Dierks, T. and E. Rescorla, "The Transport Layer Security
               (TLS) Protocol Version 1.2", RFC 5246, August 2008.
@@ -1172,7 +1113,10 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 21]
+
+
+
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 20]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -1228,5 +1172,5 @@ Authors' Addresses
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 22]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 21]
 
