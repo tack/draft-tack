@@ -212,12 +212,12 @@ struct {
    uint32 expiration;
    opaque target_hash[32];
    opaque signature[64];
-} Tack;  /* 166 bytes */
+} Tack;   /* 166 bytes */
 
 struct {
-   Tack   tacks&lt;166...332&gt;   /* 1 or 2 Tacks */
-   uint8  activation_flags;  /* 0...3 */
-} TackExtension;
+   Tack   tacks&lt;166...332&gt;   /* 1 or 2 tacks */
+   uint8  activation_flags;
+} TackExtension;   /* 169 or 335 bytes */
 </artwork>
 </figure>
 <t>
