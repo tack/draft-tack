@@ -23,12 +23,10 @@
         <abstract>
 			<t>
 
-This document defines TACK, a TLS Extension that enables a TLS server to
-assert the authenticity of its public key. A "tack" contains a "TACK key" 
-which is used to sign the public key from the TLS server's certificate. 
-Hostnames can be "pinned" to a TACK key. TLS connections to a pinned 
-hostname require the server to present a tack containing the pinned key
-and a corresponding signature over the TLS server's public key.
+This document defines a TLS Extension that enables a TLS server to support
+"pinning" to a self-chosen signing key. A client contacting a pinned host will
+require the server to present a signature from the signing key over the TLS
+server's public key.
 
 			</t>
 		</abstract>
@@ -44,39 +42,26 @@ obtain increased certainty in server public keys. Clients that employ pinning
 check for some constant "pinned" element of the TLS connection when
 contacting a particular TLS host.
 
+ </t>
+<t>
+
+TACK allows clients to pin to a server-chosen signing key, known as a
+"tack-signing key" or "TSK", which signs the server's TLS keys. This enables
+pinning without limiting a site's flexibility to deploy different certificates
+and TLS keys on different servers or at different times. Since pins can be
+based on tack-signing keys instead of CA keys, trust in CAs is not required.
+Additionally, a TSK may be used to revoke compromised TLS private keys, and a
+pair of "overlapping" TSKs may be used to quickly introduce a new TSK if an
+older one has become compromised or suspect.
+
  </t> <t>
-
-Unfortunately, a number of problems arise when attempting to pin certificate
-chains: the TLS servers at a given hostname may have different certificate
-chains simultaneously deployed and may change their chains at any time, the
-"more constant" elements of a chain (the CAs) may not be trustworthy, and the
-client may be oblivious to key compromise events which render the pinned data
-untrustworthy.
-
-			</t> 
-
-	<t>
-
-TACK addresses these problems by having the site sign its TLS server public
-keys with a "TACK key". This enables clients to "pin" a hostname to the TACK
-key without requiring sites to modify their existing certificate chains, and
-without limiting a site's flexibility to deploy different certificate chains
-on different servers or change certificate chains at any time. Since TACK pins
-are based on TACK keys (instead of CA keys), trust in CAs is not required.
-Additionally, the TACK key may be used to revoke compromised TLS private keys,
-and overlapping TACK keys may be used to recover from suspect or compromised
-TACK keys.
-
-	</t>
-	<t>
 
 If requested, a compliant server will send a TLS Extension containing its
 "tack". Inside the tack is a public key and signature. Once a client has seen
-the same (hostname, TACK public key) pair multiple times, the client will
-"activate" a pin between the hostname and TACK key for a period equal to the
-length of time the pair has been observed for. This "pin activation" algorithm
-limits the impact of bad pins resulting from transient network attacks or
-operator error.
+the same (hostname, TSK) pair multiple times, the client will "activate" a pin
+between the hostname and TSK for a period equal to the length of time the pair
+has been observed for. This "pin activation" algorithm limits the impact of
+bad pins resulting from transient network attacks or operator error.
 
 			</t>
 			<t>
@@ -102,18 +87,18 @@ described in <xref target="RFC2119"/>.</t>
 <t>A server operator using TACK may perform several processes:
 
 	<list style="hanging">
-	<t hangText="Selection of a TACK key:">	
+	<t hangText="Selection of a tack-signing key (TSK):">	
 
 The server operator first chooses the ECDSA signing key to use for a set of
-hostnames. It is safest to use a different signing key for each hostname,
-though a signing key may be reused for closely-related hostnames (such as
-aliases for the same host, or hosts sharing the same TLS key).
+hostnames. It is safest to use a different TSKs for each hostname, though a
+TSK may be reused for closely-related hostnames (such as aliases for the same
+host, or hosts sharing the same TLS key).
 
-	</t>
-	<t hangText="Creating initial tacks under a TACK key:">	
+	</t> 
+	<t hangText="Creating initial tacks under a TSK:">
 
-The TACK private key is then used to sign the TLS public keys for all servers
-associated with those hostnames. The TACK public key and signature are
+The TSK private key is then used to sign the TLS public keys for all servers
+associated with those hostnames. The TSK public key and signature are
 combined with some metadata into each server's "tack".
 
 	</t>
@@ -126,11 +111,11 @@ server.
 
 	</t>
 	
-	<t hangText="Creating new tacks under a TACK key:">	
+	<t hangText="Creating new tacks under a TSK:">	
 
 A tack needs to be replaced whenever a server changes its TLS public key, or
 when the tack expires. Tacks may also need to be replaced with
-later-generation tacks if the TACK key's "min_generation" is updated (see
+later-generation tacks if the TSK's "min_generation" is updated (see
 next).
 
 	</t>
@@ -149,9 +134,9 @@ tacks within 30 days (at most).
 	</t>
 	<t hangText="Overlapping tacks:">
 
-If a server operator wishes to change the TACK key a hostname is pinned to,
+If a server operator wishes to change the TSK a hostname is pinned to,
 the server can publish a new tack alongside the old one. This lets clients
-activate pins for the new TACK key prior to the server deactivating the older
+activate pins for the new TSK prior to the server deactivating the older
 pins.
 
 	</t>
@@ -167,7 +152,7 @@ pins.
 	
 	<t>
 
-A TACK pin associates a hostname and a TACK key. Pins are grouped into "pin
+A TACK pin associates a hostname and a TSK. Pins are grouped into "pin
 stores". A client may populate its pin stores by either performing "pin
 activation" directly, or by querying some other party. For example, a client
 application may have a store for pin activation as well as a store whose
@@ -175,7 +160,7 @@ contents are periodically fetched from a server. </t>
 
 <t>
 
-Whenever a client performing "pin activation" sees a hostname and TACK key
+Whenever a client performing "pin activation" sees a hostname and TSK
 combination not represented in the "pin activation" pin store, an inactive pin
 is created. Every subsequent time the client sees the same pin, the pin is
 "activated" for a period equal to the timespan between the first time the pin
@@ -262,14 +247,13 @@ except that the initial 0x04 byte is omitted).
 
 <t hangText="min_generation:"> 
 
-This field publishes a min_generation value.
+This field publishes a min_generation for the TSK.
 
 </t>
 
 <t hangText="generation:"> 
 
-This field assigns each tack a generation. Generations less than a published
-min_generation are considered revoked.
+This field assigns each tack a generation. Generations less than the highest published min_generation for the TSK are considered revoked.
 
 </t>
 
@@ -350,7 +334,7 @@ time in the past, the pin is "inactive". If set to a future time, the pin is
 
 </t> 
 
-<t hangText="TACK public key (or hash):">
+<t hangText="TSK public key (or hash):">
 
 A public key or a cryptographically-secure, second preimage-resistant hash of
 a public key.
@@ -359,7 +343,7 @@ a public key.
 <t hangText="Min_generation:">
 
 A single byte used to detect revoked tacks. All pins within a pin store
-sharing the same TACK public key SHALL have the same min_generation.
+sharing the same TSK SHALL have the same min_generation.
 
 </t>
 
@@ -636,7 +620,7 @@ rejected by a pin.
 <section title="Fingerprints">	
 <t>
 
-A "key fingerprint" may be used to represent a TACK public key to users in a
+A "key fingerprint" may be used to represent a TSK public key to users in a
 form that is easy to compare and transcribe. A key fingerprint consists of the
 first 25 characters from the base32 encoding of SHA256(public_key), split into
 5 groups of 5 characters separated by periods. Base32 encoding is as specified
@@ -661,12 +645,12 @@ in <xref target="RFC4648"/>, except lowercase is used. Examples:
 
 <t hangText="Key reuse:">
 
-All servers that are pinned to a single TACK key are able to impersonate each
-other, since clients will perceive their tacks as equivalent. Thus, TACK keys
+All servers that are pinned to a single TSK are able to impersonate each
+other, since clients will perceive their tacks as equivalent. Thus, TSKs
 SHOULD NOT be reused with different hostnames unless these hostnames are
-closely related. Examples where it would be safe to reuse a TACK key are
-hostnames aliased to the same host, hosts sharing the same TLS key, or
-hostnames for a group of near-identical servers.
+closely related. Examples where it would be safe to reuse a TSK are hostnames
+aliased to the same host, hosts sharing the same TLS key, or hostnames for a
+group of near-identical servers.
 
 </t>
 
@@ -692,7 +676,7 @@ When TACK is used in conjunction with certificates it is recommended to set
 the tack expiration equal to the end-entity certificate expiration plus 30
 days, allowing the tack and certificate to both be replaced at the same time.
 The extra 30 days ensures there is enough time to employ "pin deactivation"
-(see below) if the TACK private key is lost. Alternatively, short-lived tacks
+(see below) if the TSK private key is lost. Alternatively, short-lived tacks
 may be used so that a compromised TLS private key has limited value to an
 attacker.</t>
 
@@ -753,21 +737,21 @@ expected clock error.
 <section title="For server operators">	
         <t>
 
-All servers pinned to the same TACK key can impersonate each other (see <xref
-target="servadvice"/>). Think carefully about this risk if using the same TACK
-key for multiple hostnames.
+All servers pinned to the same TSK can impersonate each other (see <xref
+target="servadvice"/>). Think carefully about this risk if using the same TSK
+for multiple hostnames.
 
 </t> <t>
 
-Make backup copies of the TACK private key and keep all copies in secure
+Make backup copies of the TSK private key and keep all copies in secure
 locations where they can't be compromised.
 
 </t>
 <t>
 
-A TACK private key MUST NOT be used to perform any non-TACK cryptographic
-operations. For example, using a TACK key for email encryption, code-signing,
-or any other purpose MUST NOT be done.
+A TSK private key MUST NOT be used to perform any non-TACK cryptographic
+operations. For example, using a TSK for email encryption, code-signing, or
+any other purpose MUST NOT be done.
 
 </t> <t>
 

@@ -3,8 +3,8 @@
 
 TLS Working Group                                         M. Marlinspike
 Internet-Draft                                            T. Perrin, Ed.
-Intended status: Standards Track                       November 15, 2012
-Expires: May 19, 2013
+Intended status: Standards Track                        December 2, 2012
+Expires: June 5, 2013
 
 
                  Trust Assertions for Certificate Keys
@@ -12,13 +12,10 @@ Expires: May 19, 2013
 
 Abstract
 
-   This document defines TACK, a TLS Extension that enables a TLS server
-   to assert the authenticity of its public key.  A "tack" contains a
-   "TACK key" which is used to sign the public key from the TLS server's
-   certificate.  Hostnames can be "pinned" to a TACK key.  TLS
-   connections to a pinned hostname require the server to present a tack
-   containing the pinned key and a corresponding signature over the TLS
-   server's public key.
+   This document defines a TLS Extension that enables a TLS server to
+   support "pinning" to a self-chosen signing key.  A client contacting
+   a pinned host will require the server to present a signature from the
+   signing key over the TLS server's public key.
 
 Status of this Memo
 
@@ -35,7 +32,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on May 19, 2013.
+   This Internet-Draft will expire on June 5, 2013.
 
 Copyright Notice
 
@@ -49,16 +46,15 @@ Copyright Notice
    carefully, as they describe your rights and restrictions with respect
    to this document.  Code Components extracted from this document must
    include Simplified BSD License text as described in Section 4.e of
-
-
-
-Marlinspike & Perrin      Expires May 19, 2013                  [Page 1]
-
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
-
-
    the Trust Legal Provisions and are provided without warranty as
    described in the Simplified BSD License.
+
+
+
+
+Marlinspike & Perrin      Expires June 5, 2013                  [Page 1]
+
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 Table of Contents
@@ -108,9 +104,13 @@ Table of Contents
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                  [Page 2]
+
+
+
+
+Marlinspike & Perrin      Expires June 5, 2013                  [Page 2]
 
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 1.  Introduction
@@ -121,31 +121,23 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
    that employ pinning check for some constant "pinned" element of the
    TLS connection when contacting a particular TLS host.
 
-   Unfortunately, a number of problems arise when attempting to pin
-   certificate chains: the TLS servers at a given hostname may have
-   different certificate chains simultaneously deployed and may change
-   their chains at any time, the "more constant" elements of a chain
-   (the CAs) may not be trustworthy, and the client may be oblivious to
-   key compromise events which render the pinned data untrustworthy.
-
-   TACK addresses these problems by having the site sign its TLS server
-   public keys with a "TACK key".  This enables clients to "pin" a
-   hostname to the TACK key without requiring sites to modify their
-   existing certificate chains, and without limiting a site's
-   flexibility to deploy different certificate chains on different
-   servers or change certificate chains at any time.  Since TACK pins
-   are based on TACK keys (instead of CA keys), trust in CAs is not
-   required.  Additionally, the TACK key may be used to revoke
-   compromised TLS private keys, and overlapping TACK keys may be used
-   to recover from suspect or compromised TACK keys.
+   TACK allows clients to pin to a server-chosen signing key, known as a
+   "tack-signing key" or "TSK", which signs the server's TLS keys.  This
+   enables pinning without limiting a site's flexibility to deploy
+   different certificates and TLS keys on different servers or at
+   different times.  Since pins can be based on tack-signing keys
+   instead of CA keys, trust in CAs is not required.  Additionally, a
+   TSK may be used to revoke compromised TLS private keys, and a pair of
+   "overlapping" TSKs may be used to quickly introduce a new TSK if an
+   older one has become compromised or suspect.
 
    If requested, a compliant server will send a TLS Extension containing
    its "tack".  Inside the tack is a public key and signature.  Once a
-   client has seen the same (hostname, TACK public key) pair multiple
-   times, the client will "activate" a pin between the hostname and TACK
-   key for a period equal to the length of time the pair has been
-   observed for.  This "pin activation" algorithm limits the impact of
-   bad pins resulting from transient network attacks or operator error.
+   client has seen the same (hostname, TSK) pair multiple times, the
+   client will "activate" a pin between the hostname and TSK for a
+   period equal to the length of time the pair has been observed for.
+   This "pin activation" algorithm limits the impact of bad pins
+   resulting from transient network attacks or operator error.
 
    TACK pins are easily shared between clients.  For example, a TACK
    client may scan the internet to discover TACK pins, then publish
@@ -164,9 +156,17 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                  [Page 3]
+
+
+
+
+
+
+
+
+Marlinspike & Perrin      Expires June 5, 2013                  [Page 3]
 
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 2.  Requirements notation
@@ -220,9 +220,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                  [Page 4]
+Marlinspike & Perrin      Expires June 5, 2013                  [Page 4]
 
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 3.  Overview
@@ -231,16 +231,16 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
    A server operator using TACK may perform several processes:
 
-   Selection of a TACK key:  The server operator first chooses the ECDSA
-      signing key to use for a set of hostnames.  It is safest to use a
-      different signing key for each hostname, though a signing key may
-      be reused for closely-related hostnames (such as aliases for the
-      same host, or hosts sharing the same TLS key).
+   Selection of a tack-signing key (TSK):  The server operator first
+      chooses the ECDSA signing key to use for a set of hostnames.  It
+      is safest to use a different TSKs for each hostname, though a TSK
+      may be reused for closely-related hostnames (such as aliases for
+      the same host, or hosts sharing the same TLS key).
 
-   Creating initial tacks under a TACK key:  The TACK private key is
-      then used to sign the TLS public keys for all servers associated
-      with those hostnames.  The TACK public key and signature are
-      combined with some metadata into each server's "tack".
+   Creating initial tacks under a TSK:  The TSK private key is then used
+      to sign the TLS public keys for all servers associated with those
+      hostnames.  The TSK public key and signature are combined with
+      some metadata into each server's "tack".
 
    Deploying initial tacks:  For each hostname, tacks are deployed to
       TLS servers in a two-stage process.  First, each TLS server
@@ -248,10 +248,10 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
       completed, the tacks are activated by setting the "activation
       flag" on each server.
 
-   Creating new tacks under a TACK key:  A tack needs to be replaced
-      whenever a server changes its TLS public key, or when the tack
-      expires.  Tacks may also need to be replaced with later-generation
-      tacks if the TACK key's "min_generation" is updated (see next).
+   Creating new tacks under a TSK:  A tack needs to be replaced whenever
+      a server changes its TLS public key, or when the tack expires.
+      Tacks may also need to be replaced with later-generation tacks if
+      the TSK's "min_generation" is updated (see next).
 
    Revoking old tacks:  If a TLS private key is compromised, the tacks
       signing this key can be revoked by publishing a new tack
@@ -262,10 +262,10 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
       activation flag, allowing the server to remove the tacks within 30
       days (at most).
 
-   Overlapping tacks:  If a server operator wishes to change the TACK
-      key a hostname is pinned to, the server can publish a new tack
-      alongside the old one.  This lets clients activate pins for the
-      new TACK key prior to the server deactivating the older pins.
+   Overlapping tacks:  If a server operator wishes to change the TSK a
+      hostname is pinned to, the server can publish a new tack alongside
+      the old one.  This lets clients activate pins for the new TSK
+      prior to the server deactivating the older pins.
 
 
 
@@ -276,26 +276,26 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                  [Page 5]
+Marlinspike & Perrin      Expires June 5, 2013                  [Page 5]
 
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 3.2.  Pin life cycle
 
-   A TACK pin associates a hostname and a TACK key.  Pins are grouped
-   into "pin stores".  A client may populate its pin stores by either
+   A TACK pin associates a hostname and a TSK.  Pins are grouped into
+   "pin stores".  A client may populate its pin stores by either
    performing "pin activation" directly, or by querying some other
    party.  For example, a client application may have a store for pin
    activation as well as a store whose contents are periodically fetched
    from a server.
 
-   Whenever a client performing "pin activation" sees a hostname and
-   TACK key combination not represented in the "pin activation" pin
-   store, an inactive pin is created.  Every subsequent time the client
-   sees the same pin, the pin is "activated" for a period equal to the
-   timespan between the first time the pin was seen and the most recent
-   time, up to a maximum period of 30 days.
+   Whenever a client performing "pin activation" sees a hostname and TSK
+   combination not represented in the "pin activation" pin store, an
+   inactive pin is created.  Every subsequent time the client sees the
+   same pin, the pin is "activated" for a period equal to the timespan
+   between the first time the pin was seen and the most recent time, up
+   to a maximum period of 30 days.
 
    A pin store may contain up to two pins per hostname.  This allows for
    overlapping pins when a server is securely transitioning from one pin
@@ -332,9 +332,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                  [Page 6]
+Marlinspike & Perrin      Expires June 5, 2013                  [Page 6]
 
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 4.  TACK Extension
@@ -388,9 +388,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                  [Page 7]
+Marlinspike & Perrin      Expires June 5, 2013                  [Page 7]
 
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 4.2.  Explanation of TackExtension fields
@@ -406,10 +406,11 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
       an uncompressed subjectPublicKey from [RFC5480], except that the
       initial 0x04 byte is omitted).
 
-   min_generation:  This field publishes a min_generation value.
+   min_generation:  This field publishes a min_generation for the TSK.
 
    generation:  This field assigns each tack a generation.  Generations
-      less than a published min_generation are considered revoked.
+      less than the highest published min_generation for the TSK are
+      considered revoked.
 
    expiration:  This field specifies a time after which the tack is
       considered expired.  The time is encoded as the number of minutes,
@@ -443,10 +444,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-
-Marlinspike & Perrin      Expires May 19, 2013                  [Page 8]
+Marlinspike & Perrin      Expires June 5, 2013                  [Page 8]
 
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 5.  Client processing
@@ -463,12 +463,12 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
       to zero or a time in the past, the pin is "inactive".  If set to a
       future time, the pin is "active" until that time.
 
-   TACK public key (or hash):  A public key or a cryptographically-
+   TSK public key (or hash):  A public key or a cryptographically-
       secure, second preimage-resistant hash of a public key.
 
    Min_generation:  A single byte used to detect revoked tacks.  All
-      pins within a pin store sharing the same TACK public key SHALL
-      have the same min_generation.
+      pins within a pin store sharing the same TSK SHALL have the same
+      min_generation.
 
    A hostname along with the above values comprises a "TACK pin".  Thus,
    each store can hold up to two pins for a hostname (however, those two
@@ -500,9 +500,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                  [Page 9]
+Marlinspike & Perrin      Expires June 5, 2013                  [Page 9]
 
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
    These steps SHALL be performed in order.  If there is any error, the
@@ -556,9 +556,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 10]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 10]
 
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 5.3.3.  Determine the store's status
@@ -612,9 +612,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 11]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 11]
 
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
    Relevant pin is active:
@@ -668,9 +668,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 12]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 12]
 
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 6.  Application protocols and TACK
@@ -724,14 +724,14 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 13]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 13]
 
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 7.  Fingerprints
 
-   A "key fingerprint" may be used to represent a TACK public key to
+   A "key fingerprint" may be used to represent a TSK public key to
    users in a form that is easy to compare and transcribe.  A key
    fingerprint consists of the first 25 characters from the base32
    encoding of SHA256(public_key), split into 5 groups of 5 characters
@@ -780,22 +780,22 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 14]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 14]
 
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 8.  Advice
 
 8.1.  For server operators
 
-   Key reuse:  All servers that are pinned to a single TACK key are able
-      to impersonate each other, since clients will perceive their tacks
-      as equivalent.  Thus, TACK keys SHOULD NOT be reused with
-      different hostnames unless these hostnames are closely related.
-      Examples where it would be safe to reuse a TACK key are hostnames
-      aliased to the same host, hosts sharing the same TLS key, or
-      hostnames for a group of near-identical servers.
+   Key reuse:  All servers that are pinned to a single TSK are able to
+      impersonate each other, since clients will perceive their tacks as
+      equivalent.  Thus, TSKs SHOULD NOT be reused with different
+      hostnames unless these hostnames are closely related.  Examples
+      where it would be safe to reuse a TSK are hostnames aliased to the
+      same host, hosts sharing the same TLS key, or hostnames for a
+      group of near-identical servers.
 
    Aliases:  A TLS server may be referenced by multiple hostnames.
       Clients may pin any of these hostnames.  Server operators should
@@ -814,9 +814,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
       entity certificate expiration plus 30 days, allowing the tack and
       certificate to both be replaced at the same time.  The extra 30
       days ensures there is enough time to employ "pin deactivation"
-      (see below) if the TACK private key is lost.  Alternatively,
-      short-lived tacks may be used so that a compromised TLS private
-      key has limited value to an attacker.
+      (see below) if the TSK private key is lost.  Alternatively, short-
+      lived tacks may be used so that a compromised TLS private key has
+      limited value to an attacker.
 
    Tack/pin activation:  Tacks should only be activated once all TLS
       servers sharing the same hostname have a tack.  Otherwise, a
@@ -836,9 +836,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 15]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 15]
 
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
    Tack/pin overlap:  When publishing overlapping tacks, the old and new
@@ -892,24 +892,24 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 16]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 16]
 
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 9.  Security considerations
 
 9.1.  For server operators
 
-   All servers pinned to the same TACK key can impersonate each other
-   (see Section 8.1).  Think carefully about this risk if using the same
-   TACK key for multiple hostnames.
+   All servers pinned to the same TSK can impersonate each other (see
+   Section 8.1).  Think carefully about this risk if using the same TSK
+   for multiple hostnames.
 
-   Make backup copies of the TACK private key and keep all copies in
+   Make backup copies of the TSK private key and keep all copies in
    secure locations where they can't be compromised.
 
-   A TACK private key MUST NOT be used to perform any non-TACK
-   cryptographic operations.  For example, using a TACK key for email
+   A TSK private key MUST NOT be used to perform any non-TACK
+   cryptographic operations.  For example, using a TSK for email
    encryption, code-signing, or any other purpose MUST NOT be done.
 
    HTTP cookies [RFC6265] set by a pinned host can be stolen by a
@@ -948,9 +948,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 17]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 17]
 
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 9.3.  Note on algorithm agility
@@ -1004,9 +1004,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 18]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 18]
 
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 10.  IANA considerations
@@ -1060,9 +1060,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 19]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 19]
 
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 11.  Acknowledgements
@@ -1116,9 +1116,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 20]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 20]
 
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 12.  Normative references
@@ -1172,9 +1172,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    November 2012
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 21]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 21]
 
-Internet-Draft    Trust Assertions for Certificate Keys    November 2012
+Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 Authors' Addresses
@@ -1228,5 +1228,5 @@ Authors' Addresses
 
 
 
-Marlinspike & Perrin      Expires May 19, 2013                 [Page 22]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 22]
 
