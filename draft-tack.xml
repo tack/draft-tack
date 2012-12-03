@@ -71,14 +71,13 @@ scan the internet to discover TACK pins, then publish these pins through some
 3rd-party trust infrastructure for other clients to rely upon.
 
 </t>
- </section> 
-
-
 <section title="Requirements notation"> <t>The key words "MUST",
 "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT",
 "RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as
 described in <xref target="RFC2119"/>.</t> 
 </section>
+
+ </section> 
 
 <section title="Overview">
 

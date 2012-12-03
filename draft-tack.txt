@@ -60,39 +60,39 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 Table of Contents
 
    1.  Introduction . . . . . . . . . . . . . . . . . . . . . . . . .  3
-   2.  Requirements notation  . . . . . . . . . . . . . . . . . . . .  4
-   3.  Overview . . . . . . . . . . . . . . . . . . . . . . . . . . .  5
-     3.1.  Tack life cycle  . . . . . . . . . . . . . . . . . . . . .  5
-     3.2.  Pin life cycle . . . . . . . . . . . . . . . . . . . . . .  6
-   4.  TACK Extension . . . . . . . . . . . . . . . . . . . . . . . .  7
-     4.1.  Definition of TackExtension  . . . . . . . . . . . . . . .  7
-     4.2.  Explanation of TackExtension fields  . . . . . . . . . . .  8
-       4.2.1.  Tack fields  . . . . . . . . . . . . . . . . . . . . .  8
-       4.2.2.  TackExtension fields . . . . . . . . . . . . . . . . .  8
-   5.  Client processing  . . . . . . . . . . . . . . . . . . . . . .  9
-     5.1.  TACK pins  . . . . . . . . . . . . . . . . . . . . . . . .  9
-     5.2.  High-level client processing . . . . . . . . . . . . . . .  9
-     5.3.  Client processing details  . . . . . . . . . . . . . . . . 10
-       5.3.1.  Check whether the TLS handshake is well-formed . . . . 10
-       5.3.2.  Check tack generations and update min_generations  . . 10
-       5.3.3.  Determine the store's status . . . . . . . . . . . . . 11
-       5.3.4.  Pin activation (optional)  . . . . . . . . . . . . . . 11
-   6.  Application protocols and TACK . . . . . . . . . . . . . . . . 13
-     6.1.  Pin scope  . . . . . . . . . . . . . . . . . . . . . . . . 13
-     6.2.  TLS negotiation  . . . . . . . . . . . . . . . . . . . . . 13
-     6.3.  Certificate verification . . . . . . . . . . . . . . . . . 13
-   7.  Advice . . . . . . . . . . . . . . . . . . . . . . . . . . . . 14
-     7.1.  For server operators . . . . . . . . . . . . . . . . . . . 14
+     1.1.  Requirements notation  . . . . . . . . . . . . . . . . . .  3
+   2.  Overview . . . . . . . . . . . . . . . . . . . . . . . . . . .  4
+     2.1.  Tack life cycle  . . . . . . . . . . . . . . . . . . . . .  4
+     2.2.  Pin life cycle . . . . . . . . . . . . . . . . . . . . . .  5
+   3.  TACK Extension . . . . . . . . . . . . . . . . . . . . . . . .  6
+     3.1.  Definition of TackExtension  . . . . . . . . . . . . . . .  6
+     3.2.  Explanation of TackExtension fields  . . . . . . . . . . .  7
+       3.2.1.  Tack fields  . . . . . . . . . . . . . . . . . . . . .  7
+       3.2.2.  TackExtension fields . . . . . . . . . . . . . . . . .  7
+   4.  Client processing  . . . . . . . . . . . . . . . . . . . . . .  8
+     4.1.  TACK pins  . . . . . . . . . . . . . . . . . . . . . . . .  8
+     4.2.  High-level client processing . . . . . . . . . . . . . . .  8
+     4.3.  Client processing details  . . . . . . . . . . . . . . . .  9
+       4.3.1.  Check whether the TLS handshake is well-formed . . . .  9
+       4.3.2.  Check tack generations and update min_generations  . .  9
+       4.3.3.  Determine the store's status . . . . . . . . . . . . . 10
+       4.3.4.  Pin activation (optional)  . . . . . . . . . . . . . . 10
+   5.  Application protocols and TACK . . . . . . . . . . . . . . . . 12
+     5.1.  Pin scope  . . . . . . . . . . . . . . . . . . . . . . . . 12
+     5.2.  TLS negotiation  . . . . . . . . . . . . . . . . . . . . . 12
+     5.3.  Certificate verification . . . . . . . . . . . . . . . . . 12
+   6.  Advice . . . . . . . . . . . . . . . . . . . . . . . . . . . . 13
+     6.1.  For server operators . . . . . . . . . . . . . . . . . . . 13
+     6.2.  For client implementers  . . . . . . . . . . . . . . . . . 14
+   7.  Security considerations  . . . . . . . . . . . . . . . . . . . 15
+     7.1.  For server operators . . . . . . . . . . . . . . . . . . . 15
      7.2.  For client implementers  . . . . . . . . . . . . . . . . . 15
-   8.  Security considerations  . . . . . . . . . . . . . . . . . . . 16
-     8.1.  For server operators . . . . . . . . . . . . . . . . . . . 16
-     8.2.  For client implementers  . . . . . . . . . . . . . . . . . 16
-     8.3.  Note on algorithm agility  . . . . . . . . . . . . . . . . 17
-   9.  IANA considerations  . . . . . . . . . . . . . . . . . . . . . 18
-     9.1.  New entry for the TLS ExtensionType Registry . . . . . . . 18
-   10. Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 19
-   11. Normative references . . . . . . . . . . . . . . . . . . . . . 20
-   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 21
+     7.3.  Note on algorithm agility  . . . . . . . . . . . . . . . . 16
+   8.  IANA considerations  . . . . . . . . . . . . . . . . . . . . . 17
+     8.1.  New entry for the TLS ExtensionType Registry . . . . . . . 17
+   9.  Acknowledgements . . . . . . . . . . . . . . . . . . . . . . . 18
+   10. Normative references . . . . . . . . . . . . . . . . . . . . . 19
+   Authors' Addresses . . . . . . . . . . . . . . . . . . . . . . . . 20
 
 
 
@@ -144,11 +144,11 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
    these pins through some 3rd-party trust infrastructure for other
    clients to rely upon.
 
+1.1.  Requirements notation
 
-
-
-
-
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
+   document are to be interpreted as described in [RFC2119].
 
 
 
@@ -169,65 +169,9 @@ Marlinspike & Perrin      Expires June 5, 2013                  [Page 3]
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
-2.  Requirements notation
+2.  Overview
 
-   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
-   "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and "OPTIONAL" in this
-   document are to be interpreted as described in [RFC2119].
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Marlinspike & Perrin      Expires June 5, 2013                  [Page 4]
-
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
-
-
-3.  Overview
-
-3.1.  Tack life cycle
+2.1.  Tack life cycle
 
    A server operator using TACK may perform several processes:
 
@@ -276,12 +220,12 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                  [Page 5]
+Marlinspike & Perrin      Expires June 5, 2013                  [Page 4]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
-3.2.  Pin life cycle
+2.2.  Pin life cycle
 
    A TACK pin associates a hostname and a TSK.  Pins are grouped into
    "pin stores".  A client may populate its pin stores by either
@@ -332,14 +276,14 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                  [Page 6]
+Marlinspike & Perrin      Expires June 5, 2013                  [Page 5]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
-4.  TACK Extension
+3.  TACK Extension
 
-4.1.  Definition of TackExtension
+3.1.  Definition of TackExtension
 
    A new TLS ExtensionType ("tack") is defined and MAY be included by a
    TLS client in the ClientHello message defined in [RFC5246].
@@ -388,14 +332,14 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                  [Page 7]
+Marlinspike & Perrin      Expires June 5, 2013                  [Page 6]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
-4.2.  Explanation of TackExtension fields
+3.2.  Explanation of TackExtension fields
 
-4.2.1.  Tack fields
+3.2.1.  Tack fields
 
    public_key:  This field specifies the tack's public key.  The field
       contains a pair of integers (x, y) representing a point on the
@@ -430,7 +374,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
       using the Integer-to-Octet-String algorithm from [RFC6090], and
       these strings are concatenated with the r value first.
 
-4.2.2.  TackExtension fields
+3.2.2.  TackExtension fields
 
    tacks:  This field provides the server's tack(s).  It SHALL contain 1
       or 2 tacks.
@@ -439,19 +383,19 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
       extension's tacks.  If the low order bit is set, the first tack is
       considered active.  If the next lowest bit is set, the second tack
       is considered active.  An active tack MAY be used by the pin
-      activation algorithm in Section 5.3.4 to create, activate, and
+      activation algorithm in Section 4.3.4 to create, activate, and
       extend the activation of TACK pins.
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                  [Page 8]
+Marlinspike & Perrin      Expires June 5, 2013                  [Page 7]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
-5.  Client processing
+4.  Client processing
 
-5.1.  TACK pins
+4.1.  TACK pins
 
    A client SHALL have a local store of pins, and MAY have multiple
    stores.  Each pin store consists of a map associating fully qualified
@@ -476,7 +420,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
    if they reference the same public key.  A pin is "relevant" if its
    hostname equals the TLS server's hostname.
 
-5.2.  High-level client processing
+4.2.  High-level client processing
 
    A TACK client SHALL send the "tack" extension defined previously, and
    SHALL send the "server_name" extension from [RFC6066].  If not
@@ -500,14 +444,14 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                  [Page 9]
+Marlinspike & Perrin      Expires June 5, 2013                  [Page 8]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
    These steps SHALL be performed in order.  If there is any error, the
    client SHALL send a fatal error alert and close the connection,
-   skipping the remaining steps (see Section 5.3 for details).
+   skipping the remaining steps (see Section 4.3 for details).
 
    Based on step 2B, each store will report one of three statuses for
    the connection: "accepted", "rejected", or "unpinned".  A rejected
@@ -516,11 +460,11 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
    and close the connection.
 
    A client MAY perform additional verification steps before using an
-   accepted or unpinned connection.  See Section 6.3 for an example.
+   accepted or unpinned connection.  See Section 5.3 for an example.
 
-5.3.  Client processing details
+4.3.  Client processing details
 
-5.3.1.  Check whether the TLS handshake is well-formed
+4.3.1.  Check whether the TLS handshake is well-formed
 
    A TLS handshake is "well-formed" if the following are true.  Unless
    otherwise specified, if any of the following are false a
@@ -546,7 +490,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
    4.  "signature" is a correct ECDSA signature.
 
-5.3.2.  Check tack generations and update min_generations
+4.3.2.  Check tack generations and update min_generations
 
    If a tack has matching pins in the pin store and a generation less
    than the stored min_generation, then that tack is revoked and the
@@ -556,19 +500,19 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 10]
+Marlinspike & Perrin      Expires June 5, 2013                  [Page 9]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
-5.3.3.  Determine the store's status
+4.3.3.  Determine the store's status
 
    If there is a relevant active pin without a matching tack, then the
    connection is "rejected".  If the connection is not rejected and
    there is a relevant active pin with a matching tack, then the
    connection is "accepted".  Otherwise, the connection is "unpinned".
 
-5.3.4.  Pin activation (optional)
+4.3.4.  Pin activation (optional)
 
    The TLS connection MAY be used to create, delete, and activate pins.
    This "pin activation algorithm" is optional; a client MAY rely on an
@@ -612,7 +556,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 11]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 10]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -668,20 +612,20 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 12]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 11]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
-6.  Application protocols and TACK
+5.  Application protocols and TACK
 
-6.1.  Pin scope
+5.1.  Pin scope
 
    TACK pins are specific to a particular application protocol.  In
    other words, a pin for HTTPS at "example.com" implies nothing about
    POP3 or SMTP at "example.com".
 
-6.2.  TLS negotiation
+5.2.  TLS negotiation
 
    Some application protocols negotiate TLS as an optional feature (e.g.
    SMTP using STARTTLS [RFC3207]).  If such a server fails to negotiate
@@ -690,12 +634,12 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
    relevant, inactive pins SHALL be deleted.  Note that these steps are
    taken despite the absence of a TLS connection.
 
-6.3.  Certificate verification
+5.3.  Certificate verification
 
    A TACK client MAY choose to perform some form of certificate
    verification in addition to TACK processing.  When combining
    certificate verification and TACK processing, the TACK processing
-   described in Section 5 SHALL be followed, with the exception that
+   described in Section 4 SHALL be followed, with the exception that
    TACK processing MAY be terminated early (or skipped) if some fatal
    certificate error is discovered.
 
@@ -724,14 +668,14 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 13]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 12]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
-7.  Advice
+6.  Advice
 
-7.1.  For server operators
+6.1.  For server operators
 
    Key reuse:  All servers that are pinned to a single TSK are able to
       impersonate each other, since clients will perceive their tacks as
@@ -780,7 +724,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 14]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 13]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -793,7 +737,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
       tacks; wait 60 days; deactivate old tacks; wait 30 days; remove
       old tacks.
 
-7.2.  For client implementers
+6.2.  For client implementers
 
    Sharing pin information:  It is possible for a client to maintain a
       pin store based entirely on its own TLS connections.  However,
@@ -836,17 +780,17 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 15]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 14]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
-8.  Security considerations
+7.  Security considerations
 
-8.1.  For server operators
+7.1.  For server operators
 
    All servers pinned to the same TSK can impersonate each other (see
-   Section 7.1).  Think carefully about this risk if using the same TSK
+   Section 6.1).  Think carefully about this risk if using the same TSK
    for multiple hostnames.
 
    Make backup copies of the TSK private key and keep all copies in
@@ -865,7 +809,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
    cookie should only be presented back to the originating host (not its
    subdomains), and should only be sent over HTTPS (not HTTP) [RFC6265].
 
-8.2.  For client implementers
+7.2.  For client implementers
 
    A TACK pin store may contain private details of the client's
    connection history.  An attacker may be able to access this
@@ -892,12 +836,12 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 16]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 15]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
-8.3.  Note on algorithm agility
+7.3.  Note on algorithm agility
 
    If the need arises for tacks using different cryptographic algorithms
    (e.g., if SHA256 or ECDSA are shown to be weak), a "v2" version of
@@ -948,14 +892,14 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 17]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 16]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
-9.  IANA considerations
+8.  IANA considerations
 
-9.1.  New entry for the TLS ExtensionType Registry
+8.1.  New entry for the TLS ExtensionType Registry
 
    IANA is requested to add an entry to the existing TLS ExtensionType
    registry, defined in [RFC5246], for "tack"(TBD) as defined in this
@@ -1004,12 +948,12 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 18]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 17]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
-10.  Acknowledgements
+9.  Acknowledgements
 
    Valuable feedback has been provided by Adam Langley, Chris Palmer,
    Nate Lawson, and Joseph Bonneau.
@@ -1060,12 +1004,12 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 19]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 18]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
-11.  Normative references
+10.  Normative references
 
    [FIPS180-2]
               National Institute of Standards and Technology, "Secure
@@ -1116,7 +1060,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 20]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 19]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -1172,5 +1116,5 @@ Authors' Addresses
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 21]
+Marlinspike & Perrin      Expires June 5, 2013                 [Page 20]
 
