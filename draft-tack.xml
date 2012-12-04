@@ -49,19 +49,19 @@ TACK allows clients to pin to a server-chosen signing key, known as a
 "tack-signing key" or "TSK", which signs the server's TLS keys. This enables
 pinning without limiting a site's flexibility to deploy different certificates
 and TLS keys on different servers or at different times. Since pins can be
-based on tack-signing keys instead of CA keys, trust in CAs is not required.
-Additionally, a TSK may be used to revoke compromised TLS private keys, and a
-pair of "overlapping" TSKs may be used to quickly introduce a new TSK if an
-older one has become compromised or suspect.
+based on TSKs instead of CA keys, trust in CAs is not required. Additionally,
+a TSK may be used to revoke compromised TLS private keys, and a pair of
+"overlapping" TSKs may be used to quickly introduce a new TSK if an older one
+has become compromised or suspect.
 
  </t> <t>
 
 If requested, a compliant server will send a TLS Extension containing its
-"tack". Inside the tack is a public key and signature. Once a client has seen
-the same (hostname, TSK) pair multiple times, the client will "activate" a pin
-between the hostname and TSK for a period equal to the length of time the pair
-has been observed for. This "pin activation" algorithm limits the impact of
-bad pins resulting from transient network attacks or operator error.
+"tack". Inside the tack is a TSK public key and signature. Once a client has
+seen the same (hostname, TSK) pair multiple times, the client will "activate"
+a pin between the hostname and TSK for a period equal to the length of time
+the pair has been observed for. This "pin activation" algorithm limits the
+impact of bad pins resulting from transient network attacks or operator error.
 
 			</t>
 			<t>
@@ -297,9 +297,8 @@ This field provides the server's tack(s). It SHALL contain 1 or 2 tacks. </t>
 
 This field contains "activation flags" for the extension's tacks. If the low
 order bit is set, the first tack is considered active. If the next lowest bit
-is set, the second tack is considered active. An active tack MAY be used by
-the pin activation algorithm in <xref target="creating"/> to create, activate,
-and extend the activation of TACK pins.
+is set, the second tack is considered active. All other bits are reserved for
+future use and MUST be ignored.
 
 
 </t> </list> </t>
@@ -394,7 +393,7 @@ connection: "confirmed", "contradicted", or "unpinned". A contradicted
 connection might indicate a network attack. How the client responds to
 confirmed or contradicted connections is left to other specifications and
 client policy (see <xref target="certver"/> for an example). If a client
-closes a connection due to a contradicting pin, the client SHOULD send an
+closes a connection due to a contradicting pin, the client SHALL send an
 "access_denied" alert. </t>
 
 </section> <section title="Client processing details" anchor="details">
@@ -413,9 +412,8 @@ alert SHALL be sent.
 <t>The handshake protocol negotiates a cryptographically secure ciphersuite
 and finishes succesfully.</t>
 
-<t>If a TackExtension is present then all length fields are correct,
-"activation_flags" is &lt;= 3, and the tacks are "well-formed" (see
-below).</t>
+<t>If a TackExtension is present then all length fields are correct and the
+tacks are "well-formed" (see below).</t>
 
  <t>If there are two tacks, they have different "public_key" fields.</t>
 

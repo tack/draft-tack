@@ -3,8 +3,8 @@
 
 TLS Working Group                                         M. Marlinspike
 Internet-Draft                                            T. Perrin, Ed.
-Intended status: Standards Track                        December 2, 2012
-Expires: June 5, 2013
+Intended status: Standards Track                        December 3, 2012
+Expires: June 6, 2013
 
 
                  Trust Assertions for Certificate Keys
@@ -32,7 +32,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on June 5, 2013.
+   This Internet-Draft will expire on June 6, 2013.
 
 Copyright Notice
 
@@ -52,7 +52,7 @@ Copyright Notice
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                  [Page 1]
+Marlinspike & Perrin      Expires June 6, 2013                  [Page 1]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -108,7 +108,7 @@ Table of Contents
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                  [Page 2]
+Marlinspike & Perrin      Expires June 6, 2013                  [Page 2]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -125,15 +125,15 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
    "tack-signing key" or "TSK", which signs the server's TLS keys.  This
    enables pinning without limiting a site's flexibility to deploy
    different certificates and TLS keys on different servers or at
-   different times.  Since pins can be based on tack-signing keys
-   instead of CA keys, trust in CAs is not required.  Additionally, a
-   TSK may be used to revoke compromised TLS private keys, and a pair of
-   "overlapping" TSKs may be used to quickly introduce a new TSK if an
-   older one has become compromised or suspect.
+   different times.  Since pins can be based on TSKs instead of CA keys,
+   trust in CAs is not required.  Additionally, a TSK may be used to
+   revoke compromised TLS private keys, and a pair of "overlapping" TSKs
+   may be used to quickly introduce a new TSK if an older one has become
+   compromised or suspect.
 
    If requested, a compliant server will send a TLS Extension containing
-   its "tack".  Inside the tack is a public key and signature.  Once a
-   client has seen the same (hostname, TSK) pair multiple times, the
+   its "tack".  Inside the tack is a TSK public key and signature.  Once
+   a client has seen the same (hostname, TSK) pair multiple times, the
    client will "activate" a pin between the hostname and TSK for a
    period equal to the length of time the pair has been observed for.
    This "pin activation" algorithm limits the impact of bad pins
@@ -164,7 +164,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                  [Page 3]
+Marlinspike & Perrin      Expires June 6, 2013                  [Page 3]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -220,7 +220,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                  [Page 4]
+Marlinspike & Perrin      Expires June 6, 2013                  [Page 4]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -276,7 +276,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                  [Page 5]
+Marlinspike & Perrin      Expires June 6, 2013                  [Page 5]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -332,7 +332,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                  [Page 6]
+Marlinspike & Perrin      Expires June 6, 2013                  [Page 6]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -382,13 +382,13 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
    activation_flags:  This field contains "activation flags" for the
       extension's tacks.  If the low order bit is set, the first tack is
       considered active.  If the next lowest bit is set, the second tack
-      is considered active.  An active tack MAY be used by the pin
-      activation algorithm in Section 4.3.4 to create, activate, and
-      extend the activation of TACK pins.
+      is considered active.  All other bits are reserved for future use
+      and MUST be ignored.
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                  [Page 7]
+
+Marlinspike & Perrin      Expires June 6, 2013                  [Page 7]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -444,7 +444,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                  [Page 8]
+Marlinspike & Perrin      Expires June 6, 2013                  [Page 8]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -459,7 +459,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
    client responds to confirmed or contradicted connections is left to
    other specifications and client policy (see Section 5.3 for an
    example).  If a client closes a connection due to a contradicting
-   pin, the client SHOULD send an "access_denied" alert.
+   pin, the client SHALL send an "access_denied" alert.
 
 4.3.  Client processing details
 
@@ -472,9 +472,8 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
    1.  The handshake protocol negotiates a cryptographically secure
        ciphersuite and finishes succesfully.
 
-   2.  If a TackExtension is present then all length fields are correct,
-       "activation_flags" is <= 3, and the tacks are "well-formed" (see
-       below).
+   2.  If a TackExtension is present then all length fields are correct
+       and the tacks are "well-formed" (see below).
 
    3.  If there are two tacks, they have different "public_key" fields.
 
@@ -500,7 +499,8 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                  [Page 9]
+
+Marlinspike & Perrin      Expires June 6, 2013                  [Page 9]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -556,7 +556,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 10]
+Marlinspike & Perrin      Expires June 6, 2013                 [Page 10]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -612,7 +612,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 11]
+Marlinspike & Perrin      Expires June 6, 2013                 [Page 11]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -668,7 +668,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 12]
+Marlinspike & Perrin      Expires June 6, 2013                 [Page 12]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -724,7 +724,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 13]
+Marlinspike & Perrin      Expires June 6, 2013                 [Page 13]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -780,7 +780,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 14]
+Marlinspike & Perrin      Expires June 6, 2013                 [Page 14]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -836,7 +836,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 15]
+Marlinspike & Perrin      Expires June 6, 2013                 [Page 15]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -892,7 +892,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 16]
+Marlinspike & Perrin      Expires June 6, 2013                 [Page 16]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -948,7 +948,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 17]
+Marlinspike & Perrin      Expires June 6, 2013                 [Page 17]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -1004,7 +1004,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 18]
+Marlinspike & Perrin      Expires June 6, 2013                 [Page 18]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -1060,7 +1060,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 19]
+Marlinspike & Perrin      Expires June 6, 2013                 [Page 19]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -1116,5 +1116,5 @@ Authors' Addresses
 
 
 
-Marlinspike & Perrin      Expires June 5, 2013                 [Page 20]
+Marlinspike & Perrin      Expires June 6, 2013                 [Page 20]
 
