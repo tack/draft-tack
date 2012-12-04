@@ -73,7 +73,7 @@ Table of Contents
      4.1.  TACK pins  . . . . . . . . . . . . . . . . . . . . . . . .  8
      4.2.  High-level client processing . . . . . . . . . . . . . . .  8
      4.3.  Client processing details  . . . . . . . . . . . . . . . .  9
-       4.3.1.  Check whether the TLS handshake is well-formed . . . .  9
+       4.3.1.  Check whether the TLS handshake is valid . . . . . . .  9
        4.3.2.  Check tack generations and update min_generations  . .  9
        4.3.3.  Determine the store's status . . . . . . . . . . . . . 10
        4.3.4.  Pin activation (optional)  . . . . . . . . . . . . . . 10
@@ -428,7 +428,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
    Regardless of whether a TackExtension is returned, the client SHALL
    perform the following steps prior to using the connection:
 
-   1.  Check whether the TLS handshake is "well-formed".
+   1.  Check whether the TLS handshake is "valid".
 
    2.  For each pin store, do:
 
@@ -463,9 +463,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 4.3.  Client processing details
 
-4.3.1.  Check whether the TLS handshake is well-formed
+4.3.1.  Check whether the TLS handshake is valid
 
-   A TLS handshake is "well-formed" if the following are true.  Unless
+   A TLS handshake is "valid" if the following are true.  Unless
    otherwise specified, if any of the following are false a
    "bad_certificate" fatal error alert SHALL be sent.
 
@@ -473,11 +473,11 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
        ciphersuite and finishes succesfully.
 
    2.  If a TackExtension is present then all length fields are correct
-       and the tacks are "well-formed" (see below).
+       and the tacks are "valid" (see below).
 
    3.  If there are two tacks, they have different "public_key" fields.
 
-   A tack is "well-formed" if:
+   A tack is "valid" if:
 
    1.  "generation" is >= "min_generation".
 
@@ -541,17 +541,17 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
    any unmatched active tacks.  Each new pin uses the server's hostname,
    the tack's public key and min_generation (unless the store has a
    higher min_generation for the public key), an "initial time" set to
-   the current time, and an "end time" of zero.
-
-   (Note that there are always sufficient empty "slots" in the pin store
-   for adding new pins without exceeding two pins per hostname.  This is
-   because the number of matching pins equals the number of matching
-   tacks, so the number of empty pin slots equals the number of
-   unmatched tacks.)
+   the current time, and an "end time" of zero.  (Note that there are
+   always sufficient empty "slots" in the pin store for adding new pins
+   without exceeding two pins per hostname.)
 
    The following tables summarize this behavior from the perspective of
    a pin.  You can follow the lifecycle of a single pin from "New
    inactive pin" to "Delete pin".
+
+
+
+
 
 
 
@@ -628,11 +628,12 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 5.2.  TLS negotiation
 
    Some application protocols negotiate TLS as an optional feature (e.g.
-   SMTP using STARTTLS [RFC3207]).  If such a server fails to negotiate
+   SMTP using STARTTLS [RFC3207]).  If such a server does not negotiate
    TLS and there are relevant active pins, then the connection is
-   contradicted by the pin.  If the server fails to negotiate TLS, then
-   any relevant, inactive pins SHALL be deleted.  Note that these steps
-   are taken despite the absence of a TLS connection.
+   contradicted by the pin.  If a client is performing pin activation
+   for a pin store and the server does not negotiate TLS, then any
+   relevant, inactive pins SHALL be deleted.  Note that these steps are
+   taken despite the absence of a TLS connection.
 
 5.3.  Certificate verification
 
@@ -648,7 +649,6 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
    and client policy.  An example client policy would be to allow the
    connection to proceed only if it passes certificate verification and
    is not contradicted by a pin.
-
 
 
 
@@ -747,8 +747,8 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
       tacks from being erroneously rejected as expired due to an
       inaccurate client clock.  Such methods MAY include using time
       synchronization protocols such as NTP [RFC5905], or accepting
-      seemingly-expired tacks as "well-formed" if they expired less than
-      T minutes ago, where T is a "tolerance bound" set to the client's
+      seemingly-expired tacks as valid if they expired less than T
+      minutes ago, where T is a "tolerance bound" set to the client's
       maximum expected clock error.
 
 

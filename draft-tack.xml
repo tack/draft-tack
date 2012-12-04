@@ -369,7 +369,7 @@ whether a TackExtension is returned, the client SHALL perform the following
 steps prior to using the connection:
 
 <list style="numbers">
- <t>Check whether the TLS handshake is "well-formed".</t>
+ <t>Check whether the TLS handshake is "valid".</t>
  <t>For each pin store, do:
 <list style="letters">
     <t>Check tack generations and update min_generations.</t>
@@ -398,12 +398,12 @@ closes a connection due to a contradicting pin, the client SHALL send an
 
 </section> <section title="Client processing details" anchor="details">
 
-<section title="Check whether the TLS handshake is well-formed"
+<section title="Check whether the TLS handshake is valid"
 anchor="wellformed">
 
 <t>
 
-A TLS handshake is "well-formed" if the following are true. Unless otherwise
+A TLS handshake is "valid" if the following are true. Unless otherwise
 specified, if any of the following are false a "bad_certificate" fatal error
 alert SHALL be sent.
 
@@ -413,7 +413,7 @@ alert SHALL be sent.
 and finishes succesfully.</t>
 
 <t>If a TackExtension is present then all length fields are correct and the
-tacks are "well-formed" (see below).</t>
+tacks are "valid" (see below).</t>
 
  <t>If there are two tacks, they have different "public_key" fields.</t>
 
@@ -421,7 +421,7 @@ tacks are "well-formed" (see below).</t>
 </t>
 
 <t>
-A tack is "well-formed" if:	
+A tack is "valid" if:	
 <list style="numbers">
 
  <t>"generation" is >= "min_generation".</t>
@@ -491,19 +491,16 @@ unmatched active tacks. Each new pin uses the server's hostname, the tack's
 public key and min_generation (unless the store has a higher min_generation
 for the public key), an "initial time" set to the current time, and an "end
 time" of zero.
-
-</t> 
-
-<t> (Note that there are always sufficient empty "slots" in the pin store for
-adding new pins without exceeding two pins per hostname. This is because the
-number of matching pins equals the number of matching tacks, so the number of
-empty pin slots equals the number of unmatched tacks.)
+(Note that there are always sufficient empty "slots" in the pin store for
+adding new pins without exceeding two pins per hostname.)
 
 </t> 
 
 <t>The following tables summarize this behavior from the perspective of a pin.
 You can follow the lifecycle of a single pin from "New inactive pin" to
 "Delete pin".
+
+<vspace blankLines="100" />
 
 </t>
 <t>Relevant pin is active:</t>
@@ -579,11 +576,12 @@ words, a pin for HTTPS at "example.com" implies nothing about POP3 or SMTP at
 <section title="TLS negotiation">
 
 <t>Some application protocols negotiate TLS as an optional feature (e.g. SMTP
-using STARTTLS <xref target="RFC3207"/>). If such a server fails to negotiate
+using STARTTLS <xref target="RFC3207"/>). If such a server does not negotiate
 TLS and there are relevant active pins, then the connection is contradicted by
-the pin. If the server fails to negotiate TLS, then any relevant, inactive
-pins SHALL be deleted. Note that these steps are taken despite the absence of
-a TLS connection.</t>
+the pin. If a client is performing pin activation for a pin store and the
+server does not negotiate TLS, then any relevant, inactive pins SHALL be
+deleted. Note that these steps are taken despite the absence of a TLS
+connection.</t>
 
 </section>
 
@@ -692,7 +690,7 @@ protocols outside the scope of this document.
 A client SHOULD take measures to prevent tacks from being erroneously rejected
 as expired due to an inaccurate client clock. Such methods MAY include using
 time synchronization protocols such as NTP <xref target="RFC5905"/>, or
-accepting seemingly-expired tacks as "well-formed" if they expired less than T
+accepting seemingly-expired tacks as valid if they expired less than T
 minutes ago, where T is a "tolerance bound" set to the client's maximum
 expected clock error.
 
