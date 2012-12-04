@@ -468,8 +468,8 @@ then pin activation is skipped.
 </t>
 <t>
 
-The first step in pin activation is to evaluate each relevant pin (there may
-be one or two): <list style="numbers">
+The first step is to evaluate each of the (0, 1, or 2) relevant pins: <list
+style="numbers">
 
 <t>If a pin has no matching tack, its handling will depend on whether the pin
 is active. If active, the connection will have been contradicted, skipping pin
@@ -486,11 +486,10 @@ have its "end time" set based on the current, initial, and end times:
 <t> In sum: (1) deletes unmatched inactive pins, and (2) activates matched
 pins with active tacks. </t>
 
-<t>The remaining step in pin activation is to add new inactive pins for any
-unmatched active tacks. Each new pin uses the server's hostname, the tack's
-public key and min_generation (unless the store has a higher min_generation
-for the public key), an "initial time" set to the current time, and an "end
-time" of zero.
+<t>The remaining step is to add new inactive pins for any unmatched active
+tacks. Each new pin uses the server's hostname, the tack's public key and
+min_generation (unless the store has a higher min_generation for the public
+key), an "initial time" set to the current time, and an "end time" of zero.
 (Note that there are always sufficient empty "slots" in the pin store for
 adding new pins without exceeding two pins per hostname.)
 
