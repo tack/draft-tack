@@ -615,18 +615,18 @@ it passes certificate verification and is not contradicted by a pin.
 <t hangText="Key reuse:">
 
 All servers that are pinned to a single TSK are able to impersonate each
-other, since clients will perceive their tacks as equivalent. Thus, TSKs
-SHOULD NOT be reused with different hostnames unless these hostnames are
-closely related. Examples where it would be safe to reuse a TSK are hostnames
-aliased to the same host, hosts sharing the same TLS key, or hostnames for a
-group of near-identical servers.
+other's hostnames, since clients will perceive their tacks as equivalent.
+Thus, TSKs SHOULD NOT be reused with different hostnames unless these
+hostnames are closely related. Examples where it would be safe to reuse a TSK
+are hostnames aliased to the same host, hosts sharing the same TLS key, or
+hostnames for a group of near-identical servers.
 
 </t>
 
 <t hangText="Aliases:">
 
-A TLS server may be referenced by multiple hostnames. Clients may pin any of
-these hostnames. Server operators should be careful when using DNS aliases
+A TLS server might be referenced by multiple hostnames. Clients might pin any
+of these hostnames. Server operators should be careful when using DNS aliases
 that hostnames are not pinned inadvertently.
 
 </t>
@@ -635,8 +635,8 @@ that hostnames are not pinned inadvertently.
 
 To revoke older generations of tacks, the server operator SHOULD first provide
 all servers with a new generation of tacks, and only then provide servers with
-new tacks containing the new min_generation. Otherwise, a client may receive a
-min_generation update from one server but then try to contact an
+new tacks containing the new min_generation. Otherwise, a client might receive
+a min_generation update from one server but then try to contact an
 older-generation server which has not yet been updated.</t>
 
 <t hangText="Tack expiration:">
@@ -644,8 +644,16 @@ older-generation server which has not yet been updated.</t>
 When TACK is used in conjunction with certificates it is recommended to set
 the tack expiration equal to the end-entity certificate's expiration (or a
 later date), so that the tack and certificate can both be replaced at the same
-time. Alternatively, short-lived tacks may be used so that a compromised TLS
+time. Alternatively, short-lived tacks MAY be used so that a compromised TLS
 private key has limited value to an attacker.</t>
+
+<t hangText="Nonrevokable tacks">
+
+A tack with generation 255 cannot be revoked. Such tacks MAY be used to
+minimize the risk that a compromised TSK private key could be used to affect
+site availability.
+
+</t>
 
 <t hangText="Tack/pin activation:">
 
