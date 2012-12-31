@@ -3,8 +3,8 @@
 
 TLS Working Group                                         M. Marlinspike
 Internet-Draft                                            T. Perrin, Ed.
-Intended status: Standards Track                        December 3, 2012
-Expires: June 6, 2013
+Intended status: Standards Track                       December 31, 2012
+Expires: July 4, 2013
 
 
                  Trust Assertions for Certificate Keys
@@ -32,7 +32,7 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on June 6, 2013.
+   This Internet-Draft will expire on July 4, 2013.
 
 Copyright Notice
 
@@ -52,7 +52,7 @@ Copyright Notice
 
 
 
-Marlinspike & Perrin      Expires June 6, 2013                  [Page 1]
+Marlinspike & Perrin      Expires July 4, 2013                  [Page 1]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -108,7 +108,7 @@ Table of Contents
 
 
 
-Marlinspike & Perrin      Expires June 6, 2013                  [Page 2]
+Marlinspike & Perrin      Expires July 4, 2013                  [Page 2]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -122,7 +122,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
    TLS connection when contacting a particular TLS host.
 
    TACK allows clients to pin to a server-chosen signing key, known as a
-   "tack-signing key" or "TSK", which signs the server's TLS keys.  This
+   "TACK signing key" or "TSK", which signs the server's TLS keys.  This
    enables pinning without limiting a site's flexibility to deploy
    different certificates and TLS keys on different servers or at
    different times.  Since pins can be based on TSKs instead of CA keys,
@@ -164,7 +164,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 6, 2013                  [Page 3]
+Marlinspike & Perrin      Expires July 4, 2013                  [Page 3]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -175,7 +175,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
    A server operator using TACK may perform several processes:
 
-   Selection of a tack-signing key (TSK):  The server operator first
+   Selection of a TACK signing key (TSK):  The server operator first
       chooses the ECDSA signing key to use for a set of hostnames.  It
       is safest to use a different TSK for each hostname, though a TSK
       may be reused for closely-related hostnames (such as aliases for
@@ -220,7 +220,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 6, 2013                  [Page 4]
+Marlinspike & Perrin      Expires July 4, 2013                  [Page 4]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -276,7 +276,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 6, 2013                  [Page 5]
+Marlinspike & Perrin      Expires July 4, 2013                  [Page 5]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -332,7 +332,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 6, 2013                  [Page 6]
+Marlinspike & Perrin      Expires July 4, 2013                  [Page 6]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -388,7 +388,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 6, 2013                  [Page 7]
+Marlinspike & Perrin      Expires July 4, 2013                  [Page 7]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -444,7 +444,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 6, 2013                  [Page 8]
+Marlinspike & Perrin      Expires July 4, 2013                  [Page 8]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -500,7 +500,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 6, 2013                  [Page 9]
+Marlinspike & Perrin      Expires July 4, 2013                  [Page 9]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -556,7 +556,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 6, 2013                 [Page 10]
+Marlinspike & Perrin      Expires July 4, 2013                 [Page 10]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -612,7 +612,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 6, 2013                 [Page 11]
+Marlinspike & Perrin      Expires July 4, 2013                 [Page 11]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -668,7 +668,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 6, 2013                 [Page 12]
+Marlinspike & Perrin      Expires July 4, 2013                 [Page 12]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -724,7 +724,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 6, 2013                 [Page 13]
+Marlinspike & Perrin      Expires July 4, 2013                 [Page 13]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -780,7 +780,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 6, 2013                 [Page 14]
+Marlinspike & Perrin      Expires July 4, 2013                 [Page 14]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -836,7 +836,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 6, 2013                 [Page 15]
+Marlinspike & Perrin      Expires July 4, 2013                 [Page 15]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -892,7 +892,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 6, 2013                 [Page 16]
+Marlinspike & Perrin      Expires July 4, 2013                 [Page 16]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -948,7 +948,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 6, 2013                 [Page 17]
+Marlinspike & Perrin      Expires July 4, 2013                 [Page 17]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -1004,7 +1004,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 6, 2013                 [Page 18]
+Marlinspike & Perrin      Expires July 4, 2013                 [Page 18]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -1060,7 +1060,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires June 6, 2013                 [Page 19]
+Marlinspike & Perrin      Expires July 4, 2013                 [Page 19]
 
 Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
@@ -1116,5 +1116,5 @@ Authors' Addresses
 
 
 
-Marlinspike & Perrin      Expires June 6, 2013                 [Page 20]
+Marlinspike & Perrin      Expires July 4, 2013                 [Page 20]
 

@@ -46,7 +46,7 @@ contacting a particular TLS host.
 <t>
 
 TACK allows clients to pin to a server-chosen signing key, known as a
-"tack-signing key" or "TSK", which signs the server's TLS keys. This enables
+"TACK signing key" or "TSK", which signs the server's TLS keys. This enables
 pinning without limiting a site's flexibility to deploy different certificates
 and TLS keys on different servers or at different times. Since pins can be
 based on TSKs instead of CA keys, trust in CAs is not required. Additionally,
@@ -86,7 +86,7 @@ described in <xref target="RFC2119"/>.</t>
 <t>A server operator using TACK may perform several processes:
 
 	<list style="hanging">
-	<t hangText="Selection of a tack-signing key (TSK):">	
+	<t hangText="Selection of a TACK signing key (TSK):">	
 
 The server operator first chooses the ECDSA signing key to use for a set of
 hostnames. It is safest to use a different TSK for each hostname, though a TSK
