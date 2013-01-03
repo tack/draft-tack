@@ -607,6 +607,27 @@ it passes certificate verification and is not contradicted by a pin.
 </section>
 </section>
 
+<section title="Fingerprints">	
+<t>
+
+A "key fingerprint" may be used to represent a TSK public key to users in a
+form that is easy to compare and transcribe. A key fingerprint consists of the
+first 25 characters from the base32 encoding of SHA256(public_key), split into
+5 groups of 5 characters separated by periods. Base32 encoding is as specified
+in <xref target="RFC4648"/>, except lowercase is used. Examples:
+
+</t>
+<t>
+<list>
+	<t>g5p5x.ov4vi.dgsjv.wxctt.c5iul</t>
+	<t>quxiz.kpldu.uuedc.j5znm.7mqst</t>
+	<t>e25zs.cth7k.tscmp.5hxdp.wf47j</t>
+</list>
+</t>
+
+
+</section>
+
 <section title="Advice"> 
 <section title="For server operators" anchor="servadvice">
 <t>
@@ -845,6 +866,7 @@ Lawson, and Joseph Bonneau.
 
 			<?rfc include="bib/reference.RFC.2119.xml"?>
 			<?rfc include="bib/reference.RFC.3207.xml"?>
+			<?rfc include="bib/reference.RFC.4648.xml"?>
 			<?rfc include="bib/reference.RFC.5246.xml"?>
 			<?rfc include="bib/reference.RFC.5280.xml"?>			
 			<?rfc include="bib/reference.RFC.5480.xml"?>
