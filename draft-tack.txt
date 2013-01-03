@@ -3,8 +3,8 @@
 
 TLS Working Group                                         M. Marlinspike
 Internet-Draft                                            T. Perrin, Ed.
-Intended status: Standards Track                       December 31, 2012
-Expires: July 4, 2013
+Intended status: Standards Track                         January 3, 2013
+Expires: July 7, 2013
 
 
                  Trust Assertions for Certificate Keys
@@ -32,11 +32,11 @@ Status of this Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on July 4, 2013.
+   This Internet-Draft will expire on July 7, 2013.
 
 Copyright Notice
 
-   Copyright (c) 2012 IETF Trust and the persons identified as the
+   Copyright (c) 2013 IETF Trust and the persons identified as the
    document authors.  All rights reserved.
 
    This document is subject to BCP 78 and the IETF Trust's Legal
@@ -52,9 +52,9 @@ Copyright Notice
 
 
 
-Marlinspike & Perrin      Expires July 4, 2013                  [Page 1]
+Marlinspike & Perrin      Expires July 7, 2013                  [Page 1]
 
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
+Internet-Draft    Trust Assertions for Certificate Keys     January 2013
 
 
 Table of Contents
@@ -108,9 +108,9 @@ Table of Contents
 
 
 
-Marlinspike & Perrin      Expires July 4, 2013                  [Page 2]
+Marlinspike & Perrin      Expires July 7, 2013                  [Page 2]
 
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
+Internet-Draft    Trust Assertions for Certificate Keys     January 2013
 
 
 1.  Introduction
@@ -164,9 +164,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires July 4, 2013                  [Page 3]
+Marlinspike & Perrin      Expires July 7, 2013                  [Page 3]
 
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
+Internet-Draft    Trust Assertions for Certificate Keys     January 2013
 
 
 2.  Overview
@@ -220,9 +220,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires July 4, 2013                  [Page 4]
+Marlinspike & Perrin      Expires July 7, 2013                  [Page 4]
 
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
+Internet-Draft    Trust Assertions for Certificate Keys     January 2013
 
 
 2.2.  Pin life cycle
@@ -276,9 +276,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires July 4, 2013                  [Page 5]
+Marlinspike & Perrin      Expires July 7, 2013                  [Page 5]
 
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
+Internet-Draft    Trust Assertions for Certificate Keys     January 2013
 
 
 3.  TACK Extension
@@ -332,18 +332,18 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires July 4, 2013                  [Page 6]
+Marlinspike & Perrin      Expires July 7, 2013                  [Page 6]
 
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
+Internet-Draft    Trust Assertions for Certificate Keys     January 2013
 
 
 3.2.  Explanation of TackExtension fields
 
 3.2.1.  Tack fields
 
-   public_key:  This field specifies the public component of the TSK
-      that has signed this tack.  The field contains a pair of integers
-      (x, y) representing a point on the elliptic curve P-256 defined in
+   public_key:  This field specifies the public key of the TSK that has
+      signed this tack.  The field contains a pair of integers (x, y)
+      representing a point on the elliptic curve P-256 defined in
       [FIPS186-3].  Each integer is encoded as a 32-byte octet string
       using the Integer-to-Octet-String algorithm from [RFC6090], and
       these strings are concatenated with the x value first.  (NOTE:
@@ -383,14 +383,14 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
       extension's tacks.  If the low order bit is set, the first tack is
       considered active.  If the next lowest bit is set, the second tack
       is considered active.  All other bits are reserved for future use
-      and MUST be ignored.
+      and MUST be ignored by clients.
 
 
 
 
-Marlinspike & Perrin      Expires July 4, 2013                  [Page 7]
+Marlinspike & Perrin      Expires July 7, 2013                  [Page 7]
 
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
+Internet-Draft    Trust Assertions for Certificate Keys     January 2013
 
 
 4.  Client processing
@@ -444,9 +444,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires July 4, 2013                  [Page 8]
+Marlinspike & Perrin      Expires July 7, 2013                  [Page 8]
 
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
+Internet-Draft    Trust Assertions for Certificate Keys     January 2013
 
 
    These steps SHALL be performed in order.  If there is any error, the
@@ -500,9 +500,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires July 4, 2013                  [Page 9]
+Marlinspike & Perrin      Expires July 7, 2013                  [Page 9]
 
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
+Internet-Draft    Trust Assertions for Certificate Keys     January 2013
 
 
 4.3.3.  Determine the store's status
@@ -556,9 +556,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires July 4, 2013                 [Page 10]
+Marlinspike & Perrin      Expires July 7, 2013                 [Page 10]
 
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
+Internet-Draft    Trust Assertions for Certificate Keys     January 2013
 
 
    Relevant pin is active:
@@ -612,9 +612,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires July 4, 2013                 [Page 11]
+Marlinspike & Perrin      Expires July 7, 2013                 [Page 11]
 
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
+Internet-Draft    Trust Assertions for Certificate Keys     January 2013
 
 
 5.  Application protocols and TACK
@@ -668,9 +668,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires July 4, 2013                 [Page 12]
+Marlinspike & Perrin      Expires July 7, 2013                 [Page 12]
 
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
+Internet-Draft    Trust Assertions for Certificate Keys     January 2013
 
 
 6.  Advice
@@ -724,9 +724,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires July 4, 2013                 [Page 13]
+Marlinspike & Perrin      Expires July 7, 2013                 [Page 13]
 
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
+Internet-Draft    Trust Assertions for Certificate Keys     January 2013
 
 
    Tack/pin overlap:  When publishing overlapping tacks, the old and new
@@ -780,9 +780,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires July 4, 2013                 [Page 14]
+Marlinspike & Perrin      Expires July 7, 2013                 [Page 14]
 
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
+Internet-Draft    Trust Assertions for Certificate Keys     January 2013
 
 
 7.  Security considerations
@@ -803,7 +803,7 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
    HTTP cookies [RFC6265] set by a pinned host can be stolen by a
    network attacker who can forge web and DNS responses so as to cause a
    client to send the cookies to a phony subdomain of the pinned host.
-   To prevent this, TACK HTTPS Servers SHOULD set the "secure" attribute
+   To prevent this, TACK HTTPS servers SHOULD set the "secure" attribute
    and omit the "domain" attribute on all security-sensitive cookies,
    such as session cookies.  These settings tell the browser that the
    cookie should only be presented back to the originating host (not its
@@ -836,9 +836,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires July 4, 2013                 [Page 15]
+Marlinspike & Perrin      Expires July 7, 2013                 [Page 15]
 
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
+Internet-Draft    Trust Assertions for Certificate Keys     January 2013
 
 
 7.3.  Note on algorithm agility
@@ -892,9 +892,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires July 4, 2013                 [Page 16]
+Marlinspike & Perrin      Expires July 7, 2013                 [Page 16]
 
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
+Internet-Draft    Trust Assertions for Certificate Keys     January 2013
 
 
 8.  IANA considerations
@@ -948,9 +948,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires July 4, 2013                 [Page 17]
+Marlinspike & Perrin      Expires July 7, 2013                 [Page 17]
 
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
+Internet-Draft    Trust Assertions for Certificate Keys     January 2013
 
 
 9.  Acknowledgements
@@ -1004,9 +1004,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires July 4, 2013                 [Page 18]
+Marlinspike & Perrin      Expires July 7, 2013                 [Page 18]
 
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
+Internet-Draft    Trust Assertions for Certificate Keys     January 2013
 
 
 10.  Normative references
@@ -1060,9 +1060,9 @@ Internet-Draft    Trust Assertions for Certificate Keys    December 2012
 
 
 
-Marlinspike & Perrin      Expires July 4, 2013                 [Page 19]
+Marlinspike & Perrin      Expires July 7, 2013                 [Page 19]
 
-Internet-Draft    Trust Assertions for Certificate Keys    December 2012
+Internet-Draft    Trust Assertions for Certificate Keys     January 2013
 
 
 Authors' Addresses
@@ -1116,5 +1116,5 @@ Authors' Addresses
 
 
 
-Marlinspike & Perrin      Expires July 4, 2013                 [Page 20]
+Marlinspike & Perrin      Expires July 7, 2013                 [Page 20]
 

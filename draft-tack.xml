@@ -233,7 +233,7 @@ struct {
 
 	<t hangText="public_key:">
 
-This field specifies the public component of the TSK that has signed this
+This field specifies the public key of the TSK that has signed this
 tack. The field contains a pair of integers (x, y) representing a point on the
 elliptic curve P-256 defined in <xref target="FIPS186-3"/>. Each integer is
 encoded as a 32-byte octet string using the Integer-to-Octet-String algorithm
@@ -298,7 +298,7 @@ This field provides the server's tack(s). It SHALL contain 1 or 2 tacks. </t>
 This field contains "activation flags" for the extension's tacks. If the low
 order bit is set, the first tack is considered active. If the next lowest bit
 is set, the second tack is considered active. All other bits are reserved for
-future use and MUST be ignored.
+future use and MUST be ignored by clients.
 
 
 </t> </list> </t>
@@ -733,7 +733,7 @@ any other purpose MUST NOT be done.
 HTTP cookies <xref target="RFC6265"/> set by a pinned host can be stolen by a
 network attacker who can forge web and DNS responses so as to cause a client
 to send the cookies to a phony subdomain of the pinned host. To prevent this,
-TACK HTTPS Servers SHOULD set the "secure" attribute and omit the "domain"
+TACK HTTPS servers SHOULD set the "secure" attribute and omit the "domain"
 attribute on all security-sensitive cookies, such as session cookies. These
 settings tell the browser that the cookie should only be presented back to the
 originating host (not its subdomains), and should only be sent over HTTPS (not
