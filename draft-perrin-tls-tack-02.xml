@@ -1,0 +1,880 @@
+<?xml version="1.0"?>
+<!DOCTYPE rfc SYSTEM "rfc2629.dtd" []>
+
+<?xml-stylesheet type='text/xsl' href='rfc2629.xslt' ?>
+<?rfc toc="yes" ?>
+<?rfc symrefs="yes" ?>
+
+<rfc ipr="trust200902" docName="draft-perrin-tls-tack-02.txt" category="std">
+
+    <front>
+        <title>Trust Assertions for Certificate Keys</title>
+        <author initials='M.M.' surname="Marlinspike" fullname='Moxie Marlinspike'>	
+            <organization/>
+        </author>
+        <author initials='T.P.' surname="Perrin" fullname='Trevor Perrin' 
+				role="editor">
+            <organization/>
+			<address><email>tack@trevp.net</email></address>
+        </author>
+        <date/>
+		<area>Security</area>
+		<workgroup>TLS Working Group</workgroup>
+        <abstract>
+			<t>
+
+This document defines a TLS Extension that enables a TLS server to support
+"pinning" to a self-chosen signing key. A client contacting a pinned host will
+require the server to present a signature from the signing key over the TLS
+server's public key.
+
+			</t>
+		</abstract>
+    </front>
+
+    <middle>
+		<section anchor="intro" title="Introduction">
+			<t>
+
+Traditionally, a TLS client verifies a TLS server's public key using a
+certificate chain issued by some public CA. "Pinning" is a way for clients to
+obtain increased certainty in server public keys. Clients that employ pinning
+check for some constant "pinned" element of the TLS connection when
+contacting a particular TLS host.
+
+ </t>
+<t>
+
+TACK allows clients to pin to a server-chosen signing key, known as a "TACK
+signing key" or "TSK", which signs the server's TLS keys. This enables pinning
+without limiting a site's flexibility to deploy different certificates and TLS
+keys on different servers or at different times. Since pins are based on TSKs
+instead of CA keys, trust in CAs is not required. Additionally, a TSK may be
+used to revoke compromised TLS private keys, and a pair of "overlapping" TSKs
+may be used to quickly introduce a new TSK if an older one has become
+compromised or suspect.
+
+ </t> <t>
+
+If requested, a compliant server will send a TLS Extension containing its
+"tack". Inside the tack is a TSK public key and signature. Once a client has
+seen the same (hostname, TSK) pair multiple times, the client will "activate"
+a pin between the hostname and TSK for a period equal to the length of time
+the pair has been observed for. This "pin activation" algorithm limits the
+impact of bad pins resulting from transient network attacks or operator error.
+
+			</t>
+			<t>
+
+TACK pins are easily shared between clients. For example, a TACK client may
+scan the internet to discover TACK pins, then publish these pins through some
+3rd-party trust infrastructure for other clients to rely upon.
+
+</t>
+<section title="Requirements notation"> <t>The key words "MUST",
+"MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT",
+"RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as
+described in <xref target="RFC2119"/>.</t> 
+</section>
+
+ </section> 
+
+<section title="Overview">
+
+<section title="Tack life cycle">
+
+<t>A server operator using TACK may perform several processes:
+
+	<list style="hanging">
+	<t hangText="Selection of a TACK signing key (TSK):">	
+
+The server operator first chooses the ECDSA signing key to use for a set of
+hostnames. It is safest to use a different TSK for each hostname, though a TSK
+may be reused for closely-related hostnames (such as aliases for the same
+host, or hosts sharing the same TLS key).
+
+	</t> 
+	<t hangText="Creating initial tacks under a TSK:">
+
+The TSK private key is then used to sign the TLS public keys for all servers
+associated with those hostnames. The TSK public key and signature are
+combined with some metadata into each server's "tack".
+
+	</t>
+	<t hangText="Deploying initial tacks:">	
+
+For each hostname, tacks are deployed to TLS servers in a two-stage process.
+First, each TLS server associated with the hostname is given a tack. Once this
+is completed, the tacks are activated by setting the "activation flag" on each
+server.
+
+	</t>
+	
+	<t hangText="Creating new tacks under a TSK:">	
+
+A tack needs to be replaced whenever a server changes its TLS public key, or
+when the tack expires. Tacks may also need to be replaced with
+later-generation tacks if the TSK's "min_generation" is updated (see
+next).
+
+	</t>
+	<t hangText="Revoking old tacks:">
+
+If a TLS private key is compromised, the tacks signing this key can be revoked
+by publishing a new tack containing a higher "min_generation".
+
+	</t>
+	<t hangText="Deactivating tacks:">
+
+If a server operator wishes to stop deploying tacks, all tacks for a hostname
+can be deactivated via the activation flag, allowing the server to remove the
+tacks within 30 days (at most).
+
+	</t>
+	<t hangText="Overlapping tacks:">
+
+If a server operator wishes to change the TSK a hostname is pinned to,
+the server can publish a new tack alongside the old one. This lets clients
+activate pins for the new TSK prior to the server deactivating the older
+pins.
+
+	</t>
+	
+	</list>
+	<vspace blankLines="100" />	
+</t>
+	
+
+</section>
+
+<section title="Pin life cycle">
+	
+	<t>
+
+A TACK pin associates a hostname and a TSK. Pins are grouped into "pin
+stores". A client may populate its pin stores by either performing "pin
+activation" directly, or by querying some other party. For example, a client
+application may have a store for pin activation as well as a store whose
+contents are periodically fetched from a server. </t>
+
+<t>
+
+Whenever a client performing "pin activation" sees a hostname and TSK
+combination not represented in the "pin activation" pin store, an inactive pin
+is created. Every subsequent time the client sees the same pin, the pin is
+"activated" for a period equal to the timespan between the first time the pin
+was seen and the most recent time, up to a maximum period of 30 days.
+
+</t>
+
+<t>
+
+A pin store may contain up to two pins per hostname. This allows for
+overlapping pins when a server is securely transitioning from one pin to
+another. If both pins are simultaneously active, then the server must satisfy
+both of them by presenting a pair of tacks.
+
+</t>
+
+ <t>In addition to creating and activating pins, a TLS connection can alter
+client pin stores by publishing new "min_generation" values in a tack. Each
+pin stores the highest "min_generation" value it has seen from the pinned TSK, and rejects tacks from earlier generations.
+</t>
+
+</section>
+</section>
+
+<section title="TACK Extension">
+	<section title="Definition of TackExtension">
+	<t>
+
+A new TLS ExtensionType ("tack") is defined and MAY be included by a TLS
+client in the ClientHello message defined in <xref target="RFC5246"/>.
+
+</t>
+<figure><artwork>
+enum {tack(TBD), (65535)} ExtensionType;
+</artwork></figure>	
+<t>
+
+The "extension_data" field of this ClientHello extension SHALL be empty. A TLS
+server which is not resuming a TLS session MAY respond with an extension of
+type "tack" in the ServerHello. The "extension_data" field of this
+ServerHello extension SHALL contain a "TackExtension", as defined below using
+the TLS presentation language from <xref target="RFC5246"/>.
+
+	</t>
+<figure><artwork>
+struct {
+   opaque public_key[64];
+   uint8  min_generation;
+   uint8  generation;
+   uint32 expiration;
+   opaque target_hash[32];
+   opaque signature[64];
+} Tack;   /* 166 bytes */
+
+struct {
+   Tack   tacks&lt;166...332&gt;   /* 1 or 2 tacks */
+   uint8  activation_flags;
+} TackExtension;   /* 169 or 335 bytes */
+</artwork>
+</figure>
+<t>
+<vspace blankLines="100" />	
+
+</t>
+</section>
+<section title="Explanation of TackExtension fields">
+
+<section title="Tack fields">
+<t>
+<list style="hanging">
+
+	<t hangText="public_key:">
+
+Specifies the public key of the TSK that has signed this tack. The field
+contains a pair of integers (x, y) representing a point on the elliptic curve
+P-256 defined in <xref target="FIPS186-3"/>. Each integer is encoded as a
+32-byte octet string using the Integer-to-Octet-String algorithm from <xref
+target="RFC6090"/>, and these strings are concatenated with the x value first.
+(NOTE: This is equivalent to an uncompressed subjectPublicKey from <xref
+target="RFC5480"/>, except that the initial 0x04 byte is omitted).
+
+	</t>	
+
+<t hangText="min_generation:"> 
+
+Publishes a min_generation for the tack's TSK.
+
+</t>
+
+<t hangText="generation:"> 
+
+Assigns each tack a generation. Generations less than the highest published
+min_generation for the tack's TSK are considered revoked.
+
+</t>
+
+<t hangText="expiration:"> 
+
+Specifies a time after which the tack is considered expired. The time is
+encoded as the number of minutes, excluding leap seconds, after midnight UTC,
+January 1 1970. </t>
+
+<t hangText="target_hash:"> 
+
+A hash of the TLS server's SubjectPublicKeyInfo <xref target="RFC5280"/> using
+the SHA256 algorithm from <xref target="FIPS180-2"/>. The SubjectPublicKeyInfo
+is typically conveyed as part of the server's X.509 end-entity certificate.
+
+</t>
+
+<t hangText="signature:">
+
+An ECDSA signature by the tack's TSK over the 8 byte ASCII string "tack_sig"
+followed by the contents of the tack prior to the "signature" field (i.e. the
+preceding 102 bytes). The field contains a pair of integers (r, s)
+representing an ECDSA signature as defined in <xref target="FIPS186-3"/>,
+using curve P-256 and SHA256. Each integer is encoded as a 32-byte octet
+string using the Integer-to-Octet-String algorithm from <xref
+target="RFC6090"/>, and these strings are concatenated with the r value first.
+
+</t>
+</list>
+</t>
+</section>
+
+<section title="TackExtension fields">
+<t>
+<list style="hanging">
+
+<t hangText="tacks:">
+
+This field provides the server's tack(s). It SHALL contain 1 or 2 tacks. </t>
+
+<t hangText="activation_flags:">
+
+This field contains "activation flags" for the extension's tacks. If the low
+order bit is set, the first tack is considered active. If the next lowest bit
+is set, the second tack is considered active. All other bits are reserved for
+future use and MUST be ignored by clients.
+
+
+</t> </list> </t>
+
+</section>
+
+</section> 
+</section>
+
+<section title="Client processing" anchor="clientproc">
+<section title="TACK pins">
+
+<t>
+
+A client SHALL have a local store of pins, and MAY have multiple stores. Each
+pin store consists of a map associating fully qualified DNS hostnames with
+either one or two sets of the following values:
+
+<list style="hanging">
+<t hangText="Initial time:">
+
+A timestamp noting when this pin was created.
+
+</t> 
+<t hangText="End time:">
+
+A timestamp determining the pin's "active period". If set to zero or a
+time in the past, the pin is "inactive". If set to a future time, the pin is
+"active" until that time.
+
+</t> 
+
+<t hangText="TSK public key (or hash):">
+
+A public key or a cryptographically-secure, second preimage-resistant hash of
+a public key.
+
+</t> 
+<t hangText="Min_generation:">
+
+A single byte used to detect revoked tacks. All pins within a pin store
+sharing the same TSK SHALL have the same min_generation.
+
+</t>
+
+</list>
+</t>
+<t>
+
+A hostname along with the above values comprises a "TACK pin". Thus, each
+store can hold up to two pins for a hostname (however, those two pins MUST
+reference different public keys). A pin "matches" a tack if they reference the
+same public key. A pin is "relevant" if its hostname equals the TLS server's
+hostname.
+
+</t>
+
+</section>
+
+<section title="High-level client processing">
+
+<t>
+
+A TACK client SHALL send the "tack" extension defined previously, and SHALL
+send the "server_name" extension from <xref target="RFC6066"/>. If not
+resuming a session, the server MAY respond with a TackExtension. Regardless of
+whether a TackExtension is returned, the client SHALL perform the following
+steps prior to using the connection:
+
+<list style="numbers">
+ <t>Check whether the TLS handshake is "valid".</t>
+ <t>For each pin store, do:
+<list style="letters">
+    <t>Check tack generations and update min_generations.</t>
+    <t>Determine the store's status.</t>
+    <t>Perform pin activation (optional).</t>
+</list>
+
+<vspace blankLines="100" />	
+
+</t>
+</list>
+
+These steps SHALL be performed in order. If there is any error, the client
+SHALL send a fatal error alert and close the connection, skipping the
+remaining steps (see <xref target="details"/> for details).
+
+</t>
+
+<t>Based on step 2B, each store will report one of three statuses for the
+connection: "confirmed", "contradicted", or "unpinned". A contradicted
+connection might indicate a network attack. How the client responds to
+confirmed or contradicted connections is left to other specifications and
+client policy (see <xref target="certver"/> for an example). If a client
+closes a connection due to a contradicting pin, the client SHALL send an
+"access_denied" alert. </t>
+
+</section> <section title="Client processing details" anchor="details">
+
+<section title="Check whether the TLS handshake is valid"
+anchor="wellformed">
+
+<t>
+
+A TLS handshake is "valid" if the following are true. Unless otherwise
+specified, if any of the following are false a "bad_certificate" fatal error
+alert SHALL be sent.
+
+<list style="numbers">
+
+<t>The handshake protocol negotiates a cryptographically secure ciphersuite
+and finishes succesfully.</t>
+
+<t>If a TackExtension is present then all length fields are correct and the
+tacks are "valid" (see below).</t>
+
+ <t>If there are two tacks, they have different "public_key" fields.</t>
+
+</list> 
+</t>
+
+<t>
+A tack is "valid" if:	
+<list style="numbers">
+
+ <t>"generation" is >= "min_generation".</t>
+
+ <t>"expiration" specifies a time in the future, otherwise the client SHALL
+send a fatal "certificate_expired" error alert.</t>
+
+ <t>"target_hash" is a correct hash of the SubjectPublicKeyInfo.</t>
+
+ <t>"signature" is a correct ECDSA signature.</t> </list> </t>
+
+</section>
+
+<section title="Check tack generations and update min_generations">
+
+<t>If a tack has matching pins in the pin store and a generation less than the
+stored min_generation, then that tack is revoked and the client SHALL send a
+fatal "certificate_revoked" error alert. If a tack has matching pins and a
+min_generation greater than the stored min_generation, the stored value SHALL
+be set to the tack's value.</t>
+
+</section> 
+
+<section title="Determine the store's status"> <t>
+
+If there is a relevant active pin without a matching tack, then the connection
+is "contradicted". If the connection is not contradicted and there is a
+relevant active pin with a matching tack, then the connection is "confirmed".
+Otherwise, the connection is "unpinned".
+
+</t>
+
+</section>
+
+<section title="Pin activation (optional)" anchor="creating">
+
+<t>
+
+The TLS connection MAY be used to create, delete, and activate pins. This "pin
+activation algorithm" is optional; a client MAY rely on an external source of
+pins. If the connection was "contradicted" by the previous processing step,
+then pin activation is skipped.
+
+</t>
+<t>
+
+The first step is to evaluate each of the (0, 1, or 2) relevant pins: <list
+style="numbers">
+
+<t>If a pin has no matching tack, its handling will depend on whether the pin
+is active. If active, the connection will have been contradicted, skipping pin
+activation. If inactive, the pin SHALL be deleted.</t>
+
+<t>If a pin has a matching tack, its handling will depend on whether the tack
+is active. If inactive, the pin is left unchanged. If active, the pin SHALL
+have its "end time" set based on the current, initial, and end times:
+
+<figure><artwork> 
+    end = current + MIN(30 days, current - initial)
+</artwork></figure> </t> </list> </t>
+
+<t> In sum: (1) deletes unmatched inactive pins, and (2) activates matched
+pins with active tacks. </t>
+
+<t>The remaining step is to add new inactive pins for any unmatched active
+tacks. Each new pin uses the server's hostname, the tack's public key and
+min_generation (unless the store has a higher min_generation for the public
+key), an "initial time" set to the current time, and an "end time" of zero.
+(Note that there are always sufficient empty "slots" in the pin store for
+adding new pins without exceeding two pins per hostname.)
+
+</t> 
+
+<t>The following tables summarize this behavior from the perspective of a pin.
+You can follow the lifecycle of a single pin from "New inactive pin" to
+"Delete pin".
+
+<vspace blankLines="100" />
+
+</t>
+<t>Relevant pin is active:</t>
+
+      <texttable>
+           <ttcol align='left'>Pin matches a tack</ttcol>
+           <ttcol align='left'>Tack is active</ttcol>
+           <ttcol align='left'>Result</ttcol>
+
+           <c>Yes</c>
+           <c>Yes</c>
+           <c>Extend activation period</c>
+
+           <c>Yes</c>
+           <c>No</c>
+           <c>-</c>
+
+           <c>No</c>
+           <c>-</c>
+           <c>(Connection contradicted)</c>
+
+       </texttable>
+
+<t>Relevant pin is inactive:</t>
+
+      <texttable>
+           <ttcol align='left'>Pin matches a tack</ttcol>
+           <ttcol align='left'>Tack is active</ttcol>
+           <ttcol align='left'>Result</ttcol>
+
+           <c>Yes</c>
+           <c>Yes</c>
+           <c>Activate pin</c>
+
+           <c>Yes</c>
+           <c>No</c>
+           <c>-</c>
+
+           <c>No</c>
+           <c>-</c>
+           <c>Delete pin</c>
+
+       </texttable>
+
+<t>Tack doesn't match any relevant pin:</t>
+
+      <texttable>
+           <ttcol align='left'>Unmatched tack is active</ttcol>
+           <ttcol align='left'>Result</ttcol>
+
+           <c>Yes</c>
+           <c>New inactive pin</c>
+
+           <c>No</c>
+           <c>-</c>
+
+       </texttable>
+
+
+</section>
+</section>	
+</section>
+
+<section title="Application protocols and TACK">
+<section title="Pin scope">
+
+<t> TACK pins are specific to a particular application protocol. In other
+words, a pin for HTTPS at "example.com" implies nothing about POP3 or SMTP at
+"example.com". </t>
+
+</section>
+
+<section title="TLS negotiation">
+
+<t>Some application protocols negotiate TLS as an optional feature (e.g. SMTP
+using STARTTLS <xref target="RFC3207"/>). If such a server does not negotiate
+TLS and there are relevant active pins, then the connection is contradicted by
+the pin. If a client is performing pin activation for a pin store and the
+server does not negotiate TLS, then any relevant, inactive pins SHALL be
+deleted. Note that these steps are taken despite the absence of a TLS
+connection.</t>
+
+</section>
+
+<section title="Certificate verification" anchor="certver">
+
+ <t>
+
+A TACK client MAY choose to perform some form of certificate verification in
+addition to TACK processing. When combining certificate verification and TACK
+processing, the TACK processing described in <xref target="clientproc"/> SHALL
+be followed, with the exception that TACK processing MAY be terminated early
+(or skipped) if some fatal certificate error is discovered.
+
+</t>
+<t>
+
+If TACK processing and certificate verification both complete without a fatal
+error, then client behavior is left to other specifications and client policy.
+An example client policy would be to allow the connection to proceed only if
+it passes certificate verification and is not contradicted by a pin.
+
+</t>
+
+</section>
+</section>
+
+<section title="Fingerprints">	
+<t>
+
+A "key fingerprint" may be used to represent a TSK public key to users in a
+form that is easy to compare and transcribe. A key fingerprint consists of the
+first 25 characters from the base32 encoding of SHA256(public_key), split into
+5 groups of 5 characters separated by periods. Base32 encoding is as specified
+in <xref target="RFC4648"/>, except lowercase is used. Examples:
+
+</t>
+<t>
+<list>
+	<t>g5p5x.ov4vi.dgsjv.wxctt.c5iul</t>
+	<t>quxiz.kpldu.uuedc.j5znm.7mqst</t>
+	<t>e25zs.cth7k.tscmp.5hxdp.wf47j</t>
+</list>
+</t>
+
+
+</section>
+
+<section title="Advice"> 
+<section title="For server operators" anchor="servadvice">
+<t>
+<list style="hanging">
+
+<t hangText="Key reuse:">
+
+All servers that are pinned to a single TSK are able to impersonate each
+other's hostnames, since clients will perceive their tacks as equivalent.
+Thus, TSKs SHOULD NOT be reused with different hostnames unless these
+hostnames are closely related. Examples where it would be safe to reuse a TSK
+are hostnames aliased to the same host, hosts sharing the same TLS key, or
+hostnames for a group of near-identical servers.
+
+</t>
+
+<t hangText="Aliases:">
+
+A TLS server might be referenced by multiple hostnames. Clients might pin any
+of these hostnames. Server operators should be careful when using DNS aliases
+that hostnames are not pinned inadvertently.
+
+</t>
+
+<t hangText="Generations:">
+
+To revoke older generations of tacks, the server operator SHOULD first provide
+all servers with a new generation of tacks, and only then provide servers with
+new tacks containing the new min_generation. Otherwise, a client might receive
+a min_generation update from one server but then try to contact an
+older-generation server which has not yet been updated.</t>
+
+<t hangText="Tack expiration:">
+
+When TACK is used in conjunction with certificates it is recommended to set
+the tack expiration equal to the end-entity certificate's expiration (or a
+later date), so that the tack and certificate can both be replaced at the same
+time. Alternatively, short-lived tacks MAY be used so that a compromised TLS
+private key has limited value to an attacker.</t>
+
+<t hangText="Nonrevokable tacks">
+
+A tack with generation 255 cannot be revoked. Such tacks MAY be used to
+minimize the risk that a compromised TSK private key could be used to affect
+site availability.
+
+</t>
+
+<t hangText="Tack/pin activation:">
+
+Tacks should only be activated once all TLS servers sharing the same hostname
+have a tack. Otherwise, a client may activate a pin by contacting one server,
+then contact a different server at the same hostname that does not yet have a
+tack. </t>
+
+<t hangText="Tack/pin deactivation:">If all servers at a hostname deactivate
+their tacks (by clearing the activation flags), all existing pins for the
+hostname will eventually become inactive. The tacks can be removed after a
+time interval equal to the maximum active period of any affected pins (30 days
+at most).
+
+</t>
+
+<t hangText="Tack/pin overlap:">When publishing overlapping tacks, the old and
+new tacks SHOULD be active simultaneously for at least 60 days. This ensures
+that any pin activation client who is contacting the server at intervals of 30
+days or less will not have its activation periods interrupted. Example
+process: activate new tacks; wait 60 days; deactivate old
+tacks; wait 30 days; remove old tacks. </t>
+
+</list>
+</t>
+</section> 
+<section title="For client implementers">
+<t>
+<list style="hanging">
+<t hangText="Sharing pin information:">
+
+It is possible for a client to maintain a pin store based entirely on its own
+TLS connections. However, such a client runs the risk of creating incorrect
+pins, failing to keep its pins active, or failing to receive min_generation
+updates. Clients are advised to make use of 3rd-party trust infrastructure so
+that pin data can be aggregated and shared. This will require additional
+protocols outside the scope of this document.
+
+</t> <t hangText="Clock synchronization:">
+
+A client SHOULD take measures to prevent tacks from being erroneously rejected
+as expired due to an inaccurate client clock. Such methods MAY include using
+time synchronization protocols such as NTP <xref target="RFC5905"/>, or
+accepting seemingly-expired tacks as valid if they expired less than T
+minutes ago, where T is a "tolerance bound" set to the client's maximum
+expected clock error.
+
+</t>
+
+</list>
+</t>
+</section> 
+</section>
+
+        <section title="Security considerations" anchor="security">
+<section title="For server operators">	
+        <t>
+
+All servers pinned to the same TSK can impersonate each other (see <xref
+target="servadvice"/>). Think carefully about this risk if using the same TSK
+for multiple hostnames.
+
+</t> <t>
+
+Make backup copies of the TSK private key and keep all copies in secure
+locations where they can't be compromised.
+
+</t>
+<t>
+
+A TSK private key MUST NOT be used to perform any non-TACK cryptographic
+operations. For example, using a TSK for email encryption, code-signing, or
+any other purpose MUST NOT be done.
+
+</t> <t>
+
+HTTP cookies <xref target="RFC6265"/> set by a pinned host can be stolen by a
+network attacker who can forge web and DNS responses so as to cause a client
+to send the cookies to a phony subdomain of the pinned host. To prevent this,
+TACK HTTPS servers SHOULD set the "secure" attribute and omit the "domain"
+attribute on all security-sensitive cookies, such as session cookies. These
+settings tell the browser that the cookie should only be presented back to the
+originating host (not its subdomains), and should only be sent over HTTPS (not
+HTTP) <xref target="RFC6265"/>.
+
+</t>
+</section>
+
+<section title="For client implementers"  anchor="security_client">
+
+<t>
+
+A TACK pin store may contain private details of the client's connection
+history. An attacker may be able to access this information by hacking or
+stealing the client. Some information about the client's connection history
+could also be gleaned by observing whether the client accepts or rejects
+connections to phony TLS servers without correct tacks. To mitigate these
+risks, a TACK client SHOULD allow the user to edit or clear the pin store.
+
+</t>
+
+<t>
+
+Aside from possibly rejecting TLS connections, clients SHOULD NOT take any
+actions which would reveal to a network observer the state of the client's pin
+store, as this would allow an attacker to know in advance whether a
+"man-in-the-middle" attack on a particular TLS connection will succeed or be
+detected.
+
+</t>
+
+<t>
+
+An attacker may attempt to flood a client with spurious tacks for different
+hostnames, causing the client to delete old pins to make space for new ones.
+To defend against this, clients SHOULD NOT delete active pins to make space
+for new pins. Clients instead SHOULD delete inactive pins. If there are no
+inactive pins to delete, then the pin store is full and there is no space for
+new pins. To select an inactive pin for deletion, the client SHOULD delete the
+pin with the oldest "end time".
+
+</t>
+</section>
+
+<section title="Note on algorithm agility" anchor="future">
+
+<t>
+
+If the need arises for tacks using different cryptographic algorithms (e.g.,
+if SHA256 or ECDSA are shown to be weak), a "v2" version of tacks could be
+defined, requiring assignment of a new TLS Extension number. Tacks as defined
+in this document would then be known as "v1" tacks.
+
+</t>
+</section>
+
+        </section>
+
+	<section title="IANA considerations">
+	<section title="New entry for the TLS ExtensionType Registry">
+	<t>
+
+IANA is requested to add an entry to the existing TLS ExtensionType registry,
+defined in <xref target="RFC5246"/>, for "tack"(TBD) as defined in this
+document.
+
+ </t>
+</section>
+
+</section>
+<section title="Acknowledgements">
+<t>
+
+Valuable feedback has been provided by Adam Langley, Chris Palmer, Nate
+Lawson, and Joseph Bonneau.
+
+</t> </section>
+
+    </middle>
+
+    <back>
+        <references title='Normative references'>
+	
+<reference
+  anchor="FIPS180-2"
+  target="http://csrc.nist.gov/publications/fips/fips180-2/fips180-2.pdf">
+  <front>
+    <title>Secure Hash Standard</title>
+    <author>
+      <organization>National Institute of Standards and Technology</organization>
+    </author>
+    <date month="August" year="2002" />
+  </front>
+  <seriesInfo name="FIPS" value="PUB 180-2" />
+</reference>
+
+<reference 
+	anchor="FIPS186-3" 
+	target="http://csrc.nist.gov/publications/fips/fips186-3/fips_186-3.pdf">
+<front>
+<title>Digital Signature Standard</title>
+<author>
+<organization>National Institute of Standards and Technology</organization>
+</author>
+<date month="June" year="2009" />
+</front>
+<seriesInfo name="FIPS" value="PUB 186-3" />
+</reference>
+
+			<?rfc include="bib/reference.RFC.2119.xml"?>
+			<?rfc include="bib/reference.RFC.3207.xml"?>
+			<?rfc include="bib/reference.RFC.4648.xml"?>
+			<?rfc include="bib/reference.RFC.5246.xml"?>
+			<?rfc include="bib/reference.RFC.5280.xml"?>			
+			<?rfc include="bib/reference.RFC.5480.xml"?>
+			<?rfc include="bib/reference.RFC.5905.xml"?>
+			<?rfc include="bib/reference.RFC.6066.xml"?>			
+			<?rfc include="bib/reference.RFC.6090.xml"?>			
+			<?rfc include="bib/reference.RFC.6265.xml"?>
+	</references>
+</back>
+
+</rfc>
